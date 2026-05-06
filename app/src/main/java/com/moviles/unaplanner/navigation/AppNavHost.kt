@@ -47,7 +47,7 @@ fun AppNavHost() {
                 },
                 onNavigateToHome = {
                     // Así, si el usuario le da "atrás" desde Students, no vuelve al Login.
-                    navController.navigate(AppDestinations.STUDENTS) {
+                    navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.WELCOME) { inclusive = true }
                     }
                 }
