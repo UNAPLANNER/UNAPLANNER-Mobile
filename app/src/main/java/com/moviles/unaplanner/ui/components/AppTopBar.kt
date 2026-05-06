@@ -1,69 +1,102 @@
 package com.moviles.unaplanner.ui.components
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.moviles.unaplanner.ui.theme.UNAPLANNERTheme
+import androidx.compose.ui.unit.sp
+import com.moviles.unaplanner.ui.theme.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(
     title: String,
     subtitle: String? = null,
+    onLogout: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    TopAppBar(
-        modifier = modifier,
-        colors = TopAppBarDefaults.topAppBarColors(
-            // Usa el color primario definido en Theme.kt (NavyBlue)
-            containerColor = MaterialTheme.colorScheme.primary,
-            // Asegura que los títulos usen el color de contraste (TextOnDark)
-            titleContentColor = MaterialTheme.colorScheme.onPrimary
-        ),
-        title = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    val gradientBrush = Brush.verticalGradient(
+        colors = listOf(HeaderGradientStart, HeaderGradientEnd)
+    )
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(gradientBrush)
+            .statusBarsPadding() // Respeta la barra de estado
+            .padding(horizontal = 24.dp, vertical = 20.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    // Usa correctamente displayLarge de Type.kt
-                    style = MaterialTheme.typography.displayLarge,
-                    // Usamos onPrimary en lugar de importar el color fijo
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = Color.White,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 34.sp
                 )
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
-                        // Usa correctamente titleMedium de Type.kt
-                        style = MaterialTheme.typography.titleMedium,
-                        // Aplicamos transparencia al color onPrimary para el subtítulo
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 14.sp
                     )
                 }
             }
+
+            if (onLogout != null) {
+                Box {
+                    IconButton(
+                        onClick = { showMenu = true },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "Usuario",
+                            tint = Color.White,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Cerrar Sesión") },
+                            onClick = {
+                                showMenu = false
+                                onLogout()
+                            }
+                        )
+                    }
+                }
+            }
         }
-    )
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun AppTopBarPreview() {
-    // Es importante envolver la Preview en tu tema para ver los colores reales
     UNAPLANNERTheme {
         AppTopBar(
             title = "Calendario",
-            subtitle = "Marzo 2026"
+            subtitle = "Marzo 2026",
+            onLogout = {}
         )
     }
 }
