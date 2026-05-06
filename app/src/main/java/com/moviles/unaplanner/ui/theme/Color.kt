@@ -7,6 +7,10 @@ val NavyBlue       = Color(0xFF1A2B5F)   // Header, NavBar, selected day
 val NavyBlueLight  = Color(0xFF2A3F7F)   // Light navy variant (hover / ripple)
 val NavyBlueDark   = Color(0xFF111C3E)   // Dark navy variant
 
+// === Gradient Header colors ===
+val HeaderGradientStart = Color(0xFF2E4A8A)
+val HeaderGradientEnd   = Color(0xFF1A2D5A)
+
 // === Main accent: Red ===
 val CrimsonRed     = Color(0xFFC0392B)   // "Add activity" button, active icon, Exam dot
 val CrimsonRedLight= Color(0xFFE05A4A)   // Light variant
@@ -33,4 +37,3 @@ val TextOnRed       = Color(0xFFFFFFFF)  // Text on red button
 val Divider         = Color(0xFFE2E8F0)  // Divider lines
 val AppDivider = Color(0xFFE2E8F0)
 val Disabled        = Color(0xFFB0B7C3)  // Disabled elements
-

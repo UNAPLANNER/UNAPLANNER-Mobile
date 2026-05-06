@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import com.moviles.unaplanner.ui.screens.login.LoginScreen
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.moviles.unaplanner.ui.screens.MainScreen
 import com.moviles.unaplanner.ui.screens.login.WelcomeScreen
 
 @Composable
@@ -46,9 +47,19 @@ fun AppNavHost() {
                     navController.popBackStack()
                 },
                 onNavigateToHome = {
-                    // Así, si el usuario le da "atrás" desde Students, no vuelve al Login.
-                    navController.navigate(AppDestinations.WELCOME) {
+                    navController.navigate(AppDestinations.MAIN) {
                         popUpTo(AppDestinations.WELCOME) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // --- PANTALLA PRINCIPAL (CON BOTTOM NAV) ---
+        composable(route = AppDestinations.MAIN) {
+            MainScreen(
+                onLogout = {
+                    navController.navigate(AppDestinations.WELCOME) {
+                        popUpTo(AppDestinations.MAIN) { inclusive = true }
                     }
                 }
             )

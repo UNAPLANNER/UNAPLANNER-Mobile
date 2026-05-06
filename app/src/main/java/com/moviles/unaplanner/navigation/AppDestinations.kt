@@ -1,8 +1,15 @@
 package com.moviles.unaplanner.navigation
 
 object AppDestinations {
-    const val WELCOME = "welcomes"
+    const val WELCOME = "welcome"
     const val LOGIN = "login"
-    const val STUDENTS = "students"
     const val REGISTER = "register"
+    const val MAIN = "main"
+    
+    // Sub-destinations for BottomNav
+    const val INICIO = "inicio"
+    const val CALENDAR = "calendar"
+    const val MALLA = "malla"
+    const val NOTES = "notes"
+    const val CONTACTS = "contacts"
 }
