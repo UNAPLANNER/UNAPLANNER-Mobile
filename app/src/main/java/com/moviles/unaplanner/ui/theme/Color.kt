@@ -37,3 +37,5 @@ val TextOnRed       = Color(0xFFFFFFFF)  // Text on red button
 val Divider         = Color(0xFFE2E8F0)  // Divider lines
 val AppDivider = Color(0xFFE2E8F0)
 val Disabled        = Color(0xFFB0B7C3)  // Disabled elements
+
+//prueba
