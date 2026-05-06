@@ -22,7 +22,7 @@ private val DarkColorScheme = darkColorScheme(
     onSecondary = TextOnRed,
     onBackground = TextOnDark,
     onSurface = TextOnDark,
-    outline = Divider
+    outline = AppDivider
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -35,7 +35,7 @@ private val LightColorScheme = lightColorScheme(
     onSecondary = TextOnRed,
     onBackground = TextPrimary,
     onSurface = TextPrimary,
-    outline = Divider
+    outline = AppDivider
 
 )
 
@@ -44,6 +44,7 @@ fun UNAPLANNERTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
+
 ) {
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {

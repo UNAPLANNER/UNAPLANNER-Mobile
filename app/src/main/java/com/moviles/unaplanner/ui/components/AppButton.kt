@@ -19,18 +19,21 @@ fun AppButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    // Especificamos la ruta completa para evitar el "Overload resolution ambiguity"
+    enabled: Boolean = true,
     containerColor: androidx.compose.ui.graphics.Color = CrimsonRed
 ) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp),
         shape = RoundedCornerShape(18.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
-            contentColor = TextOnRed
+            contentColor = TextOnRed,
+            disabledContainerColor = containerColor.copy(alpha = 0.5f),
+            disabledContentColor = TextOnRed.copy(alpha = 0.5f)
         ),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
     ) {
@@ -41,5 +44,4 @@ fun AppButton(
         )
     }
 }
-
 

@@ -1,17 +1,28 @@
 package com.moviles.unaplanner.ui.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moviles.unaplanner.ui.theme.AppDivider
+import com.moviles.unaplanner.ui.theme.NavyBlue
+import com.moviles.unaplanner.ui.theme.SurfaceLight
 import com.moviles.unaplanner.ui.theme.TextPrimary
 import com.moviles.unaplanner.ui.theme.TextSecondary
+
 
 @Composable
 fun AppTextField(
@@ -21,38 +32,82 @@ fun AppTextField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    visualTransformation: VisualTransformation = VisualTransformation.None
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    readOnly: Boolean = false,
+    onClick: (() -> Unit)? = null
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
+
+        // Label
         Text(
             text = label,
             modifier = Modifier.padding(bottom = 8.dp),
-            style = MaterialTheme.typography.labelMedium,
-            color = TextPrimary
-        )
-
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            placeholder = {
-                Text(placeholder, color = TextSecondary)
-            },
-            shape = RoundedCornerShape(16.dp),
-            keyboardOptions = keyboardOptions,
-            visualTransformation = visualTransformation,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFE5E7EB),
-                unfocusedBorderColor = Color(0xFFE5E7EB),
-                cursorColor = TextPrimary,
-                focusedTextColor = TextPrimary,
-                unfocusedTextColor = TextPrimary
+            style = TextStyle(
+                color = NavyBlue,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
             )
         )
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = readOnly,
+                singleLine = true,
+                enabled = true,
+
+                textStyle = TextStyle(color = Color.Red),
+                //textStyle = TextStyle(fontSize = 16.sp),
+
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        color = TextSecondary
+                    )
+                },
+
+                shape = RoundedCornerShape(16.dp),
+                keyboardOptions = keyboardOptions,
+                visualTransformation = visualTransformation,
+
+
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    disabledTextColor = Color.Black,
+                    errorTextColor = Color.Black,
+
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    disabledContainerColor = Color.White,
+
+                    cursorColor = NavyBlue,
+
+                    focusedBorderColor = NavyBlue,
+                    unfocusedBorderColor = AppDivider,
+                    disabledBorderColor = AppDivider
+                )
+            )
+
+
+            if (onClick != null) {
+                Spacer(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            onClick()
+                        }
+                )
+            }
+        }
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun AppTextFieldPreview() {

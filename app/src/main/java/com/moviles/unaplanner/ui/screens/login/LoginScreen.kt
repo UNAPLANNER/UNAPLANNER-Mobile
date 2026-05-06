@@ -26,27 +26,45 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.unaplanner.ui.components.AppButton
 import com.moviles.unaplanner.ui.components.AppTextField
 import com.moviles.unaplanner.ui.theme.*
 import kotlinx.coroutines.launch
 
+
 @Composable
 fun LoginScreen(
+    viewModel: LoginViewModel = viewModel(),
     onNavigateToRegister: () -> Unit,
     onBack: () -> Unit,
-    onLoginClick: () -> Unit
+    onNavigateToHome: () -> Unit // Cambiamos el click genérico por la navegación al Home
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+
+
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is LoginUiState.Success -> {
+                onNavigateToHome()
+            }
+            is LoginUiState.Error -> {
+                snackbarHostState.showSnackbar((uiState as LoginUiState.Error).message)
+                viewModel.resetError()
+            }
+            else -> Unit
+        }
+    }
 
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
                 Snackbar(
-                    containerColor = CrimsonRed,
+                    containerColor = Color(0xFFC62828), // CrimsonRed
                     contentColor = Color.White,
                     snackbarData = data,
                     shape = RoundedCornerShape(18.dp)
@@ -58,7 +76,7 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(BackgroundLight)
+                .background(Color.White)
                 .verticalScroll(rememberScrollState())
         ) {
             LoginHeader(onBack = onBack)
@@ -76,12 +94,12 @@ fun LoginScreen(
 
                 Text(
                     text = "¿Olvidaste tu contraseña?",
-                    color = CrimsonRed,
+                    color = Color(0xFFC62828),
                     fontSize = 12.sp,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
-                        .clickable { /* Futura implementación */ },
+                        .clickable {  },
                     textAlign = TextAlign.End
                 )
 
@@ -94,10 +112,18 @@ fun LoginScreen(
                                 snackbarHostState.showSnackbar("Por favor completa los campos")
                             }
                         } else {
-                            onLoginClick()
+
+                            viewModel.login(email, password)
                         }
-                    }
+                    },
+                    enabled = uiState !is LoginUiState.Loading
                 )
+                if (uiState is LoginUiState.Loading) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Color(0xFFC62828))
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -107,18 +133,18 @@ fun LoginScreen(
     }
 }
 
-// --- COMPONENTES POR SEPARADO PARA LA ADAPTACIÓN DEL LOGIN ---
+// --- COMPONENTES ---
+
 @Composable
 private fun LoginHeader(onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(220.dp) // Altura del encabezado azul
-            .background(NavyBlue)
+            .height(220.dp)
+            .background(Color(0xFF1A237E)) // NavyBlue
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
         Column {
-            // Botón Volver con icono pequeño como en tu imagen
             Row(
                 modifier = Modifier
                     .padding(top = 8.dp)
@@ -140,7 +166,6 @@ private fun LoginHeader(onBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Fila con Texto a la izquierda y Logo a la derecha
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -162,7 +187,6 @@ private fun LoginHeader(onBack: () -> Unit) {
                     )
                 }
 
-                // El Logo
                 Image(
                     painter = painterResource(id = com.moviles.unaplanner.R.drawable.logo_circular),
                     contentDescription = "Logo UNAPLANNER",
@@ -177,6 +201,20 @@ private fun LoginHeader(onBack: () -> Unit) {
 }
 
 @Composable
+fun LoginButton(
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    AppButton(
+        text = "Iniciar Sesión",
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.fillMaxWidth(),
+        containerColor = Color(0xFFC62828)
+    )
+}
+@Composable
 fun LoginFooter(onNavigateToRegister: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
         Text("¿No tienes cuenta? ", color = TextSecondary)
@@ -188,8 +226,6 @@ fun LoginFooter(onNavigateToRegister: () -> Unit) {
         )
     }
 }
-
-
 @Composable
 fun EmailTextField(
     value: String,
@@ -205,7 +241,6 @@ fun EmailTextField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
     )
 }
-
 @Composable
 fun PasswordTextField(
     value: String,
@@ -222,26 +257,12 @@ fun PasswordTextField(
         visualTransformation = PasswordVisualTransformation()
     )
 }
-
-@Composable
-fun LoginButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    AppButton(
-        text = "Iniciar Sesión",
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        containerColor = CrimsonRed
-    )
-}
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun LoginScreenPreview() {
     LoginScreen(
         onNavigateToRegister = {},
         onBack = {},
-        onLoginClick = {}
+        onNavigateToHome = {}
     )
 }

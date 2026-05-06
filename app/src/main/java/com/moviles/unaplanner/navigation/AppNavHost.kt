@@ -43,9 +43,10 @@ fun AppNavHost() {
                     navController.navigate(AppDestinations.REGISTER)
                 },
                 onBack = {
-                    navController.popBackStack() // Vuelve a Welcome
+                    navController.popBackStack()
                 },
-                onLoginClick = {
+                onNavigateToHome = {
+                    // Así, si el usuario le da "atrás" desde Students, no vuelve al Login.
                     navController.navigate(AppDestinations.STUDENTS) {
                         popUpTo(AppDestinations.WELCOME) { inclusive = true }
                     }
@@ -54,15 +55,14 @@ fun AppNavHost() {
         }
 
         // --- PANTALLA DE REGISTRO ---
-        composable(route = AppDestinations.REGISTER) {
-            // Aquí llamarías a tu RegisterScreen pasándole el navController.popBackStack() para el "volver"
-        }
+        /*composable(route = AppDestinations.REGISTER) {
+            RegisterScreen(
+                onBack = { navController.popBackStack() },
+                onRegisterSuccess = {
+                    navController.navigate(AppDestinations.LOGIN)
+                }
+            )
+        }*/
 
-        // --- PANTALLA DE ESTUDIANTES / SALONES ---
-        composable(route = AppDestinations.STUDENTS) {
-            // Tu pantalla de laboratorios previos (Laboratorio 4/5)
-        }
     }
 }
-
-
