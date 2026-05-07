@@ -3,6 +3,7 @@ package com.moviles.unaplanner.data.remote
 import com.moviles.unaplanner.core.AppConstants
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.data.remote.model.LoginRequest
+import com.moviles.unaplanner.data.remote.model.NotesResponse
 import com.moviles.unaplanner.data.remote.model.UserDto
 
 import retrofit2.Response
@@ -19,4 +20,6 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.CAMPUS_CONTACTS)
     suspend fun getCampusContacts(): Response<List<CampusContact>>
 
+    @GET(AppConstants.Api.Paths.STUDENT_NOTES)
+    suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>
 }
