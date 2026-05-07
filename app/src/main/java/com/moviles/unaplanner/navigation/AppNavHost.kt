@@ -1,20 +1,15 @@
 package com.moviles.unaplanner.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.moviles.unaplanner.ui.screens.login.LoginScreen
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.moviles.unaplanner.ui.screens.MainScreen
 import com.moviles.unaplanner.ui.screens.login.WelcomeScreen
+import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 
 @Composable
 fun AppNavHost() {
@@ -22,7 +17,7 @@ fun AppNavHost() {
 
     NavHost(
         navController = navController,
-        startDestination = AppDestinations.WELCOME,
+        startDestination = AppDestinations.LOGIN,
         modifier = Modifier.fillMaxSize()
     ) {
         // --- PANTALLA DE INICIO (WELCOME) ---
@@ -47,14 +42,21 @@ fun AppNavHost() {
                     navController.popBackStack()
                 },
                 onNavigateToHome = {
+                    // Logic to distinguish admin vs student could be here
+                    // For now, it goes to MAIN (student)
                     navController.navigate(AppDestinations.MAIN) {
+                        popUpTo(AppDestinations.WELCOME) { inclusive = true }
+                    }
+                },
+                onNavigateToAdminHome = {
+                    navController.navigate(AppDestinations.ADMIN_PROFILE) {
                         popUpTo(AppDestinations.WELCOME) { inclusive = true }
                     }
                 }
             )
         }
 
-        // --- PANTALLA PRINCIPAL (CON BOTTOM NAV) ---
+        // --- PANTALLA PRINCIPAL ESTUDIANTE (CON BOTTOM NAV) ---
         composable(route = AppDestinations.MAIN) {
             MainScreen(
                 onLogout = {
@@ -65,15 +67,17 @@ fun AppNavHost() {
             )
         }
 
-        // --- PANTALLA DE REGISTRO ---
-        /*composable(route = AppDestinations.REGISTER) {
-            RegisterScreen(
-                onBack = { navController.popBackStack() },
-                onRegisterSuccess = {
-                    navController.navigate(AppDestinations.LOGIN)
+        // --- PANTALLA DE PERFIL DE ADMIN ---
+        composable(route = AppDestinations.ADMIN_PROFILE) {
+            AdminProfileScreen(
+                onBackClick = { navController.popBackStack() },
+                onLogoutClick = {
+                    navController.navigate(AppDestinations.WELCOME) {
+                        popUpTo(AppDestinations.ADMIN_PROFILE) { inclusive = true }
+                    }
                 }
             )
-        }*/
+        }
 
     }
 }

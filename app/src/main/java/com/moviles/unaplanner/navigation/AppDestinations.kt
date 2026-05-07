@@ -12,4 +12,7 @@ object AppDestinations {
     const val MALLA = "malla"
     const val NOTES = "notes"
     const val CONTACTS = "contacts"
+
+    // Admin
+    const val ADMIN_PROFILE = "admin_profile"
 }

@@ -6,11 +6,20 @@ data class LoginRequest(
     val password: String
 )
 
-/** Logged-in user; [id] is a Guid string from the API. */
+/** Logged-in user; [id] is an Int from the API. */
 data class UserDto(
-    @SerializedName("UserId")
+    @SerializedName("userId")
     val id: Int,
-    val name: String,
+    @SerializedName("email")
     val email: String,
-    val token: String? = null
+    @SerializedName("fullName")
+    val fullName: String? = null,
+    @SerializedName("phone")
+    val phone: String? = null,
+    @SerializedName("department")
+    val department: String? = null,
+    @SerializedName("token")
+    val token: String? = null,
+    @SerializedName("role")
+    val role: String? = null
 )

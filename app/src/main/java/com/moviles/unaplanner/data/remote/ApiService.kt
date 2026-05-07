@@ -1,16 +1,9 @@
 package com.moviles.unaplanner.data.remote
 
 import com.moviles.unaplanner.core.AppConstants
-import com.moviles.unaplanner.data.remote.model.CampusContact
-import com.moviles.unaplanner.data.remote.model.LoginRequest
-import com.moviles.unaplanner.data.remote.model.UserDto
-
+import com.moviles.unaplanner.data.remote.model.*
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.Path
-import retrofit2.http.POST
-
+import retrofit2.http.*
 
 interface ApiService {
     @POST(AppConstants.Api.Paths.AUTH_LOGIN)
@@ -19,4 +12,12 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.CAMPUS_CONTACTS)
     suspend fun getCampusContacts(): Response<List<CampusContact>>
 
+    @GET("api/profile/{id}")
+    suspend fun getProfile(@Path("id") id: Int): Response<UserDto>
+
+    @PUT("api/profile/{id}")
+    suspend fun updateProfile(@Path("id") id: Int, @Body request: UpdateProfileRequest): Response<UserDto>
+
+    @POST("api/profile/{id}/change-password")
+    suspend fun changePassword(@Path("id") id: Int, @Body request: ChangePasswordRequest): Response<Unit>
 }

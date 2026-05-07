@@ -10,7 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,18 +27,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.moviles.unaplanner.R
 import com.moviles.unaplanner.ui.components.AppButton
 import com.moviles.unaplanner.ui.components.AppTextField
 import com.moviles.unaplanner.ui.theme.*
 import kotlinx.coroutines.launch
 
-
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel = viewModel(),
     onNavigateToRegister: () -> Unit,
     onBack: () -> Unit,
-    onNavigateToHome: () -> Unit // Cambiamos el click genérico por la navegación al Home
+    onNavigateToHome: () -> Unit,
+    onNavigateToAdminHome: () -> Unit,
+    viewModel: LoginViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -46,11 +47,15 @@ fun LoginScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-
     LaunchedEffect(uiState) {
         when (uiState) {
             is LoginUiState.Success -> {
-                onNavigateToHome()
+                val user = (uiState as LoginUiState.Success).user
+                if (user.role?.lowercase() == "admin") {
+                    onNavigateToAdminHome()
+                } else {
+                    onNavigateToHome()
+                }
             }
             is LoginUiState.Error -> {
                 snackbarHostState.showSnackbar((uiState as LoginUiState.Error).message)
@@ -64,7 +69,7 @@ fun LoginScreen(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
                 Snackbar(
-                    containerColor = Color(0xFFC62828), // CrimsonRed
+                    containerColor = Color(0xFFC62828),
                     contentColor = Color.White,
                     snackbarData = data,
                     shape = RoundedCornerShape(18.dp)
@@ -112,12 +117,12 @@ fun LoginScreen(
                                 snackbarHostState.showSnackbar("Por favor completa los campos")
                             }
                         } else {
-
                             viewModel.login(email, password)
                         }
                     },
                     enabled = uiState !is LoginUiState.Loading
                 )
+                
                 if (uiState is LoginUiState.Loading) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -133,15 +138,13 @@ fun LoginScreen(
     }
 }
 
-// --- COMPONENTES ---
-
 @Composable
 private fun LoginHeader(onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(220.dp)
-            .background(Color(0xFF1A237E)) // NavyBlue
+            .background(NavyBlue)
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
         Column {
@@ -152,7 +155,7 @@ private fun LoginHeader(onBack: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.KeyboardArrowLeft,
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(20.dp)
@@ -188,7 +191,7 @@ private fun LoginHeader(onBack: () -> Unit) {
                 }
 
                 Image(
-                    painter = painterResource(id = com.moviles.unaplanner.R.drawable.logo_circular),
+                    painter = painterResource(id = R.drawable.logo_circular),
                     contentDescription = "Logo UNAPLANNER",
                     modifier = Modifier
                         .size(100.dp)
@@ -203,8 +206,8 @@ private fun LoginHeader(onBack: () -> Unit) {
 @Composable
 fun LoginButton(
     onClick: () -> Unit,
-    enabled: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     AppButton(
         text = "Iniciar Sesión",
@@ -214,6 +217,7 @@ fun LoginButton(
         containerColor = Color(0xFFC62828)
     )
 }
+
 @Composable
 fun LoginFooter(onNavigateToRegister: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
@@ -226,6 +230,7 @@ fun LoginFooter(onNavigateToRegister: () -> Unit) {
         )
     }
 }
+
 @Composable
 fun EmailTextField(
     value: String,
@@ -241,6 +246,7 @@ fun EmailTextField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
     )
 }
+
 @Composable
 fun PasswordTextField(
     value: String,
@@ -257,12 +263,14 @@ fun PasswordTextField(
         visualTransformation = PasswordVisualTransformation()
     )
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun LoginScreenPreview() {
     LoginScreen(
         onNavigateToRegister = {},
         onBack = {},
-        onNavigateToHome = {}
+        onNavigateToHome = {},
+        onNavigateToAdminHome = {}
     )
 }
