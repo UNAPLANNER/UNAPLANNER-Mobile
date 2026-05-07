@@ -1,4 +1,4 @@
-package com.moviles.unaplanner.ui.screens.login
+package com.moviles.unaplanner.ui.screens.notes.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.moviles.unaplanner.R
 import com.moviles.unaplanner.ui.components.AppButton
 import com.moviles.unaplanner.ui.components.AppTextField
 import com.moviles.unaplanner.ui.theme.*
@@ -188,7 +189,7 @@ private fun LoginHeader(onBack: () -> Unit) {
                 }
 
                 Image(
-                    painter = painterResource(id = com.moviles.unaplanner.R.drawable.logo_circular),
+                    painter = painterResource(id = R.drawable.logo_circular),
                     contentDescription = "Logo UNAPLANNER",
                     modifier = Modifier
                         .size(100.dp)
