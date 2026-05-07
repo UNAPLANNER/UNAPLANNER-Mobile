@@ -20,9 +20,11 @@ import com.moviles.unaplanner.ui.screens.notes.NotesPlaceholderScreen
 
 @Composable
 fun MainScreen(
-    onLogout: () -> Unit
+    initialIndex: Int = 0,
+    onLogout: () -> Unit,
+    onNavigateToContactDetail: (Int) -> Unit
 ) {
-    var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+    var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
 
     val titles = listOf("Inicio", "Calendario", "Malla Curricular", "Notas", "Directorio")
     val subtitles = listOf(
@@ -58,7 +60,7 @@ fun MainScreen(
                 1 -> CalendarPlaceholderScreen()
                 2 -> MallaPlaceholderScreen()
                 3 -> NotesPlaceholderScreen()
-                4 -> CampusContactsListScreen()
+                4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
             }
         }
     }
