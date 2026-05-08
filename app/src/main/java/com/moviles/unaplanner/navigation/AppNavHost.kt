@@ -12,6 +12,9 @@ import androidx.navigation.compose.rememberNavController
 import com.moviles.unaplanner.ui.screens.login.LoginScreen
 import com.moviles.unaplanner.ui.screens.MainScreen
 import com.moviles.unaplanner.ui.screens.login.WelcomeScreen
+import com.moviles.unaplanner.ui.screens.contact.detail.CampusContactsDetailScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 
@@ -55,13 +58,48 @@ fun AppNavHost() {
         }
 
         // --- PANTALLA PRINCIPAL (CON BOTTOM NAV) ---
-        composable(route = AppDestinations.MAIN) {
+        composable(
+            route = AppDestinations.MAIN,
+            arguments = listOf(navArgument("initialIndex") { 
+                type = NavType.IntType
+                defaultValue = 0 
+            })
+        ) { backStackEntry ->
+            val initialIndex = backStackEntry.arguments?.getInt("initialIndex") ?: 0
             MainScreen(
+                initialIndex = initialIndex,
                 onLogout = {
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.MAIN) { inclusive = true }
                     }
                 },
+                onNavigateToContactDetail = { contactId ->
+                    navController.navigate(AppDestinations.createContactDetailRoute(contactId))
+                }
+            )
+        }
+
+        // --- PANTALLA DE DETALLE DE CONTACTO ---
+        composable(
+            route = AppDestinations.CONTACT_DETAIL,
+            arguments = listOf(navArgument("contactId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val contactId = backStackEntry.arguments?.getInt("contactId") ?: 0
+            CampusContactsDetailScreen(
+                contactId = contactId,
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate(AppDestinations.WELCOME) {
+                        popUpTo(AppDestinations.MAIN) { inclusive = true }
+                    }
+                },
+                onNavigateToSection = { index ->
+                    // Navega a la pantalla principal con el índice seleccionado
+                    navController.navigate(AppDestinations.createMainRoute(index)) {
+                        // Limpia el detalle de la pila para que no "vuelva" al detalle al dar atrás
+                        popUpTo(AppDestinations.MAIN) { inclusive = true }
+                    }
+                }
                 onNavigateToNoteEdit = { noteId ->
                     navController.navigate(AppDestinations.createNoteEditRoute(noteId))
                 },

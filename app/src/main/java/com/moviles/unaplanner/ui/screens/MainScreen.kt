@@ -26,11 +26,14 @@ import com.moviles.unaplanner.ui.theme.CrimsonRed
 
 @Composable
 fun MainScreen(
+    initialIndex: Int = 0,
+    onLogout: () -> Unit,
+    onNavigateToContactDetail: (Int) -> Unit
     onLogout: () -> Unit,
     onNavigateToNoteEdit: (Int?) -> Unit,
     notesViewModel: NotesViewModel
 ) {
-    var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+    var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
 
     // Cargar notas cuando se navega a la pantalla de notas
     LaunchedEffect(selectedIndex) {
@@ -90,6 +93,8 @@ fun MainScreen(
                 0 -> InicioPlaceholderScreen()
                 1 -> CalendarPlaceholderScreen()
                 2 -> MallaPlaceholderScreen()
+                3 -> NotesPlaceholderScreen()
+                4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
                 3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
                 4 -> CampusContactsListScreen()
             }

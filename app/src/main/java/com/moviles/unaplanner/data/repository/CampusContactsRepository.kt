@@ -24,4 +24,22 @@ class CampusContactsRepository(
             ApiResult.Error("Error de conexión. Inténtalo de nuevo.")
         }
     }
+
+    suspend fun getCampusContact(id: Int): ApiResult<CampusContact> {
+        return try {
+            val response = apiService.getCampusContact(id)
+            if (response.isSuccessful) {
+                val contact = response.body()
+                if (contact != null) {
+                    ApiResult.Success(contact)
+                } else {
+                    ApiResult.Error("No se encontró el contacto.")
+                }
+            } else {
+                ApiResult.Error("Error al obtener el contacto: ${response.code()}", response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error("Error de conexión. Inténtalo de nuevo.")
+        }
+    }
 }

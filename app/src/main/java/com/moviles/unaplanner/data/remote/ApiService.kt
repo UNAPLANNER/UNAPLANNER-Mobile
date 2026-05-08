@@ -22,6 +22,9 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.CAMPUS_CONTACTS)
     suspend fun getCampusContacts(): Response<List<CampusContact>>
 
+    @GET("${AppConstants.Api.Paths.CAMPUS_CONTACTS}/{id}")
+    suspend fun getCampusContact(@Path("id") id: Int): Response<CampusContact>
+
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>
 
