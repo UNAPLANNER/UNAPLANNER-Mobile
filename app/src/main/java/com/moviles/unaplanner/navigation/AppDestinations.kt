@@ -4,7 +4,8 @@ object AppDestinations {
     const val WELCOME = "welcome"
     const val LOGIN = "login"
     const val REGISTER = "register"
-    const val MAIN = "main"
+    const val MAIN = "main?initialIndex={initialIndex}"
+    fun createMainRoute(index: Int) = "main?initialIndex=$index"
     
     // Sub-destinations for BottomNav
     const val INICIO = "inicio"
@@ -16,4 +17,9 @@ object AppDestinations {
     // Admin
     const val ADMIN_MAIN = "admin_main"
     const val ADMIN_PROFILE = "admin_profile"
+    const val CONTACT_DETAIL = "contact_detail/{contactId}"
+    fun createContactDetailRoute(contactId: Int) = "contact_detail/$contactId"
+    const val NOTE_EDIT = "note_edit/{noteId}"
+
+    fun createNoteEditRoute(noteId: Int?) = if (noteId != null) "note_edit/$noteId" else "note_edit/new"
 }

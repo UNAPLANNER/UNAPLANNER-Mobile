@@ -26,6 +26,7 @@ import com.moviles.unaplanner.ui.theme.*
 
 @Composable
 fun CampusContactsListScreen(
+    onContactClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CampusContactsViewModel = viewModel()
 ) {
@@ -80,7 +81,10 @@ fun CampusContactsListScreen(
                     )
                 }
                 is ContactsUiState.Success -> {
-                    ContactsList(contacts = state.contacts)
+                    ContactsList(
+                        contacts = state.contacts,
+                        onContactClick = onContactClick
+                    )
                 }
                 is ContactsUiState.Error -> {
                     ErrorMessage(message = state.message, onRetry = { viewModel.fetchContacts() })
@@ -138,12 +142,14 @@ fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun ContactsList(contacts: List<CampusContact>) {
+fun ContactsList(
+    contacts: List<CampusContact>,
+    onContactClick: (Int) -> Unit
+) {
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // En la imagen se ve una sección con título, aquí podrías agrupar por categoría si el API lo permitiera
         item {
             Text(
                 text = "DIRECTORIO",
@@ -153,17 +159,25 @@ fun ContactsList(contacts: List<CampusContact>) {
             )
         }
         items(contacts) { contact ->
-            ContactCard(contact)
+            ContactCard(
+                contact = contact,
+                onClick = { onContactClick(contact.id) }
+            )
         }
     }
 }
 
 @Composable
-fun ContactCard(contact: CampusContact) {
+fun ContactCard(
+    contact: CampusContact,
+    onClick: () -> Unit
+) {
     val context = androidx.compose.ui.platform.LocalContext.current
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)

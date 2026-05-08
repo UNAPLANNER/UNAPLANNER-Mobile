@@ -8,7 +8,7 @@ data class LoginRequest(
 
 /** Logged-in user; [id] is an Int from the API. */
 data class UserDto(
-    @SerializedName("userId")
+    @SerializedName("id", alternate = ["userId", "UserId"])
     val id: Int,
     @SerializedName("email")
     val email: String,

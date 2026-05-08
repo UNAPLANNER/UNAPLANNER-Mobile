@@ -23,4 +23,27 @@ interface ApiService {
 
     @POST("api/profile/{id}/change-password")
     suspend fun changePassword(@Path("id") id: Int, @Body request: ChangePasswordRequest): Response<Unit>
+    @GET("${AppConstants.Api.Paths.CAMPUS_CONTACTS}/{id}")
+    suspend fun getCampusContact(@Path("id") id: Int): Response<CampusContact>
+
+    @GET(AppConstants.Api.Paths.STUDENT_NOTES)
+    suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>
+
+    @POST(AppConstants.Api.Paths.STUDENT_NOTES)
+    suspend fun createNote(
+        @Path("id") userId: Int,
+        @Body request: CreateNoteRequest
+    ): Response<NoteDto>
+
+    @GET(AppConstants.Api.Paths.STUDENT_COURSES)
+    suspend fun getStudentCourses(@Path("id") userId: Int): Response<CoursesResponse>
+
+    @DELETE(AppConstants.Api.Paths.NOTE_OPERATIONS)
+    suspend fun deleteNote(@Path("id") noteId: Int): Response<Unit>
+
+    @PUT(AppConstants.Api.Paths.NOTE_OPERATIONS)
+    suspend fun updateNote(
+        @Path("id") noteId: Int,
+        @Body request: UpdateNoteRequest
+    ): Response<NoteDto>
 }

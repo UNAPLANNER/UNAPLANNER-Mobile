@@ -9,10 +9,11 @@ object AppConstants {
         /** Emulator reaches host machine at 10.0.2.2; change port to match your API. */
         private const val EMULATOR_URL = "http://10.0.2.2:5232/"
         //KEYNA Usando IP local
-        private const val PHYSICAL_DEVICE_URL = "http://192.168.100.128:5232/"
+        //private const val PHYSICAL_DEVICE_URL = "http://192.168.100.128:5232/"
         //Adriana Usando IP local
         //private const val PHYSICAL_DEVICE_URL = "http://192.168.1.6:5232/"
-
+        //REICHEL Usando IP local
+        private const val PHYSICAL_DEVICE_URL = "http://192.168.100.124:5232/"
         /**
          * Selecciona automáticamente la URL base.
          */
@@ -43,6 +44,9 @@ object AppConstants {
         object Paths {
             const val AUTH_LOGIN = "api/auth/login"
             const val CAMPUS_CONTACTS = "api/campus-contacts"
+            const val STUDENT_NOTES = "api/student/{id}/notes"
+            const val STUDENT_COURSES = "api/student/{id}/courses"
+            const val NOTE_OPERATIONS = "api/notes/{id}"
         }
     }
 }
