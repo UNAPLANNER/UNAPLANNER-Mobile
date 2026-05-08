@@ -32,3 +32,9 @@ data class NotesResponse(
     @SerializedName("data", alternate = ["Data"])
     val data: List<NoteDto>
 )
+
+data class CreateNoteRequest(
+    val title: String,
+    val content: String,
+    val courseId: Int? = null
+)

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.moviles.unaplanner.data.AuthSession
+import com.moviles.unaplanner.data.remote.model.CreateNoteRequest
 import com.moviles.unaplanner.data.remote.model.NoteDto
 import com.moviles.unaplanner.data.repository.ApiResult
 import com.moviles.unaplanner.data.repository.NotesRepository
@@ -19,6 +20,13 @@ sealed class NotesUiState {
     object Empty : NotesUiState()
 }
 
+sealed class NoteEditorUiState {
+    object Idle : NoteEditorUiState()
+    object Saving : NoteEditorUiState()
+    data class Success(val message: String) : NoteEditorUiState()
+    data class Error(val message: String) : NoteEditorUiState()
+}
+
 class NotesViewModel(
     private val repository: NotesRepository = NotesRepository()
 ) : ViewModel() {
@@ -26,11 +34,17 @@ class NotesViewModel(
     private val _uiState = MutableStateFlow<NotesUiState>(NotesUiState.Loading)
     val uiState: StateFlow<NotesUiState> = _uiState.asStateFlow()
 
+    private val _editorState = MutableStateFlow<NoteEditorUiState>(NoteEditorUiState.Idle)
+    val editorState: StateFlow<NoteEditorUiState> = _editorState.asStateFlow()
+
     private var allNotes: List<NoteDto> = emptyList()
     private var selectedCourse: String = "Todas"
 
     init {
-        loadNotes()
+        // Solo cargar notas si hay un usuario autenticado
+        if (AuthSession.currentUser != null) {
+            loadNotes()
+        }
     }
 
     fun loadNotes() {
@@ -73,6 +87,50 @@ class NotesViewModel(
     fun filterByCourse(courseCode: String) {
         selectedCourse = courseCode
         updateState()
+    }
+
+    fun createNote(title: String, content: String, courseId: Int? = null) {
+        val user = AuthSession.currentUser
+        if (user == null) {
+            _editorState.value = NoteEditorUiState.Error("Sesión no iniciada")
+            return
+        }
+
+        if (title.isBlank()) {
+            _editorState.value = NoteEditorUiState.Error("El título es requerido")
+            return
+        }
+
+        viewModelScope.launch {
+            _editorState.value = NoteEditorUiState.Saving
+            try {
+                val request = CreateNoteRequest(
+                    title = title.trim(),
+                    content = content.trim(),
+                    courseId = courseId
+                )
+                val result = repository.createNote(user.id, request)
+                when (result) {
+                    is ApiResult.Success -> {
+                        Log.d("NotesViewModel", "Nota creada exitosamente")
+                        _editorState.value = NoteEditorUiState.Success("Nota guardada exitosamente")
+                        // Recarga las notas después de crear
+                        loadNotes()
+                    }
+                    is ApiResult.Error -> {
+                        Log.e("NotesViewModel", "Error al crear nota: ${result.message}")
+                        _editorState.value = NoteEditorUiState.Error(result.message)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("NotesViewModel", "Excepción al crear nota", e)
+                _editorState.value = NoteEditorUiState.Error("Error inesperado: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun resetEditorState() {
+        _editorState.value = NoteEditorUiState.Idle
     }
 
     private fun updateState() {

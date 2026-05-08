@@ -22,14 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.unaplanner.data.remote.model.NoteDto
 import com.moviles.unaplanner.ui.theme.*
 
 @Composable
 fun NotesScreen(
     onNavigateToEdit: (Int?) -> Unit,
-    viewModel: NotesViewModel = viewModel()
+    viewModel: NotesViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
