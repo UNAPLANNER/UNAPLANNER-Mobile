@@ -82,9 +82,9 @@ class NotesRepository(
         }
     }
 
-    suspend fun deleteNote(noteId: Int): ApiResult<Unit> {
+    suspend fun deleteNote(noteId: Int, userId: Int): ApiResult<Unit> {
         return try {
-            val response = apiService.deleteNote(noteId)
+            val response = apiService.deleteNote(noteId, userId)
             if (response.isSuccessful) {
                 ApiResult.Success(Unit)
             } else {
