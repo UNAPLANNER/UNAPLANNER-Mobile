@@ -1,5 +1,6 @@
 package com.moviles.unaplanner.ui.screens.notes
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -31,6 +34,49 @@ fun NotesScreen(
     viewModel: NotesViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val editorState by viewModel.editorState.collectAsState()
+    val context = LocalContext.current
+    var noteToDelete by remember { mutableStateOf<NoteDto?>(null) }
+
+    // Manejo de mensajes de éxito/error (como al eliminar)
+    LaunchedEffect(editorState) {
+        when (val state = editorState) {
+            is NoteEditorUiState.Success -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+                viewModel.resetEditorState()
+            }
+            is NoteEditorUiState.Error -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                viewModel.resetEditorState()
+            }
+            else -> {}
+        }
+    }
+
+    // Diálogo de confirmación para eliminar
+    if (noteToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { noteToDelete = null },
+            title = { Text("Eliminar Nota", color = NavyBlue, fontWeight = FontWeight.Bold) },
+            text = { Text("¿Estás seguro de que deseas eliminar esta nota? Esta acción no se puede deshacer.", color = TextPrimary) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        noteToDelete?.let { viewModel.deleteNote(it.id) }
+                        noteToDelete = null
+                    }
+                ) {
+                    Text("Eliminar", color = CrimsonRed, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { noteToDelete = null }) {
+                    Text("Cancelar", color = NavyBlue)
+                }
+            },
+            containerColor = Color.White
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -49,6 +95,7 @@ fun NotesScreen(
                     notes = state.filteredNotes,
                     onCourseSelected = { viewModel.filterByCourse(it) },
                     onNoteClick = { note -> onNavigateToEdit(note.id) },
+                    onDeleteClick = { note -> noteToDelete = note },
                     onNewNoteClick = { onNavigateToEdit(null) }
                 )
             }
@@ -119,6 +166,7 @@ fun NotesContent(
     notes: List<NoteDto>,
     onCourseSelected: (String) -> Unit,
     onNoteClick: (NoteDto) -> Unit,
+    onDeleteClick: (NoteDto) -> Unit,
     onNewNoteClick: () -> Unit
 ) {
     var currentSelected by remember { mutableStateOf("Todas") }
@@ -141,14 +189,22 @@ fun NotesContent(
             contentPadding = PaddingValues(top = 24.dp, bottom = 40.dp)
         ) {
             items(notes) { note ->
-                NoteCard(note = note, onClick = { onNoteClick(note) })
+                NoteCard(
+                    note = note, 
+                    onClick = { onNoteClick(note) },
+                    onDeleteClick = { onDeleteClick(note) }
+                )
+            }
+            
+            item {
+                NewNotePlaceholder(onClick = onNewNoteClick)
             }
         }
     }
 }
 
 @Composable
-fun NoteCard(note: NoteDto, onClick: () -> Unit) {
+fun NoteCard(note: NoteDto, onClick: () -> Unit, onDeleteClick: () -> Unit) {
     // Definición de colores según el curso (Verde claro para General)
     val (tagColor, tagBg) = when {
         note.course?.code == "EIF206" -> Color(0xFFD32F2F) to Color(0xFFFFEBEE)
@@ -167,22 +223,43 @@ fun NoteCard(note: NoteDto, onClick: () -> Unit) {
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Etiqueta del curso arriba para que no estorbe al título
-            Surface(
-                color = tagBg,
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.padding(bottom = 12.dp)
+            // Fila superior con etiqueta y botón de eliminar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = note.courseName,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = tagColor,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                // Etiqueta del curso
+                Surface(
+                    color = tagBg,
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = note.courseName,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = tagColor,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                // Basurero para eliminar
+                IconButton(
+                    onClick = onDeleteClick,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar nota",
+                        tint = CrimsonRed.copy(alpha = 0.6f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Título
             Text(

@@ -195,10 +195,16 @@ class NotesViewModel(
     }
 
     fun deleteNote(noteId: Int) {
+        val user = AuthSession.currentUser
+        if (user == null) {
+            _editorState.value = NoteEditorUiState.Error("Sesión no iniciada")
+            return
+        }
+
         viewModelScope.launch {
             _editorState.value = NoteEditorUiState.Saving
             try {
-                val result = repository.deleteNote(noteId)
+                val result = repository.deleteNote(noteId, user.id)
                 when (result) {
                     is ApiResult.Success -> {
                         Log.d("NotesViewModel", "Nota eliminada, refrescando lista...")

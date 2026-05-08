@@ -25,7 +25,10 @@ interface ApiService {
     suspend fun getStudentCourses(@Path("id") userId: Int): Response<CoursesResponse>
 
     @DELETE(AppConstants.Api.Paths.NOTE_OPERATIONS)
-    suspend fun deleteNote(@Path("id") noteId: Int): Response<Unit>
+    suspend fun deleteNote(
+        @Path("id") noteId: Int,
+        @Query("userId") userId: Int
+    ): Response<Unit>
 
     @PUT(AppConstants.Api.Paths.NOTE_OPERATIONS)
     suspend fun updateNote(
