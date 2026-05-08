@@ -32,10 +32,11 @@ fun MainScreen(
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
 
-    // Cargar notas cuando se navega a la pantalla de notas
+    // Cargar notas y cursos cuando se navega a la pestaña de notas
     LaunchedEffect(selectedIndex) {
         if (selectedIndex == 3) {
             notesViewModel.loadNotes()
+            notesViewModel.loadStudentCourses()
         }
     }
 
