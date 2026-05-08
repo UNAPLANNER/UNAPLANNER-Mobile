@@ -1,30 +1,17 @@
 package com.moviles.unaplanner.ui.components
 
-import android.content.res.Configuration // Importación necesaria para la preview modo oscuro
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Text
+import android.content.res.Configuration
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.outlined.Notes
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Contacts
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Contacts
-import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.moviles.unaplanner.ui.theme.UNAPLANNERTheme
 
 data class NavItem(
@@ -33,7 +20,7 @@ data class NavItem(
     val unselectedIcon: ImageVector
 )
 
-private val navItems = listOf(
+private val studentNavItems = listOf(
     NavItem("Inicio",     Icons.Filled.Home,          Icons.Outlined.Home),
     NavItem("Calendario", Icons.Filled.CalendarMonth,  Icons.Outlined.CalendarMonth),
     NavItem("Malla",      Icons.AutoMirrored.Filled.Notes, Icons.AutoMirrored.Outlined.Notes),
@@ -41,15 +28,26 @@ private val navItems = listOf(
     NavItem("Contactos",  Icons.Filled.Contacts,       Icons.Outlined.Contacts)
 )
 
+private val adminNavItems = listOf(
+    NavItem("Inicio", Icons.Filled.Home, Icons.Outlined.Home),
+    NavItem("Carrera", Icons.Filled.Dashboard, Icons.Outlined.Dashboard),
+    NavItem("Contactos", Icons.Filled.Contacts, Icons.Outlined.Contacts),
+    NavItem("Perfil", Icons.Filled.Person, Icons.Outlined.Person)
+)
+
 @Composable
 fun AppBottomNavBar(
     selectedIndex: Int,
-    onItemSelected: (Int) -> Unit
+    onItemSelected: (Int) -> Unit,
+    isAdmin: Boolean = false
 ) {
+    val items = if (isAdmin) adminNavItems else studentNavItems
+    
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = Color.White,
+        tonalElevation = 0.dp
     ) {
-        navItems.forEachIndexed { index, item ->
+        items.forEachIndexed { index, item ->
             val isSelected = selectedIndex == index
             NavigationBarItem(
                 selected = isSelected,
@@ -70,7 +68,6 @@ fun AppBottomNavBar(
                     selectedIconColor   = MaterialTheme.colorScheme.secondary,
                     selectedTextColor   = MaterialTheme.colorScheme.secondary,
                     indicatorColor      = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f),
-
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -78,7 +75,6 @@ fun AppBottomNavBar(
         }
     }
 }
-
 
 @Preview(showBackground = true, name = "Modo Claro")
 @Preview(

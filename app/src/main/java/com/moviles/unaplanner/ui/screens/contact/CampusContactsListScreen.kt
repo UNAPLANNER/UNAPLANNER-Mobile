@@ -209,7 +209,7 @@ fun ContactCard(
             // Información
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = contact.departmentName,
+                    text = contact.departmentName ?: "Sin nombre",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary

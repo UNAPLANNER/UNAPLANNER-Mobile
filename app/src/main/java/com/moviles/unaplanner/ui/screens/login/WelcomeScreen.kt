@@ -21,7 +21,7 @@ import com.moviles.unaplanner.ui.theme.NavyBlueLight
 @Composable
 fun WelcomeScreen(
     onNavigateToLogin: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
 ) {
     val backgroundGradient = Brush.verticalGradient(
         colors = listOf(NavyBlueDark, NavyBlue, NavyBlueLight)

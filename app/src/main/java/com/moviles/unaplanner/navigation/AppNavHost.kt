@@ -1,5 +1,6 @@
 package com.moviles.unaplanner.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -12,6 +13,8 @@ import androidx.navigation.compose.rememberNavController
 import com.moviles.unaplanner.ui.screens.login.LoginScreen
 import com.moviles.unaplanner.ui.screens.MainScreen
 import com.moviles.unaplanner.ui.screens.login.WelcomeScreen
+import com.moviles.unaplanner.ui.screens.admin.AdminMainScreen
+import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 import com.moviles.unaplanner.ui.screens.contact.detail.CampusContactsDetailScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -25,7 +28,7 @@ fun AppNavHost() {
 
     NavHost(
         navController = navController,
-        startDestination = AppDestinations.WELCOME,
+        startDestination = AppDestinations.LOGIN,
         modifier = Modifier.fillMaxSize()
     ) {
         // --- PANTALLA DE INICIO (WELCOME) ---
@@ -50,7 +53,14 @@ fun AppNavHost() {
                     navController.popBackStack()
                 },
                 onNavigateToHome = {
+                    // Logic to distinguish admin vs student could be here
+                    // For now, it goes to MAIN (student)
                     navController.navigate(AppDestinations.MAIN) {
+                        popUpTo(AppDestinations.WELCOME) { inclusive = true }
+                    }
+                },
+                onNavigateToAdminHome = {
+                    navController.navigate(AppDestinations.ADMIN_MAIN) {
                         popUpTo(AppDestinations.WELCOME) { inclusive = true }
                     }
                 }
@@ -79,6 +89,13 @@ fun AppNavHost() {
             )
         }
 
+        // --- PANTALLA PRINCIPAL ADMIN (CONTENEDOR DE PESTAÑAS) ---
+        composable(route = AppDestinations.ADMIN_MAIN) {
+            AdminMainScreen(
+                onLogout = {
+                    navController.navigate(AppDestinations.WELCOME) {
+                        popUpTo(AppDestinations.ADMIN_MAIN) { inclusive = true }
+                    }
         // --- PANTALLA DE DETALLE DE CONTACTO ---
         composable(
             route = AppDestinations.CONTACT_DETAIL,
@@ -127,7 +144,19 @@ fun AppNavHost() {
                     navController.navigate(AppDestinations.LOGIN)
                 }
             )
-        }*/
+        }
+
+        // --- PANTALLA DE PERFIL DE ADMIN ---
+        composable(route = AppDestinations.ADMIN_PROFILE) {
+            AdminProfileScreen(
+                onBackClick = { navController.popBackStack() },
+                onLogoutClick = {
+                    navController.navigate(AppDestinations.WELCOME) {
+                        popUpTo(AppDestinations.ADMIN_PROFILE) { inclusive = true }
+                    }
+                }
+            )
+        }
 
     }
 }
