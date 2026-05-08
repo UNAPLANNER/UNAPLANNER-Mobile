@@ -11,6 +11,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.moviles.unaplanner.R
 import com.moviles.unaplanner.ui.components.AppButton
 import com.moviles.unaplanner.ui.theme.CrimsonRed
 import com.moviles.unaplanner.ui.theme.NavyBlue
@@ -42,7 +43,7 @@ fun WelcomeScreen(
 
             // --- LOGO SUPERIOR ---
             Image(
-                painter = painterResource(id = com.moviles.unaplanner.R.drawable.logo_rectangular),
+                painter = painterResource(id = R.drawable.logo_rectangular),
                 contentDescription = "UNAPLANNER Logo Principal",
                 modifier = Modifier
                     .fillMaxWidth(1f)   // Ancho

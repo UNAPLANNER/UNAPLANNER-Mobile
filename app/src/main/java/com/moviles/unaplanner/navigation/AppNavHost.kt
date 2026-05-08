@@ -1,27 +1,27 @@
 package com.moviles.unaplanner.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.moviles.unaplanner.ui.screens.login.LoginScreen
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.moviles.unaplanner.ui.screens.MainScreen
 import com.moviles.unaplanner.ui.screens.login.WelcomeScreen
 import com.moviles.unaplanner.ui.screens.contact.detail.CampusContactsDetailScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
+import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+    val notesViewModel: NotesViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -100,6 +100,22 @@ fun AppNavHost() {
                         popUpTo(AppDestinations.MAIN) { inclusive = true }
                     }
                 }
+                onNavigateToNoteEdit = { noteId ->
+                    navController.navigate(AppDestinations.createNoteEditRoute(noteId))
+                },
+                notesViewModel = notesViewModel
+            )
+        }
+
+        // --- PANTALLA DE EDICIÓN/CREACIÓN DE NOTA ---
+        composable(route = AppDestinations.NOTE_EDIT) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getString("noteId")
+            NoteEditorScreen(
+                noteId = noteId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                viewModel = notesViewModel
             )
         }
 
