@@ -15,6 +15,8 @@ data class NoteDto(
     val createdAt: String,
     @SerializedName("updatedAt", alternate = ["UpdatedAt"])
     val lastUpdated: String,
+    @SerializedName("courseName", alternate = ["CourseName"])
+    val courseName: String = "General",
     @SerializedName("course", alternate = ["Course"])
     val course: CourseDto? = null
 )
@@ -28,6 +30,13 @@ data class CourseDto(
     val name: String
 )
 
+data class CoursesResponse(
+    @SerializedName("data", alternate = ["Data"])
+    val data: List<CourseDto>,
+    @SerializedName("message", alternate = ["Message"])
+    val message: String = ""
+)
+
 data class NotesResponse(
     @SerializedName("data", alternate = ["Data"])
     val data: List<NoteDto>
@@ -38,3 +47,10 @@ data class CreateNoteRequest(
     val content: String,
     val courseId: Int? = null
 )
+
+data class UpdateNoteRequest(
+    val title: String,
+    val content: String,
+    val courseId: Int? = null
+)
+

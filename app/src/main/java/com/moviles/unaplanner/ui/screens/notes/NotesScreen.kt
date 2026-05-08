@@ -149,12 +149,13 @@ fun NotesContent(
 
 @Composable
 fun NoteCard(note: NoteDto, onClick: () -> Unit) {
-    val (tagColor, tagBg) = when (note.course?.code) {
-        "EIF206" -> Color(0xFFE74C3C) to Color(0xFFFFEBEE)
-        "EIF207" -> Color(0xFFF39C12) to Color(0xFFFFF3E0)
-        "EIF205" -> Color(0xFF27AE60) to Color(0xFFE8F5E9)
-        null -> Color(0xFF7F8C8D) to Color(0xFFF5F5F5)
-        else -> Color(0xFF2980B9) to Color(0xFFE3F2FD)
+    // Definición de colores según el curso (Verde claro para General)
+    val (tagColor, tagBg) = when {
+        note.course?.code == "EIF206" -> Color(0xFFD32F2F) to Color(0xFFFFEBEE)
+        note.course?.code == "EIF207" -> Color(0xFFF57C00) to Color(0xFFFFF3E0)
+        note.course?.code == "EIF205" -> Color(0xFF388E3C) to Color(0xFFE8F5E9)
+        note.course == null || note.courseName == "General" -> Color(0xFF2E7D32) to Color(0xFFC8E6C9) // Verde solicitado
+        else -> Color(0xFF1976D2) to Color(0xFFE3F2FD) // Azul para otros cursos
     }
 
     Card(
@@ -162,50 +163,54 @@ fun NoteCard(note: NoteDto, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
-        shape = RoundedCornerShape(20.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Etiqueta del curso arriba para que no estorbe al título
+            Surface(
+                color = tagBg,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.padding(bottom = 12.dp)
             ) {
                 Text(
-                    text = note.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    text = note.courseName,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = tagColor,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1E293B),
-                    modifier = Modifier.weight(1f)
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                
-                Surface(
-                    color = tagBg,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = note.course?.name ?: note.course?.code ?: "General",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = tagColor,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
             }
+
+            // Título
+            Text(
+                text = note.title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp,
+                    lineHeight = 24.sp
+                ),
+                color = Color(0xFF1E293B),
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(Modifier.height(8.dp))
 
+            // Contenido preliminar
             Text(
                 text = note.content ?: "Sin contenido",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFF64748B),
-                maxLines = 2,
+                maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 lineHeight = 20.sp
             )
 
             Spacer(Modifier.height(16.dp))
 
+            // Footer con fecha y icono
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -225,9 +230,10 @@ fun NoteCard(note: NoteDto, onClick: () -> Unit) {
                         tint = Color(0xFF94A3B8)
                     )
                     Text(
-                        text = "2 imgs",
+                        text = "Detalles",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF94A3B8)
+                        color = Color(0xFF94A3B8),
+                        modifier = Modifier.padding(start = 4.dp)
                     )
                 }
             }
