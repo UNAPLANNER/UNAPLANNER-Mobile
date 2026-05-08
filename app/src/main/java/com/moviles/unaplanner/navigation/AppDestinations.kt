@@ -14,5 +14,6 @@ object AppDestinations {
     const val CONTACTS = "contacts"
 
     // Admin
+    const val ADMIN_MAIN = "admin_main"
     const val ADMIN_PROFILE = "admin_profile"
 }

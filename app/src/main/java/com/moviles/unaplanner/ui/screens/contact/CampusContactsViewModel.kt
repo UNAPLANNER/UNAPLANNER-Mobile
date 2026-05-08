@@ -65,13 +65,13 @@ class CampusContactsViewModel(
 
         val filtered = allContacts.filter { contact ->
             val matchesQuery = if (currentQuery.isBlank()) true else {
-                contact.departmentName.contains(currentQuery, ignoreCase = true) ||
+                contact.departmentName?.contains(currentQuery, ignoreCase = true) == true ||
                 contact.description?.contains(currentQuery, ignoreCase = true) == true
             }
 
             val matchesCategory = if (currentCategory == "Todos") true else {
                 // Filtro inteligente: busca la categoría en el nombre o descripción
-                contact.departmentName.contains(currentCategory, ignoreCase = true) ||
+                contact.departmentName?.contains(currentCategory, ignoreCase = true) == true ||
                 contact.description?.contains(currentCategory, ignoreCase = true) == true
             }
 

@@ -8,8 +8,10 @@ import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.moviles.unaplanner.ui.theme.UNAPLANNERTheme
 
 data class NavItem(
@@ -42,7 +44,8 @@ fun AppBottomNavBar(
     val items = if (isAdmin) adminNavItems else studentNavItems
     
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = Color.White,
+        tonalElevation = 0.dp
     ) {
         items.forEachIndexed { index, item ->
             val isSelected = selectedIndex == index
@@ -65,7 +68,6 @@ fun AppBottomNavBar(
                     selectedIconColor   = MaterialTheme.colorScheme.secondary,
                     selectedTextColor   = MaterialTheme.colorScheme.secondary,
                     indicatorColor      = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f),
-
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )

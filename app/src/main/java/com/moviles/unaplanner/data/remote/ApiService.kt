@@ -12,6 +12,9 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.CAMPUS_CONTACTS)
     suspend fun getCampusContacts(): Response<List<CampusContact>>
 
+    @GET("api/campus-contacts/campus/{campusId}")
+    suspend fun getContactsByCampus(@Path("campusId") campusId: Int): Response<List<CampusContact>>
+
     @GET("api/profile/{id}")
     suspend fun getProfile(@Path("id") id: Int): Response<UserDto>
 

@@ -21,5 +21,7 @@ data class UserDto(
     @SerializedName("token")
     val token: String? = null,
     @SerializedName("role")
-    val role: String? = null
+    val role: String? = null,
+    @SerializedName("campusId")
+    val campusId: Int? = null
 )

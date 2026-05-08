@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import com.moviles.unaplanner.ui.screens.login.LoginScreen
 import com.moviles.unaplanner.ui.screens.MainScreen
 import com.moviles.unaplanner.ui.screens.login.WelcomeScreen
+import com.moviles.unaplanner.ui.screens.admin.AdminMainScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 
 @Composable
@@ -49,7 +50,7 @@ fun AppNavHost() {
                     }
                 },
                 onNavigateToAdminHome = {
-                    navController.navigate(AppDestinations.ADMIN_PROFILE) {
+                    navController.navigate(AppDestinations.ADMIN_MAIN) {
                         popUpTo(AppDestinations.WELCOME) { inclusive = true }
                     }
                 }
@@ -62,6 +63,17 @@ fun AppNavHost() {
                 onLogout = {
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.MAIN) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // --- PANTALLA PRINCIPAL ADMIN (CONTENEDOR DE PESTAÑAS) ---
+        composable(route = AppDestinations.ADMIN_MAIN) {
+            AdminMainScreen(
+                onLogout = {
+                    navController.navigate(AppDestinations.WELCOME) {
+                        popUpTo(AppDestinations.ADMIN_MAIN) { inclusive = true }
                     }
                 }
             )
