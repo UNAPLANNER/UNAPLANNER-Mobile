@@ -21,6 +21,7 @@ fun AppTopBar(
     title: String,
     subtitle: String? = null,
     onLogout: (() -> Unit)? = null,
+    action: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -58,30 +59,37 @@ fun AppTopBar(
                 }
             }
 
-            if (onLogout != null) {
-                Box {
-                    IconButton(
-                        onClick = { showMenu = true },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Usuario",
-                            tint = Color.White,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Cerrar Sesión") },
-                            onClick = {
-                                showMenu = false
-                                onLogout()
-                            }
-                        )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (action != null) {
+                    action()
+                    if (onLogout != null) Spacer(modifier = Modifier.width(12.dp))
+                }
+
+                if (onLogout != null) {
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "Usuario",
+                                tint = Color.White,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Cerrar Sesión") },
+                                onClick = {
+                                    showMenu = false
+                                    onLogout()
+                                }
+                            )
+                        }
                     }
                 }
             }

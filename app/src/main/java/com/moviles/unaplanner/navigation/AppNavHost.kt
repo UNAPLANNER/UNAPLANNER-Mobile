@@ -1,20 +1,16 @@
 package com.moviles.unaplanner.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.moviles.unaplanner.ui.screens.login.LoginScreen
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import com.moviles.unaplanner.ui.screens.notes.login.LoginScreen
 import com.moviles.unaplanner.ui.screens.MainScreen
-import com.moviles.unaplanner.ui.screens.login.WelcomeScreen
+import com.moviles.unaplanner.ui.screens.notes.login.WelcomeScreen
 
 @Composable
 fun AppNavHost() {
@@ -61,8 +57,23 @@ fun AppNavHost() {
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.MAIN) { inclusive = true }
                     }
+                },
+                onNavigateToNoteEdit = { noteId ->
+                    navController.navigate(AppDestinations.createNoteEditRoute(noteId))
                 }
             )
+        }
+
+        // --- PANTALLA DE EDICIÓN DE NOTA ---
+        composable(route = AppDestinations.NOTE_EDIT) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getString("noteId")
+            // Aquí iría la pantalla de edición, por ahora un placeholder o pantalla básica
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                Text("Editando nota ID: $noteId")
+            }
         }
 
         // --- PANTALLA DE REGISTRO ---
