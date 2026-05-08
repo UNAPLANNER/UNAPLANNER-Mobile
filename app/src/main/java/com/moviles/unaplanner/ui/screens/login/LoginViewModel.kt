@@ -1,4 +1,4 @@
-package com.moviles.unaplanner.ui.screens.notes.login
+package com.moviles.unaplanner.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

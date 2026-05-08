@@ -9,9 +9,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.moviles.unaplanner.ui.screens.notes.login.LoginScreen
+import com.moviles.unaplanner.ui.screens.login.LoginScreen
 import com.moviles.unaplanner.ui.screens.MainScreen
-import com.moviles.unaplanner.ui.screens.notes.login.WelcomeScreen
+import com.moviles.unaplanner.ui.screens.login.WelcomeScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 
