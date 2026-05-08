@@ -117,7 +117,7 @@ fun ContactDetailContent(contact: CampusContact) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = contact.departmentName,
+            text = contact.departmentName ?: "Información no disponible",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = TextPrimary,

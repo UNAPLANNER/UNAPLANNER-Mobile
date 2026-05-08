@@ -85,7 +85,11 @@ fun AppNavHost() {
                 },
                 onNavigateToContactDetail = { contactId ->
                     navController.navigate(AppDestinations.createContactDetailRoute(contactId))
-                }
+                },
+                onNavigateToNoteEdit = { noteId ->
+                    navController.navigate(AppDestinations.createNoteEditRoute(noteId))
+                },
+                notesViewModel = notesViewModel
             )
         }
 
@@ -96,6 +100,10 @@ fun AppNavHost() {
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.ADMIN_MAIN) { inclusive = true }
                     }
+                }
+            )
+        }
+
         // --- PANTALLA DE DETALLE DE CONTACTO ---
         composable(
             route = AppDestinations.CONTACT_DETAIL,
@@ -117,10 +125,6 @@ fun AppNavHost() {
                         popUpTo(AppDestinations.MAIN) { inclusive = true }
                     }
                 }
-                onNavigateToNoteEdit = { noteId ->
-                    navController.navigate(AppDestinations.createNoteEditRoute(noteId))
-                },
-                notesViewModel = notesViewModel
             )
         }
 
@@ -156,7 +160,7 @@ fun AppNavHost() {
                     }
                 }
             )
-        }
+        }*/
 
     }
 }

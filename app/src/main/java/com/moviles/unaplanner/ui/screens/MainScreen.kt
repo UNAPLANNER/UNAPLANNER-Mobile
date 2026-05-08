@@ -3,12 +3,8 @@ package com.moviles.unaplanner.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -28,8 +24,7 @@ import com.moviles.unaplanner.ui.theme.CrimsonRed
 fun MainScreen(
     initialIndex: Int = 0,
     onLogout: () -> Unit,
-    onNavigateToContactDetail: (Int) -> Unit
-    onLogout: () -> Unit,
+    onNavigateToContactDetail: (Int) -> Unit,
     onNavigateToNoteEdit: (Int?) -> Unit,
     notesViewModel: NotesViewModel
 ) {
@@ -94,10 +89,8 @@ fun MainScreen(
                 0 -> InicioPlaceholderScreen()
                 1 -> CalendarPlaceholderScreen()
                 2 -> MallaPlaceholderScreen()
-                3 -> NotesPlaceholderScreen()
-                4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
                 3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
-                4 -> CampusContactsListScreen()
+                4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
             }
         }
     }
