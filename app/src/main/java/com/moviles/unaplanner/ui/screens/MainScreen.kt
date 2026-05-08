@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -20,14 +21,23 @@ import com.moviles.unaplanner.ui.screens.contact.CampusContactsListScreen
 import com.moviles.unaplanner.ui.screens.inicio.InicioPlaceholderScreen
 import com.moviles.unaplanner.ui.screens.malla.MallaPlaceholderScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesScreen
+import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 import com.moviles.unaplanner.ui.theme.CrimsonRed
 
 @Composable
 fun MainScreen(
     onLogout: () -> Unit,
-    onNavigateToNoteEdit: (Int?) -> Unit
+    onNavigateToNoteEdit: (Int?) -> Unit,
+    notesViewModel: NotesViewModel
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+
+    // Cargar notas cuando se navega a la pantalla de notas
+    LaunchedEffect(selectedIndex) {
+        if (selectedIndex == 3) {
+            notesViewModel.loadNotes()
+        }
+    }
 
     val titles = listOf("Inicio", "Calendario", "Malla Curricular", "Mis Notas", "Directorio")
     val subtitles = listOf(
@@ -80,7 +90,7 @@ fun MainScreen(
                 0 -> InicioPlaceholderScreen()
                 1 -> CalendarPlaceholderScreen()
                 2 -> MallaPlaceholderScreen()
-                3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit)
+                3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
                 4 -> CampusContactsListScreen()
             }
         }

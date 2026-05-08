@@ -5,16 +5,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.moviles.unaplanner.ui.screens.notes.login.LoginScreen
 import com.moviles.unaplanner.ui.screens.MainScreen
 import com.moviles.unaplanner.ui.screens.notes.login.WelcomeScreen
+import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
+import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+    val notesViewModel: NotesViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -60,20 +64,21 @@ fun AppNavHost() {
                 },
                 onNavigateToNoteEdit = { noteId ->
                     navController.navigate(AppDestinations.createNoteEditRoute(noteId))
-                }
+                },
+                notesViewModel = notesViewModel
             )
         }
 
-        // --- PANTALLA DE EDICIÓN DE NOTA ---
+        // --- PANTALLA DE EDICIÓN/CREACIÓN DE NOTA ---
         composable(route = AppDestinations.NOTE_EDIT) { backStackEntry ->
             val noteId = backStackEntry.arguments?.getString("noteId")
-            // Aquí iría la pantalla de edición, por ahora un placeholder o pantalla básica
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = androidx.compose.ui.Alignment.Center
-            ) {
-                Text("Editando nota ID: $noteId")
-            }
+            NoteEditorScreen(
+                noteId = noteId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                viewModel = notesViewModel
+            )
         }
 
         // --- PANTALLA DE REGISTRO ---

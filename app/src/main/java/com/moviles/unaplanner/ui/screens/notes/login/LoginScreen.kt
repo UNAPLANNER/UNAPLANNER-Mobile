@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.unaplanner.R
+import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.ui.components.AppButton
 import com.moviles.unaplanner.ui.components.AppTextField
 import com.moviles.unaplanner.ui.theme.*
@@ -51,6 +52,8 @@ fun LoginScreen(
     LaunchedEffect(uiState) {
         when (uiState) {
             is LoginUiState.Success -> {
+                val user = (uiState as LoginUiState.Success).user
+                AuthSession.setUser(user)
                 onNavigateToHome()
             }
             is LoginUiState.Error -> {
