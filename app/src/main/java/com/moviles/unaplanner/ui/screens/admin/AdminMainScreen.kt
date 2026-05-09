@@ -8,6 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import com.moviles.unaplanner.ui.components.AdminTopBar
 import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
@@ -19,7 +20,9 @@ import com.moviles.unaplanner.ui.theme.BackgroundLight
 
 @Composable
 fun AdminMainScreen(
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToCreateContact: () -> Unit = {},
+    navController: NavController? = null
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
 
@@ -40,7 +43,12 @@ fun AdminMainScreen(
                     isHome = selectedIndex == 0,
                     showBackButton = selectedIndex != 0,
                     onBackClick = { selectedIndex = 0 },
-                    showAddButton = selectedIndex == 1 || selectedIndex == 2
+                    showAddButton = selectedIndex == 1 || selectedIndex == 2,
+                    onAddClick = {
+                        if (selectedIndex == 2) {
+                            onNavigateToCreateContact()
+                        }
+                    }
                 )
             }
         },
@@ -68,7 +76,9 @@ fun AdminMainScreen(
                 2 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
                     ContactAdminScreen(
                         isInsideTab = true,
-                        onBackClick = { selectedIndex = 0 }
+                        onBackClick = { selectedIndex = 0 },
+                        onAddClick = onNavigateToCreateContact,
+                        navController = navController
                     )
                 }
                 3 -> AdminProfileScreen(

@@ -75,4 +75,18 @@ class AdminRepository(
             ApiResult.Error(e.message ?: "Error desconocido")
         }
     }
+
+    suspend fun createCampusContact(contact: CampusContact): ApiResult<CampusContact> {
+        return try {
+            val response = apiService.createCampusContact(contact)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string() ?: "Error al crear contacto"
+                ApiResult.Error(errorMsg)
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
 }

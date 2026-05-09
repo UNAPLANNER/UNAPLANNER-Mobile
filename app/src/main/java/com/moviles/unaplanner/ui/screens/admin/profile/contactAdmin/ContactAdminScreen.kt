@@ -1,5 +1,6 @@
 package com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,21 +10,28 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import com.moviles.unaplanner.core.UserMessages
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.ui.components.AdminTopBar
 import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.theme.BackgroundLight
+import com.moviles.unaplanner.ui.theme.NavyBlue
+import kotlinx.coroutines.delay
 
 @Composable
 fun ContactAdminScreen(
@@ -31,10 +39,49 @@ fun ContactAdminScreen(
     onAddClick: () -> Unit = {},
     onContactClick: (CampusContact) -> Unit = {},
     isInsideTab: Boolean = false,
+    navController: NavController? = null,
     viewModel: ContactAdminViewModel = viewModel(factory = ContactAdminViewModel.Factory)
 ) {
     val uiState = viewModel.uiState
     val snackbarHostState = remember { SnackbarHostState() }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var showSuccessToast by remember { mutableStateOf(false) }
+
+    // Observar resultado de creación de contacto
+    val contactCreated by navController?.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow("contact_created", false)
+        ?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
+
+    LaunchedEffect(contactCreated) {
+        if (contactCreated) {
+            showSuccessToast = true
+            viewModel.loadContacts() // Forzar recarga inmediata de la lista
+            // Limpiamos el estado para que no se repita
+            navController?.currentBackStackEntry?.savedStateHandle?.set("contact_created", false)
+        }
+    }
+
+    // Forzar recarga cada vez que la pantalla vuelve a estar activa
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadContacts()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // Lógica para el Toast de 7 segundos
+    LaunchedEffect(showSuccessToast) {
+        if (showSuccessToast) {
+            delay(7000)
+            showSuccessToast = false
+        }
+    }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -43,42 +90,104 @@ fun ContactAdminScreen(
         }
     }
 
-    if (isInsideTab) {
-        ContactAdminContent(
-            uiState = uiState,
-            padding = PaddingValues(0.dp),
-            onRefresh = { viewModel.loadContacts() },
-            onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
-            onContactClick = onContactClick
-        )
-    } else {
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            topBar = {
-                AdminTopBar(
-                    title = "Contactos",
-                    subtitle = "Directorio de la Sede",
-                    showBackButton = true,
-                    onBackClick = onBackClick,
-                    showAddButton = true,
-                    onAddClick = onAddClick
-                )
-            },
-            bottomBar = {
-                AdminAppBottomNavBar(
-                    selectedIndex = 2,
-                    onItemSelected = {}
-                )
-            },
-            containerColor = BackgroundLight
-        ) { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (isInsideTab) {
             ContactAdminContent(
                 uiState = uiState,
-                padding = innerPadding,
+                padding = PaddingValues(0.dp),
                 onRefresh = { viewModel.loadContacts() },
                 onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
                 onContactClick = onContactClick
             )
+        } else {
+            Scaffold(
+                snackbarHost = { SnackbarHost(snackbarHostState) },
+                topBar = {
+                    AdminTopBar(
+                        title = "Contactos",
+                        subtitle = "Directorio de la Sede",
+                        showBackButton = true,
+                        onBackClick = onBackClick,
+                        showAddButton = true,
+                        onAddClick = onAddClick
+                    )
+                },
+                bottomBar = {
+                    AppBottomNavBar(
+                        selectedIndex = 2,
+                        onItemSelected = {},
+                        isAdmin = true
+                    )
+                },
+                containerColor = BackgroundLight
+            ) { innerPadding ->
+                ContactAdminContent(
+                    uiState = uiState,
+                    padding = innerPadding,
+                    onRefresh = { viewModel.loadContacts() },
+                    onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
+                    onContactClick = onContactClick
+                )
+            }
+        }
+
+        // Toast en la parte superior derecha (Cerca del buscador)
+        AnimatedVisibility(
+            visible = showSuccessToast,
+            enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+            exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = if (isInsideTab) 12.dp else 90.dp, end = 16.dp)
+                .zIndex(100f)
+        ) {
+            SuccessToast(
+                message = UserMessages.CampusContacts.CREATE_SUCCESS,
+                onDismiss = { showSuccessToast = false }
+            )
+        }
+    }
+}
+
+@Composable
+fun SuccessToast(message: String, onDismiss: () -> Unit) {
+    Surface(
+        color = NavyBlue,
+        shape = RoundedCornerShape(12.dp),
+        shadowElevation = 12.dp,
+        modifier = Modifier.widthIn(max = 280.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = message,
+                color = Color.White,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 16.sp
+                ),
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Cerrar",
+                    tint = Color.White.copy(alpha = 0.8f),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }
@@ -115,6 +224,8 @@ fun ContactAdminContent(
             },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
                 unfocusedContainerColor = Color.White,
                 focusedContainerColor = Color.White
             ),
