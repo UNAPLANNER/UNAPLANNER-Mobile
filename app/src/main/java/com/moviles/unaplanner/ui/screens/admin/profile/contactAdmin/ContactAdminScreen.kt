@@ -11,11 +11,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -23,11 +25,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.moviles.unaplanner.core.UserMessages
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.ui.components.AdminTopBar
-import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.theme.BackgroundLight
 import com.moviles.unaplanner.ui.theme.NavyBlue
@@ -45,7 +47,8 @@ fun ContactAdminScreen(
     val uiState = viewModel.uiState
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycleOwner = LocalLifecycleOwner.current
-    var showSuccessToast by remember { mutableStateOf(false) }
+    var showSuccessToast by rememberSaveable { mutableStateOf(false) }
+    var toastMessage by rememberSaveable { mutableStateOf("") }
 
     // Observar resultado de creación de contacto
     val contactCreated by navController?.currentBackStackEntry
@@ -55,6 +58,7 @@ fun ContactAdminScreen(
 
     LaunchedEffect(contactCreated) {
         if (contactCreated) {
+            toastMessage = UserMessages.CampusContacts.CREATE_SUCCESS
             showSuccessToast = true
             viewModel.loadContacts() // Forzar recarga inmediata de la lista
             // Limpiamos el estado para que no se repita
@@ -90,6 +94,14 @@ fun ContactAdminScreen(
         }
     }
 
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let {
+            toastMessage = it
+            showSuccessToast = true
+            viewModel.clearMessages()
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (isInsideTab) {
             ContactAdminContent(
@@ -97,7 +109,8 @@ fun ContactAdminScreen(
                 padding = PaddingValues(0.dp),
                 onRefresh = { viewModel.loadContacts() },
                 onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
-                onContactClick = onContactClick
+                onContactClick = onContactClick,
+                onDeleteClick = { viewModel.setContactToDelete(it) }
             )
         } else {
             Scaffold(
@@ -126,9 +139,60 @@ fun ContactAdminScreen(
                     padding = innerPadding,
                     onRefresh = { viewModel.loadContacts() },
                     onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
-                    onContactClick = onContactClick
+                    onContactClick = onContactClick,
+                    onDeleteClick = { viewModel.setContactToDelete(it) }
                 )
             }
+        }
+
+        // Diálogo de confirmación para eliminar
+        uiState.contactToDelete?.let { contact ->
+            AlertDialog(
+                onDismissRequest = { viewModel.setContactToDelete(null) },
+                containerColor = Color.White,
+                title = { 
+                    Text(
+                        textAlign = TextAlign.Center,
+                        text = "Eliminar contacto",
+                        fontWeight = FontWeight.ExtraBold,
+                        color = NavyBlue,
+                        fontSize = 20.sp
+                    ) 
+                },
+                text = { 
+                    Text(
+                        text = "¿Estás seguro de que deseas eliminar este contacto? Esta acción no se puede deshacer.",
+                        color = Color.Black.copy(alpha = 0.8f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) 
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            contact.id.let { viewModel.deleteContact(it) }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("ELIMINAR", fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { viewModel.setContactToDelete(null) }
+                    ) {
+                        Text(
+                            "CANCELAR", 
+                            color = NavyBlue, 
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            )
         }
 
         // Toast en la parte superior derecha (Cerca del buscador)
@@ -142,7 +206,7 @@ fun ContactAdminScreen(
                 .zIndex(100f)
         ) {
             SuccessToast(
-                message = UserMessages.CampusContacts.CREATE_SUCCESS,
+                message = toastMessage,
                 onDismiss = { showSuccessToast = false }
             )
         }
@@ -198,7 +262,8 @@ fun ContactAdminContent(
     padding: PaddingValues,
     onRefresh: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
-    onContactClick: (CampusContact) -> Unit
+    onContactClick: (CampusContact) -> Unit,
+    onDeleteClick: (CampusContact) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -213,21 +278,35 @@ fun ContactAdminContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text("Buscar departamento o contacto...") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            placeholder = { 
+                Text(
+                    text = "Buscar por nombre, depa o teléfono...",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyMedium
+                ) 
+            },
+            leadingIcon = { 
+                Icon(
+                    imageVector = Icons.Default.Search, 
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                ) 
+            },
             trailingIcon = {
                 if (uiState.searchQuery.isNotEmpty()) {
                     IconButton(onClick = { onSearchQueryChange("") }) {
-                        Icon(Icons.Default.Close, contentDescription = "Limpiar")
+                        Icon(Icons.Default.Close, contentDescription = "Limpiar", tint = Color.Gray)
                     }
                 }
             },
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
                 unfocusedContainerColor = Color.White,
-                focusedContainerColor = Color.White
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
+                focusedBorderColor = MaterialTheme.colorScheme.primary
             ),
             singleLine = true
         )
@@ -249,10 +328,15 @@ fun ContactAdminContent(
                 items(uiState.filteredContacts) { contact ->
                     ContactItemCard(
                         contact = contact,
-                        onViewClick = { onContactClick(contact) }
+                        onViewClick = { onContactClick(contact) },
+                        onDeleteClick = { onDeleteClick(contact) }
                     )
                 }
             }
+        }
+        
+        if (uiState.isLoading && uiState.contacts.isNotEmpty()) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -283,7 +367,8 @@ fun NoResultsState() {
 @Composable
 fun ContactItemCard(
     contact: CampusContact,
-    onViewClick: () -> Unit = {}
+    onViewClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -326,6 +411,16 @@ fun ContactItemCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                }
+
+                // Botón de eliminar (Solo visible para Admin)
+                // En este caso asumimos que si estamos en ContactAdminScreen el usuario es Admin
+                IconButton(onClick = onDeleteClick) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar contacto",
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                    )
                 }
             }
 
@@ -385,7 +480,7 @@ fun EmptyContactsState(onRefresh: () -> Unit) {
             text = "Los contactos de tu sede aparecerán aquí.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(24.dp))
         Button(onClick = onRefresh) {

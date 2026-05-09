@@ -74,7 +74,8 @@ fun AdminTopBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 20.dp)
+                .statusBarsPadding()
+                .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 20.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

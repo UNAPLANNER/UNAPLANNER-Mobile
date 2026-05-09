@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.moviles.unaplanner.core.UserMessages
 import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.data.repository.AdminRepository
@@ -19,7 +20,8 @@ data class ContactAdminUiState(
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
-    val successMessage: String? = null
+    val successMessage: String? = null,
+    val contactToDelete: CampusContact? = null
 )
 
 class ContactAdminViewModel(
@@ -30,7 +32,10 @@ class ContactAdminViewModel(
         private set
 
     init {
-        loadContacts()
+        // Solo cargamos si la lista está vacía para preservar estado en rotaciones
+        if (uiState.contacts.isEmpty()) {
+            loadContacts()
+        }
     }
 
     fun loadContacts() {
@@ -90,6 +95,41 @@ class ContactAdminViewModel(
     fun onSearchQueryChange(query: String) {
         uiState = uiState.copy(searchQuery = query)
         filterContacts()
+    }
+
+    fun setContactToDelete(contact: CampusContact?) {
+        uiState = uiState.copy(contactToDelete = contact)
+    }
+
+    fun deleteContact(contactId: Int) {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true, contactToDelete = null)
+            
+            // Optimistic update
+            val previousContacts = uiState.contacts
+            uiState = uiState.copy(
+                contacts = uiState.contacts.filter { it.id != contactId },
+                filteredContacts = uiState.filteredContacts.filter { it.id != contactId }
+            )
+
+            when (val result = repository.deleteCampusContact(contactId)) {
+                is ApiResult.Success -> {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        successMessage = UserMessages.CampusContacts.DELETE_SUCCESS
+                    )
+                }
+                is ApiResult.Error -> {
+                    // Revert on error
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        error = result.message,
+                        contacts = previousContacts
+                    )
+                    filterContacts()
+                }
+            }
+        }
     }
 
     private fun filterContacts() {

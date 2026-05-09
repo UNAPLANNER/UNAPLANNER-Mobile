@@ -47,6 +47,9 @@ object AppConstants {
             const val STUDENT_NOTES = "api/student/{id}/notes"
             const val STUDENT_COURSES = "api/student/{id}/courses"
             const val NOTE_OPERATIONS = "api/notes/{id}"
+            const val CONTACT_OPERATIONS = "api/campus-contacts/{id}"
+            const val USER_PROFILE = "api/users/profile/{id}"
+            const val CHANGE_PASSWORD = "api/users/profile/{id}/change-password"
         }
     }
 }
