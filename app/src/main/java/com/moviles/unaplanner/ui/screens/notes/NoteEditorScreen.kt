@@ -57,7 +57,7 @@ fun NoteEditorScreen(
                 title = it.title
                 content = it.content ?: ""
                 selectedCourse = it.course
-                noteCourseName = it.courseName
+                noteCourseName = it.displayCourseName
             }
         }
     }

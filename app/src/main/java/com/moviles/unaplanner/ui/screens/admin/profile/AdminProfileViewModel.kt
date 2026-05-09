@@ -32,6 +32,8 @@ class AdminProfileViewModel(
         private set
 
     init {
+        // Mostrar usuario de sesión inmediatamente (si existe) mientras se refresca desde API
+        AuthSession.currentUser?.let { uiState = uiState.copy(user = it) }
         loadProfile()
     }
 
