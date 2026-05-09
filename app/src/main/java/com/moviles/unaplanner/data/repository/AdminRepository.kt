@@ -89,4 +89,18 @@ class AdminRepository(
             ApiResult.Error(e.message ?: "Error de red")
         }
     }
+
+    suspend fun deleteCampusContact(id: Int): ApiResult<Unit> {
+        return try {
+            val response = apiService.deleteCampusContact(id)
+            when (response.code()) {
+                204 -> ApiResult.Success(Unit)
+                404 -> ApiResult.Error("Este contacto ya no existe")
+                401, 403 -> ApiResult.Error("No tienes permisos para realizar esta acción")
+                else -> ApiResult.Error("Error al eliminar el contacto: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
 }

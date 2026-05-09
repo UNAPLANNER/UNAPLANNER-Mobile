@@ -18,16 +18,19 @@ interface ApiService {
     @GET("api/campus-contacts/campus/{campusId}")
     suspend fun getContactsByCampus(@Path("campusId") campusId: Int): Response<List<CampusContact>>
 
-    @GET("api/profile/{id}")
+    @GET(AppConstants.Api.Paths.USER_PROFILE)
     suspend fun getProfile(@Path("id") id: Int): Response<UserDto>
 
-    @PUT("api/profile/{id}")
+    @PUT(AppConstants.Api.Paths.USER_PROFILE)
     suspend fun updateProfile(@Path("id") id: Int, @Body request: UpdateProfileRequest): Response<UserDto>
 
-    @POST("api/profile/{id}/change-password")
+    @POST(AppConstants.Api.Paths.CHANGE_PASSWORD)
     suspend fun changePassword(@Path("id") id: Int, @Body request: ChangePasswordRequest): Response<Unit>
     @GET("${AppConstants.Api.Paths.CAMPUS_CONTACTS}/{id}")
     suspend fun getCampusContact(@Path("id") id: Int): Response<CampusContact>
+
+    @DELETE(AppConstants.Api.Paths.CONTACT_OPERATIONS)
+    suspend fun deleteCampusContact(@Path("id") id: Int): Response<Unit>
 
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>

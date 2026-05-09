@@ -26,5 +26,6 @@ object UserMessages {
 
     object CampusContacts {
         const val CREATE_SUCCESS = "¡Contacto creado exitosamente!"
+        const val DELETE_SUCCESS = "¡Contacto eliminado exitosamente!"
     }
 }
