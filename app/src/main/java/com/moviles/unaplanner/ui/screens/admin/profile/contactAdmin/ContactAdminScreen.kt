@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.ui.components.AdminTopBar
+import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.theme.BackgroundLight
 
@@ -64,10 +65,9 @@ fun ContactAdminScreen(
                 )
             },
             bottomBar = {
-                AppBottomNavBar(
+                AdminAppBottomNavBar(
                     selectedIndex = 2,
-                    onItemSelected = {},
-                    isAdmin = true
+                    onItemSelected = {}
                 )
             },
             containerColor = BackgroundLight

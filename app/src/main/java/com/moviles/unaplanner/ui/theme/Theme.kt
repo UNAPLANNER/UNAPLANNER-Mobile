@@ -2,7 +2,6 @@ package com.moviles.unaplanner.ui.theme
 
 
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -17,11 +16,12 @@ private val DarkColorScheme = darkColorScheme(
     secondary = CrimsonRed,
     tertiary = EventOrange,
     background = BackgroundDark,
-    surface = SurfaceDark,
+    surface = NavyBlue,
     onPrimary = TextOnDark,
     onSecondary = TextOnRed,
     onBackground = TextOnDark,
     onSurface = TextOnDark,
+    onSurfaceVariant = TextOnDark.copy(alpha = 0.6f),
     outline = AppDivider
 )
 
@@ -35,8 +35,8 @@ private val LightColorScheme = lightColorScheme(
     onSecondary = TextOnRed,
     onBackground = TextPrimary,
     onSurface = TextPrimary,
+    onSurfaceVariant = TextSecondary,
     outline = AppDivider
-
 )
 
 @Composable

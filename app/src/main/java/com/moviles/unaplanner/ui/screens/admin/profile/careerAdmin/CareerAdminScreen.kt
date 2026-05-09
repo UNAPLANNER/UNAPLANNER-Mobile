@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moviles.unaplanner.ui.components.AdminTopBar
+import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.theme.BackgroundLight
 
@@ -28,10 +29,9 @@ fun CareerAdminScreen(
             )
         },
         bottomBar = {
-            AppBottomNavBar(
+            AdminAppBottomNavBar(
                 selectedIndex = 1,
-                onItemSelected = onNavigateToSection,
-                isAdmin = true
+                onItemSelected = onNavigateToSection
             )
         },
         containerColor = BackgroundLight
