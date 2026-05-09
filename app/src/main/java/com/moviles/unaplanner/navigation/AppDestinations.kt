@@ -18,6 +18,7 @@ object AppDestinations {
     const val ADMIN_MAIN = "admin_main"
     const val ADMIN_PROFILE = "admin_profile"
     const val CONTACT_DETAIL = "contact_detail/{contactId}"
+    const val CREATE_CONTACT = "create_contact"
     fun createContactDetailRoute(contactId: Int) = "contact_detail/$contactId"
     const val NOTE_EDIT = "note_edit/{noteId}"
 

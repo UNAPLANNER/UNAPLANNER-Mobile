@@ -18,6 +18,7 @@ import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 import com.moviles.unaplanner.ui.screens.contact.detail.CampusContactsDetailScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampusContactScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 
@@ -96,10 +97,14 @@ fun AppNavHost() {
         // --- PANTALLA PRINCIPAL ADMIN (CONTENEDOR DE PESTAÑAS) ---
         composable(route = AppDestinations.ADMIN_MAIN) {
             AdminMainScreen(
+                navController = navController,
                 onLogout = {
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.ADMIN_MAIN) { inclusive = true }
                     }
+                },
+                onNavigateToCreateContact = {
+                    navController.navigate(AppDestinations.CREATE_CONTACT)
                 }
             )
         }
@@ -137,6 +142,17 @@ fun AppNavHost() {
                     navController.popBackStack()
                 },
                 viewModel = notesViewModel
+            )
+        }
+
+        // --- PANTALLA DE CREACIÓN DE CONTACTO (ADMIN) ---
+        composable(route = AppDestinations.CREATE_CONTACT) {
+            CreateCampusContactScreen(
+                onBackClick = { navController.popBackStack() },
+                onSuccess = {
+                    navController.previousBackStackEntry?.savedStateHandle?.set("contact_created", true)
+                    navController.popBackStack()
+                }
             )
         }
 

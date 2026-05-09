@@ -23,4 +23,8 @@ object UserMessages {
         const val LOGIN_EMPTY_FIELDS = "Por favor, completa todos los campos"
         const val INVALID_CREDENTIALS = "Correo o contraseña incorrectos"
     }
+
+    object CampusContacts {
+        const val CREATE_SUCCESS = "¡Contacto creado exitosamente!"
+    }
 }
