@@ -402,6 +402,7 @@ fun EditProfileModal(
     var currentPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf<String?>(null) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -472,7 +473,10 @@ fun EditProfileModal(
                 value = currentPassword,
                 label = "Contraseña actual",
                 placeholder = "********",
-                onValueChange = { currentPassword = it },
+                onValueChange = {
+                    currentPassword = it
+                    passwordError = null
+                },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
@@ -482,7 +486,10 @@ fun EditProfileModal(
                     value = newPassword,
                     label = "Nueva contraseña",
                     placeholder = "********",
-                    onValueChange = { newPassword = it },
+                    onValueChange = {
+                        newPassword = it
+                        passwordError = null
+                    },
                     modifier = Modifier.weight(1f),
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -492,10 +499,21 @@ fun EditProfileModal(
                     value = confirmPassword,
                     label = "Confirmar",
                     placeholder = "********",
-                    onValueChange = { confirmPassword = it },
+                    onValueChange = {
+                        confirmPassword = it
+                        passwordError = null
+                    },
                     modifier = Modifier.weight(1f),
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                )
+            }
+
+            passwordError?.let { message ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.error)
                 )
             }
 
@@ -521,10 +539,16 @@ fun EditProfileModal(
                 Button(
                     onClick = {
                         if (newPassword.isNotEmpty()) {
-                            if (newPassword == confirmPassword) {
-                                onChangePassword(currentPassword, newPassword)
-                            } else {
-                                // Handled in VM or simple local error
+                            when {
+                                currentPassword.isBlank() -> {
+                                    passwordError = "Ingresa la contrasena actual"
+                                    return@Button
+                                }
+                                newPassword != confirmPassword -> {
+                                    passwordError = "La nueva contrasena no coincide"
+                                    return@Button
+                                }
+                                else -> onChangePassword(currentPassword, newPassword)
                             }
                         }
                         onSave(fullName, phone, department)

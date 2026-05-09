@@ -16,10 +16,13 @@ data class NoteDto(
     @SerializedName("updatedAt", alternate = ["UpdatedAt"])
     val lastUpdated: String,
     @SerializedName("courseName", alternate = ["CourseName"])
-    val courseName: String = "General",
+    val courseName: String? = null,
     @SerializedName("course", alternate = ["Course"])
     val course: CourseDto? = null
-)
+) {
+    val displayCourseName: String
+        get() = courseName ?: course?.name ?: "General"
+}
 
 data class CourseDto(
     @SerializedName("id", alternate = ["Id"])

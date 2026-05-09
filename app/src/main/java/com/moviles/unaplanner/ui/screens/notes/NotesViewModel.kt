@@ -233,7 +233,7 @@ class NotesViewModel(
         val filtered = if (selectedCourse == "Todas") {
             allNotes
         } else {
-            allNotes.filter { it.courseName == selectedCourse }
+            allNotes.filter { it.displayCourseName == selectedCourse }
         }
 
         val coursesList = mutableListOf("Todas")
@@ -241,8 +241,8 @@ class NotesViewModel(
         // Agregar nombres de cursos del plan de estudio del estudiante
         coursesList.addAll(_studentCourses.value.map { it.name })
         
-        // Agregar nombres de cursos que tienen notas (usando el campo courseName del DTO)
-        coursesList.addAll(allNotes.map { it.courseName })
+        // Agregar nombres de cursos que tienen notas
+        coursesList.addAll(allNotes.map { it.displayCourseName })
         
         // Asegurar que "General" esté siempre disponible
         coursesList.add("General")

@@ -210,7 +210,7 @@ fun NoteCard(note: NoteDto, onClick: () -> Unit, onDeleteClick: () -> Unit) {
         note.course?.code == "EIF206" -> Color(0xFFD32F2F) to Color(0xFFFFEBEE)
         note.course?.code == "EIF207" -> Color(0xFFF57C00) to Color(0xFFFFF3E0)
         note.course?.code == "EIF205" -> Color(0xFF388E3C) to Color(0xFFE8F5E9)
-        note.course == null || note.courseName == "General" -> Color(0xFF2E7D32) to Color(0xFFC8E6C9) // Verde solicitado
+        note.course == null || note.displayCourseName == "General" -> Color(0xFF2E7D32) to Color(0xFFC8E6C9) // Verde solicitado
         else -> Color(0xFF1976D2) to Color(0xFFE3F2FD) // Azul para otros cursos
     }
 
@@ -235,7 +235,7 @@ fun NoteCard(note: NoteDto, onClick: () -> Unit, onDeleteClick: () -> Unit) {
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        text = note.courseName,
+                        text = note.displayCourseName,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = tagColor,
