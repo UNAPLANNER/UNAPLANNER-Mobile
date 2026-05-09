@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import com.moviles.unaplanner.core.UserMessages
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.ui.components.AdminTopBar
+import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.theme.BackgroundLight
 import com.moviles.unaplanner.ui.theme.NavyBlue

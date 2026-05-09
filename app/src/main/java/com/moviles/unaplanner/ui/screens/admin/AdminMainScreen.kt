@@ -10,6 +10,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.moviles.unaplanner.ui.components.AdminTopBar
+import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminContent
@@ -52,10 +53,9 @@ fun AdminMainScreen(
             }
         },
         bottomBar = {
-            AppBottomNavBar(
+            AdminAppBottomNavBar(
                 selectedIndex = selectedIndex,
-                onItemSelected = { selectedIndex = it },
-                isAdmin = true
+                onItemSelected = { selectedIndex = it }
             )
         },
         containerColor = BackgroundLight,

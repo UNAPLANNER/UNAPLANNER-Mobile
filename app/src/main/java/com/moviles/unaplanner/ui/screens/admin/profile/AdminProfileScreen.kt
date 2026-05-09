@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -62,10 +63,9 @@ fun AdminProfileScreen(
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
-                AppBottomNavBar(
+                AdminAppBottomNavBar(
                     selectedIndex = 3,
-                    onItemSelected = {},
-                    isAdmin = true
+                    onItemSelected = {}
                 )
             }
         ) { padding ->
@@ -99,7 +99,7 @@ private fun AdminProfileContent(
     padding: PaddingValues
 ) {
     val gradientBrush = Brush.verticalGradient(
-        colors = listOf(Color(0xFF010B40), Color(0xFF071155))
+        colors = listOf(Color(0xFF020B63), Color(0xFF081A8C))
     )
 
     if (uiState.isLoading) {
@@ -112,13 +112,14 @@ private fun AdminProfileContent(
         modifier = Modifier
             .fillMaxSize()
             .background(gradientBrush)
-            .statusBarsPadding()
             .padding(bottom = padding.calculateBottomPadding())
     ) {
         // Header bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(gradientBrush)
+                .statusBarsPadding()
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -171,6 +172,7 @@ private fun AdminProfileContent(
                     .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(20.dp)),
                 contentAlignment = Alignment.Center
             ) {
+
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
@@ -225,28 +227,64 @@ private fun AdminProfileContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // White content area
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background,
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+        // Content area with gradient background
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
         ) {
-            Column(
+            // Fondo azul
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                Color(0xFF020B63),
+                                Color(0xFF081A8C)
+                            )
+                        )
+                    )
+            )
+
+            // Glow rojo
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                Color(0x33FF005A),
+                                Color.Transparent
+                            ),
+                            radius = 900f,
+                            center = Offset(900f, 150f)
+                        )
+                    )
+            )
+
+            Surface(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(20.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 20.dp),
+                color = MaterialTheme.colorScheme.background,
+                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
             ) {
-                ProfileInfoCard(title = "Información personal") {
-                    ProfileInfoRow(
-                        icon = Icons.Default.PersonOutline,
-                        label = "Nombre",
-                        value = uiState.user?.fullName ?: "-"
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-                    ProfileInfoRow(
-                        icon = Icons.Default.Email,
-                        label = "Email",
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(20.dp)
+                ) {
+                    ProfileInfoCard(title = "Información personal") {
+                        ProfileInfoRow(
+                            icon = Icons.Default.PersonOutline,
+                            label = "Nombre",
+                            value = uiState.user?.fullName ?: "-"
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                        ProfileInfoRow(
+                            icon = Icons.Default.Email,
+                            label = "Email",
                         value = uiState.user?.email ?: "-"
                     )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
@@ -343,6 +381,7 @@ private fun AdminProfileContent(
 
                 Spacer(modifier = Modifier.height(20.dp))
             }
+        }
         }
     }
 }
