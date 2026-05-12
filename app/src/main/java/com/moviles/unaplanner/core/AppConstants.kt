@@ -47,7 +47,7 @@ object AppConstants {
         object Paths {
             const val AUTH_LOGIN = "api/auth/login"
             const val CAMPUS_CONTACTS = "api/campus-contacts"
-            const val STUDENT_NOTES = "api/student/user/{id}/notes"
+            const val STUDENT_NOTES = "api/student/{id}/notes"
             const val STUDENT_COURSES = "api/student/{id}/courses"
             const val NOTE_OPERATIONS = "api/notes/{id}"
             const val CONTACT_OPERATIONS = "api/campus-contacts/{id}"

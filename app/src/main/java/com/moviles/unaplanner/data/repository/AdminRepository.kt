@@ -42,8 +42,7 @@ class AdminRepository(
             if (response.isSuccessful) {
                 ApiResult.Success(response.body()!!)
             } else {
-                val errorMsg = response.errorBody()?.string() ?: "Error desconocido"
-                ApiResult.Error("Error ${response.code()}: $errorMsg")
+                ApiResult.Error(profileErrorMessage(response.code()), response.code())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error de red")
@@ -56,7 +55,7 @@ class AdminRepository(
             if (response.isSuccessful) {
                 ApiResult.Success(response.body()!!)
             } else {
-                ApiResult.Error("Error al actualizar perfil")
+                ApiResult.Error(profileErrorMessage(response.code()), response.code())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error desconocido")
@@ -69,7 +68,7 @@ class AdminRepository(
             if (response.isSuccessful) {
                 ApiResult.Success(Unit)
             } else {
-                ApiResult.Error("Error al cambiar contraseña")
+                ApiResult.Error(passwordErrorMessage(response.code()), response.code())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error desconocido")
@@ -96,11 +95,31 @@ class AdminRepository(
             when (response.code()) {
                 204 -> ApiResult.Success(Unit)
                 404 -> ApiResult.Error("Este contacto ya no existe")
-                401, 403 -> ApiResult.Error("No tienes permisos para realizar esta acción")
+                401, 403 -> ApiResult.Error("No tienes permisos para realizar esta accion")
                 else -> ApiResult.Error("Error al eliminar el contacto: ${response.code()}")
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    private fun profileErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            400 -> "Validacion fallida. Revisa el nombre, telefono y departamento."
+            401, 403 -> "No tienes permisos para actualizar este perfil."
+            404 -> "No se encontro el perfil del administrador."
+            500 -> "Error del servidor al guardar el perfil."
+            else -> "Error al procesar el perfil: $statusCode"
+        }
+    }
+
+    private fun passwordErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            400 -> "Validacion fallida. Revisa los datos de contrasena."
+            401 -> "La contrasena actual es incorrecta."
+            403 -> "No tienes permisos para cambiar esta contrasena."
+            500 -> "Error del servidor al cambiar la contrasena."
+            else -> "Error al cambiar la contrasena: $statusCode"
         }
     }
 }
