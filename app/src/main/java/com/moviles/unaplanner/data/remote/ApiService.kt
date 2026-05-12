@@ -55,4 +55,9 @@ interface ApiService {
         @Path("id") noteId: Int,
         @Body request: UpdateNoteRequest
     ): Response<NoteDto>
+
+    @POST(AppConstants.Api.Paths.REGISTER_STUDENT)
+    suspend fun registerUser(
+        @Body request: RegisterRequest
+    ): Response<RegisterResponse>
 }

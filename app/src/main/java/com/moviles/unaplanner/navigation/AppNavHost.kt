@@ -21,6 +21,7 @@ import androidx.navigation.navArgument
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampusContactScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
+import com.moviles.unaplanner.ui.screens.register.RegisterScreen
 
 @Composable
 fun AppNavHost() {
@@ -157,17 +158,21 @@ fun AppNavHost() {
         }
 
         // --- PANTALLA DE REGISTRO ---
-        /*composable(route = AppDestinations.REGISTER) {
+        composable(route = AppDestinations.REGISTER) {
             RegisterScreen(
-                onBack = { navController.popBackStack() },
-                onRegisterSuccess = {
-                    navController.navigate(AppDestinations.LOGIN)
+                onBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(AppDestinations.LOGIN) {
+                        popUpTo(AppDestinations.REGISTER) { inclusive = true }
+                    }
                 }
             )
         }
 
         // --- PANTALLA DE PERFIL DE ADMIN ---
-        composable(route = AppDestinations.ADMIN_PROFILE) {
+        /*composable(route = AppDestinations.ADMIN_PROFILE) {
             AdminProfileScreen(
                 onBackClick = { navController.popBackStack() },
                 onLogoutClick = {
