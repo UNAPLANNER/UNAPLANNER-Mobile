@@ -32,26 +32,32 @@ class AdminProfileViewModel(
         private set
 
     init {
-        // Mostrar usuario de sesión inmediatamente (si existe) mientras se refresca desde API
+        // Pre-populate the UI with session data while the API returns the full profile.
         AuthSession.currentUser?.let { uiState = uiState.copy(user = it) }
         loadProfile()
     }
 
     fun loadProfile() {
-        val userId = AuthSession.currentUser?.id ?: return
-        uiState = uiState.copy(isLoading = true)
+        val userId = AuthSession.currentUser?.id ?: run {
+            uiState = uiState.copy(error = "Sesion no iniciada")
+            return
+        }
+
+        uiState = uiState.copy(isInitialLoading = true, error = null)
         viewModelScope.launch {
             when (val result = adminRepository.getProfile(userId)) {
                 is ApiResult.Success -> {
+                    persistProfileInSession(result.data)
                     uiState = uiState.copy(
                         user = result.data,
-                        isLoading = false,
+                        isInitialLoading = false,
                         error = null
                     )
                 }
+
                 is ApiResult.Error -> {
                     uiState = uiState.copy(
-                        isLoading = false,
+                        isInitialLoading = false,
                         error = result.message
                     )
                 }
@@ -60,25 +66,36 @@ class AdminProfileViewModel(
     }
 
     fun updateProfile(fullName: String, phone: String, department: String) {
+        val validationError = validateProfile(fullName, phone, department)
+        if (validationError != null) {
+            uiState = uiState.copy(error = validationError)
+            return
+        }
+
         val userId = AuthSession.currentUser?.id ?: return
-        uiState = uiState.copy(isUpdating = true)
+        uiState = uiState.copy(isSavingProfile = true, error = null)
         viewModelScope.launch {
-            val request = UpdateProfileRequest(fullName, phone, department)
+            val request = UpdateProfileRequest(
+                fullName = fullName.trim(),
+                phone = phone.trim(),
+                department = department.trim()
+            )
+
             when (val result = adminRepository.updateProfile(userId, request)) {
                 is ApiResult.Success -> {
-                    AuthSession.currentUser?.let { current ->
-                        AuthSession.setUser(result.data.copy(token = current.token))
-                    }
+                    persistProfileInSession(result.data)
                     uiState = uiState.copy(
                         user = result.data,
-                        isUpdating = false,
+                        isSavingProfile = false,
                         showEditModal = false,
                         successMessage = "Perfil actualizado correctamente"
                     )
+                    loadProfile()
                 }
+
                 is ApiResult.Error -> {
                     uiState = uiState.copy(
-                        isUpdating = false,
+                        isSavingProfile = false,
                         error = result.message
                     )
                 }
@@ -87,20 +104,28 @@ class AdminProfileViewModel(
     }
 
     fun changePassword(current: String, new: String) {
+        val validationError = validatePasswordChange(current, new)
+        if (validationError != null) {
+            uiState = uiState.copy(error = validationError)
+            return
+        }
+
         val userId = AuthSession.currentUser?.id ?: return
-        uiState = uiState.copy(isUpdating = true)
+        uiState = uiState.copy(isChangingPassword = true, error = null)
         viewModelScope.launch {
-            val request = ChangePasswordRequest(current, new)
+            val request = ChangePasswordRequest(currentPassword = current, newPassword = new)
             when (val result = adminRepository.changePassword(userId, request)) {
                 is ApiResult.Success -> {
                     uiState = uiState.copy(
-                        isUpdating = false,
-                        successMessage = "Contraseña cambiada exitosamente"
+                        isChangingPassword = false,
+                        passwordChangeSuccessVersion = uiState.passwordChangeSuccessVersion + 1,
+                        successMessage = "Contrasena cambiada exitosamente"
                     )
                 }
+
                 is ApiResult.Error -> {
                     uiState = uiState.copy(
-                        isUpdating = false,
+                        isChangingPassword = false,
                         error = result.message
                     )
                 }
@@ -115,13 +140,43 @@ class AdminProfileViewModel(
     fun clearMessages() {
         uiState = uiState.copy(error = null, successMessage = null)
     }
+
+    private fun persistProfileInSession(profile: UserDto) {
+        AuthSession.currentUser?.let { current ->
+            AuthSession.setUser(profile.copy(token = current.token))
+        }
+    }
+
+    private fun validateProfile(fullName: String, phone: String, department: String): String? {
+        return when {
+            fullName.isBlank() -> "Ingresa el nombre completo."
+            department.isBlank() -> "Ingresa el departamento."
+            phone.isBlank() -> "Ingresa el telefono institucional."
+            phone.any { it.isLetter() } -> "El telefono no debe contener letras."
+            !Regex("^2277-\\d{4}$").matches(phone.trim()) -> "El telefono debe usar el formato 2277-XXXX."
+            else -> null
+        }
+    }
+
+    private fun validatePasswordChange(current: String, new: String): String? {
+        return when {
+            current.isBlank() -> "Ingresa la contrasena actual."
+            new.length < 8 -> "La nueva contrasena debe tener al menos 8 caracteres."
+            else -> null
+        }
+    }
 }
 
 data class AdminProfileUiState(
     val user: UserDto? = null,
-    val isLoading: Boolean = false,
-    val isUpdating: Boolean = false,
+    val isInitialLoading: Boolean = false,
+    val isSavingProfile: Boolean = false,
+    val isChangingPassword: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
-    val showEditModal: Boolean = false
-)
+    val showEditModal: Boolean = false,
+    val passwordChangeSuccessVersion: Int = 0
+) {
+    val isBusy: Boolean
+        get() = isSavingProfile || isChangingPassword
+}
