@@ -59,8 +59,8 @@ fun AppTextField(
                 singleLine = true,
                 enabled = true,
 
-                textStyle = TextStyle(color = Color.Red),
-                //textStyle = TextStyle(fontSize = 16.sp),
+                //textStyle = TextStyle(color = Color.Red),
+                textStyle = TextStyle(fontSize = 16.sp),
 
                 placeholder = {
                     Text(

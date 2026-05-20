@@ -2,45 +2,25 @@ package com.moviles.unaplanner.data.remote.model
 
 import com.google.gson.annotations.SerializedName
 
-
 data class RegisterRequest(
-    @SerializedName("FullName")
-    val name: String,
 
-    @SerializedName("Email")
+    @SerializedName("fullName")
+    val fullName: String,
+
+    @SerializedName("email")
     val email: String,
 
-    @SerializedName("Password")
+    @SerializedName("password")
     val password: String,
 
-    @SerializedName("Campus")
-    val campus: String,
+    @SerializedName("careerId")
+    val careerId: Int,
 
-    @SerializedName("Major")
-    val major: String,
-
-    @SerializedName("SecondMajor")
-    val secondMajor: String?,
-
-    @SerializedName("StudyPlanId")
+    @SerializedName("studyPlanId")
     val studyPlanId: Int,
 
-    @SerializedName("EntryYear")
-    val entryYear: Int,
-    @SerializedName("CurrentCycle")
-    val currentCycle: String,
-
-
-    @SerializedName("StudentId")
-    val id: Int? = 0,
-
-    @SerializedName("Title")
-    val title: String? = null,
-
-    @SerializedName("Content")
-    val content: String? = null
-
-
+    @SerializedName("enterYear")
+    val enterYear: Int
 )
 
 data class RegisterResponse(
@@ -59,4 +39,10 @@ data class StudentData(
     val id: Int,
     @SerializedName("Email")
     val email: String
+)
+
+data class StudyPlan(
+    val studyPlanId: Int,
+    val careerId: Int,
+    val name: String
 )

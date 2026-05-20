@@ -44,6 +44,7 @@ import com.moviles.unaplanner.ui.theme.SurfaceLight
 import com.moviles.unaplanner.ui.theme.TextPrimary
 import com.moviles.unaplanner.ui.theme.TextSecondary
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomInputField(
@@ -56,70 +57,138 @@ fun CustomInputField(
     readOnly: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
-    var passwordVisible by remember { mutableStateOf(false) }
 
-    val visualTransformation = when {
-        isPassword && !passwordVisible -> PasswordVisualTransformation()
-        else -> VisualTransformation.None
+    var passwordVisible by remember {
+        mutableStateOf(false)
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    val visualTransformation = when {
+        isPassword && !passwordVisible ->
+            PasswordVisualTransformation()
+
+        else ->
+            VisualTransformation.None
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             color = TextSecondary,
             modifier = Modifier.padding(bottom = 4.dp)
         )
-
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
+        // BOX CLICKABLE
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(enabled = isSelector && onClick != null) { onClick?.invoke() },
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            readOnly = readOnly,
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            visualTransformation = visualTransformation,
-            trailingIcon = {
-                when {
-                    isSelector -> Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = TextSecondary
-                    )
-                    isPassword -> IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible)
-                                Icons.Default.Visibility
-                            else
-                                Icons.Default.VisibilityOff,
-                            contentDescription = null,
-                            tint = TextSecondary
-                        )
-                    }
+                .clickable(
+                    enabled = isSelector
+                ) {
+                    onClick?.invoke()
                 }
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                disabledContainerColor = MaterialTheme.colorScheme.surface,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ) {
+
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+
+                modifier = Modifier.fillMaxWidth(),
+
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+
+                singleLine = true,
+
+                readOnly = readOnly,
+
+                enabled = !isSelector,
+
+                shape = RoundedCornerShape(12.dp),
+
+                visualTransformation = visualTransformation,
+
+                trailingIcon = {
+
+                    when {
+
+                        isSelector -> {
+
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = TextSecondary
+                            )
+                        }
+
+                        isPassword -> {
+
+                            IconButton(
+                                onClick = {
+                                    passwordVisible = !passwordVisible
+                                }
+                            ) {
+
+                                Icon(
+                                    imageVector =
+                                        if (passwordVisible)
+                                            Icons.Default.Visibility
+                                        else
+                                            Icons.Default.VisibilityOff,
+
+                                    contentDescription = null,
+                                    tint = TextSecondary
+                                )
+                            }
+                        }
+                    }
+                },
+
+                colors = OutlinedTextFieldDefaults.colors(
+
+                    focusedTextColor =
+                        MaterialTheme.colorScheme.onSurface,
+
+                    unfocusedTextColor =
+                        MaterialTheme.colorScheme.onSurface,
+
+                    disabledTextColor =
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+
+                    focusedContainerColor =
+                        MaterialTheme.colorScheme.surface,
+
+                    unfocusedContainerColor =
+                        MaterialTheme.colorScheme.surface,
+
+                    disabledContainerColor =
+                        MaterialTheme.colorScheme.surface,
+
+                    focusedBorderColor =
+                        MaterialTheme.colorScheme.primary,
+
+                    unfocusedBorderColor =
+                        MaterialTheme.colorScheme.outline,
+
+                    disabledBorderColor =
+                        MaterialTheme.colorScheme.outline,
+
+                    cursorColor =
+                        MaterialTheme.colorScheme.primary,
+
+                    focusedPlaceholderColor =
+                        MaterialTheme.colorScheme.onSurfaceVariant,
+
+                    unfocusedPlaceholderColor =
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
-        )
+        }
     }
 }
-

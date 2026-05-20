@@ -31,6 +31,7 @@ import com.moviles.unaplanner.R
 import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.ui.components.AppButton
 import com.moviles.unaplanner.ui.components.AppTextField
+import com.moviles.unaplanner.ui.components.CustomInputField
 import com.moviles.unaplanner.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -247,21 +248,19 @@ fun EmailTextField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
     )
 }
-
 @Composable
 fun PasswordTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    AppTextField(
-        value = value,
+
+    CustomInputField(
         label = "CONTRASEÑA",
-        placeholder = "********",
+        value = value,
         onValueChange = onValueChange,
-        modifier = modifier,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        visualTransformation = PasswordVisualTransformation()
+        placeholder = "********",
+        isPassword = true
     )
 }
 
