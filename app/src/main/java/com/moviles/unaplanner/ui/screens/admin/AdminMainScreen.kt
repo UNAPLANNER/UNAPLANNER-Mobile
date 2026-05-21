@@ -9,11 +9,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.unaplanner.ui.components.AdminTopBar
 import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminContent
+import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminViewModel
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.ContactAdminScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.homeAdmin.HomeAdminContent
 import com.moviles.unaplanner.ui.theme.BackgroundLight
@@ -25,11 +27,22 @@ fun AdminMainScreen(
     navController: NavController? = null
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+    val careerViewModel: CareerAdminViewModel = viewModel(factory = CareerAdminViewModel.Factory)
+    val careers = careerViewModel.uiState.careers
+    val careersCampusLabel = careers
+        .map { it.campusName }
+        .distinct()
+        .singleOrNull() ?: "Campus institucional"
+    val careersSubtitle = if (careers.isEmpty()) {
+        "Carreras registradas"
+    } else {
+        "${careers.size} carreras registradas - $careersCampusLabel"
+    }
 
     val titles = listOf("UNAPlanner Admin", "Carreras", "Contactos", "Mi Perfil")
     val subtitles = listOf(
         null,
-        "7 carreras registradas · Campus Sarapiquí",
+        careersSubtitle,
         "Directorio de la Sede",
         null
     )
@@ -71,7 +84,7 @@ fun AdminMainScreen(
                     HomeAdminContent()
                 }
                 1 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
-                    CareerAdminContent()
+                    CareerAdminContent(viewModel = careerViewModel)
                 }
                 2 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
                     ContactAdminScreen(

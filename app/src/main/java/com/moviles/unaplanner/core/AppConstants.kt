@@ -14,7 +14,7 @@ object AppConstants {
         //private const val PHYSICAL_DEVICE_URL = "http://192.168.1.6:5232/"
         //REICHEL Usando IP local
         //private const val PHYSICAL_DEVICE_URL = "http://192.168.100.124:5232/"
-        private const val PHYSICAL_DEVICE_URL = "http://192.168.100.64:5232/"
+        private const val PHYSICAL_DEVICE_URL = "http://192.168.0.9:5232/"
         //Natalia Usando IP local
 
         /**
@@ -53,6 +53,7 @@ object AppConstants {
             const val CONTACT_OPERATIONS = "api/campus-contacts/{id}"
             const val USER_PROFILE = "api/profile/{id}"
             const val CHANGE_PASSWORD = "api/profile/{id}/change-password"
+            const val CAREERS = "api/careers"
         }
     }
 }
