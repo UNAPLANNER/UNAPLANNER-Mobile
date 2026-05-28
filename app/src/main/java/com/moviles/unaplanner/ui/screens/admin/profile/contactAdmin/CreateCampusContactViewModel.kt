@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.moviles.unaplanner.core.UserMessages
 import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.data.repository.AdminRepository
@@ -83,25 +84,25 @@ class CreateCampusContactViewModel(
         val errors = mutableMapOf<String, String>()
         
         if (uiState.departmentName.isBlank()) {
-            errors["DepartmentName"] = "El nombre del departamento es obligatorio"
+            errors["DepartmentName"] = UserMessages.CampusContacts.Errors.DEPT_NAME_REQUIRED
         } else if (uiState.departmentName.length > 100) {
-            errors["DepartmentName"] = "Máximo 100 caracteres"
+            errors["DepartmentName"] = UserMessages.CampusContacts.Errors.MAX_CHARS_100
         }
 
         if (uiState.phone.isBlank()) {
-            errors["Phone"] = "El teléfono es obligatorio"
+            errors["Phone"] = UserMessages.CampusContacts.Errors.PHONE_REQUIRED
         } else if (uiState.phone.length < 7) {
-            errors["Phone"] = "Mínimo 7 caracteres"
+            errors["Phone"] = UserMessages.CampusContacts.Errors.MIN_CHARS_7
         } else if (uiState.phone.length > 25) {
-            errors["Phone"] = "Máximo 25 caracteres"
+            errors["Phone"] = UserMessages.CampusContacts.Errors.MAX_CHARS_25
         }
 
         if (uiState.email.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(uiState.email).matches()) {
-            errors["Email"] = "Formato de correo inválido"
+            errors["Email"] = UserMessages.CampusContacts.Errors.INVALID_EMAIL
         }
 
         if (uiState.description.length > 500) {
-            errors["Description"] = "Máximo 500 caracteres"
+            errors["Description"] = UserMessages.CampusContacts.Errors.MAX_CHARS_500
         }
 
         uiState = uiState.copy(fieldErrors = errors)
@@ -109,7 +110,7 @@ class CreateCampusContactViewModel(
     }
 
     private fun handleError(message: String?) {
-        val fallback = "Error al procesar la solicitud. Intente nuevamente."
+        val fallback = UserMessages.CampusContacts.Errors.GENERAL_ERROR
         if (message.isNullOrBlank()) {
             uiState = uiState.copy(isLoading = false, error = fallback)
             return
@@ -137,7 +138,7 @@ class CreateCampusContactViewModel(
                 uiState = uiState.copy(
                     isLoading = false, 
                     fieldErrors = fieldErrors,
-                    error = if (fieldErrors.isEmpty()) title else "Por favor, revise los errores en los campos marcados"
+                    error = if (fieldErrors.isEmpty()) title else UserMessages.CampusContacts.Errors.CHECK_FIELDS
                 )
             } else {
                 val detail = json.optString("detail").takeIf { it.isNotBlank() } ?: title
