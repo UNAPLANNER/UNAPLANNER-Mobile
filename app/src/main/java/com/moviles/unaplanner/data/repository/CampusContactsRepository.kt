@@ -1,15 +1,15 @@
 package com.moviles.unaplanner.data.repository
 
-import com.moviles.unaplanner.data.remote.ApiService
+import com.moviles.unaplanner.data.remote.ContactApiService
 import com.moviles.unaplanner.data.remote.RetrofitClient
 import com.moviles.unaplanner.data.remote.model.CampusContact
 
 class CampusContactsRepository(
-    private val apiService: ApiService = RetrofitClient.apiService
+    private val contactApiService: ContactApiService = RetrofitClient.contactApiService
 ) {
     suspend fun getCampusContacts(): ApiResult<List<CampusContact>> {
         return try {
-            val response = apiService.getCampusContacts()
+            val response = contactApiService.getCampusContacts()
             if (response.isSuccessful) {
                 val contacts = response.body()
                 if (contacts != null) {
@@ -27,7 +27,7 @@ class CampusContactsRepository(
 
     suspend fun getCampusContact(id: Int): ApiResult<CampusContact> {
         return try {
-            val response = apiService.getCampusContact(id)
+            val response = contactApiService.getCampusContact(id)
             if (response.isSuccessful) {
                 val contact = response.body()
                 if (contact != null) {

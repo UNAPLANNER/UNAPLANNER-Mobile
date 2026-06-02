@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.ui.components.AdminTopBar
 import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
@@ -22,6 +23,7 @@ import com.moviles.unaplanner.ui.theme.BackgroundLight
 fun AdminMainScreen(
     onLogout: () -> Unit,
     onNavigateToCreateContact: () -> Unit = {},
+    onNavigateToEditContact: (CampusContact) -> Unit = {},
     navController: NavController? = null
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -36,7 +38,7 @@ fun AdminMainScreen(
 
     Scaffold(
         topBar = {
-            if (selectedIndex < 3) { // No mostramos AdminTopBar en perfil porque tiene su propio diseño
+            if (selectedIndex < 3) { // We do not show AdminTopBar on the profile because it has its own design
                 AdminTopBar(
                     title = titles[selectedIndex],
                     subtitle = subtitles[selectedIndex],
@@ -78,6 +80,7 @@ fun AdminMainScreen(
                         isInsideTab = true,
                         onBackClick = { selectedIndex = 0 },
                         onAddClick = onNavigateToCreateContact,
+                        onEditClick = onNavigateToEditContact,
                         navController = navController
                     )
                 }
