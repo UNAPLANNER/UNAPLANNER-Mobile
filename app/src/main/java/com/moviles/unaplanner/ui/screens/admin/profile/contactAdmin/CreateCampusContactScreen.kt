@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.moviles.unaplanner.core.UserMessages
 import com.moviles.unaplanner.ui.components.AdminTopBar
 import com.moviles.unaplanner.ui.theme.BackgroundLight
 import com.moviles.unaplanner.ui.theme.CrimsonRed
@@ -40,8 +41,8 @@ fun CreateCampusContactScreen(
     Scaffold(
         topBar = {
             AdminTopBar(
-                title = "Nuevo Contacto",
-                subtitle = "Agregar oficina al directorio",
+                title = UserMessages.CampusContacts.CREATE_TITLE,
+                subtitle = UserMessages.CampusContacts.CREATE_SUBTITLE,
                 showBackButton = true,
                 onBackClick = onBackClick
             )
@@ -72,7 +73,7 @@ fun CreateCampusContactScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "Información del Departamento",
+                        text = UserMessages.CampusContacts.FORM_SECTION_TITLE,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -80,8 +81,8 @@ fun CreateCampusContactScreen(
                     ContactField(
                         value = uiState.departmentName,
                         onValueChange = viewModel::onDepartmentNameChange,
-                        label = "Nombre del Departamento",
-                        placeholder = "Ej: Registro Académico",
+                        label = UserMessages.CampusContacts.Labels.DEPT_NAME,
+                        placeholder = UserMessages.CampusContacts.Placeholders.DEPT_NAME,
                         icon = Icons.Default.Business,
                         error = uiState.fieldErrors["DepartmentName"] ?: uiState.fieldErrors["DepartamentName"]
                     )
@@ -89,8 +90,8 @@ fun CreateCampusContactScreen(
                     ContactField(
                         value = uiState.phone,
                         onValueChange = viewModel::onPhoneChange,
-                        label = "Teléfono",
-                        placeholder = "Ej: 2766-6001",
+                        label = UserMessages.CampusContacts.Labels.PHONE,
+                        placeholder = UserMessages.CampusContacts.Placeholders.PHONE,
                         icon = Icons.Default.Phone,
                         keyboardType = KeyboardType.Phone,
                         error = uiState.fieldErrors["Phone"]
@@ -99,8 +100,8 @@ fun CreateCampusContactScreen(
                     ContactField(
                         value = uiState.email,
                         onValueChange = viewModel::onEmailChange,
-                        label = "Correo Electrónico (Opcional)",
-                        placeholder = "Ej: registro@una.ac.cr",
+                        label = UserMessages.CampusContacts.Labels.EMAIL,
+                        placeholder = UserMessages.CampusContacts.Placeholders.EMAIL,
                         icon = Icons.Default.Email,
                         keyboardType = KeyboardType.Email,
                         error = uiState.fieldErrors["Email"]
@@ -109,8 +110,8 @@ fun CreateCampusContactScreen(
                     ContactField(
                         value = uiState.description,
                         onValueChange = viewModel::onDescriptionChange,
-                        label = "Descripción (Opcional)",
-                        placeholder = "Breve descripción de servicios...",
+                        label = UserMessages.CampusContacts.Labels.DESCRIPTION,
+                        placeholder = UserMessages.CampusContacts.Placeholders.DESCRIPTION,
                         icon = Icons.Default.Description,
                         singleLine = false,
                         minLines = 3,
@@ -135,91 +136,10 @@ fun CreateCampusContactScreen(
                 } else {
                     Icon(Icons.Default.Save, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Guardar Contacto", fontWeight = FontWeight.Bold)
+                    Text(UserMessages.CampusContacts.BTN_SAVE, fontWeight = FontWeight.Bold)
                 }
             }
         }
     }
 }
 
-@Composable
-fun ContactField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    placeholder: String,
-    icon: ImageVector,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    singleLine: Boolean = true,
-    minLines: Int = 1,
-    error: String? = null
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            color = if (error != null) CrimsonRed else Color.Black, // Forzamos negro para visibilidad
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(placeholder, color = Color.Gray) },
-            leadingIcon = { Icon(icon, contentDescription = null, tint = if (!error.isNullOrBlank()) CrimsonRed else Color.Gray) },
-            shape = RoundedCornerShape(12.dp),
-            isError = !error.isNullOrBlank(),
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            singleLine = singleLine,
-            minLines = minLines,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                focusedBorderColor = CrimsonRed,
-                unfocusedBorderColor = Color.Gray,
-                errorBorderColor = CrimsonRed,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                errorContainerColor = Color.White
-            )
-        )
-        if (!error.isNullOrBlank()) {
-            Text(
-                text = error,
-                color = CrimsonRed,
-                style = MaterialTheme.typography.bodyMedium, // Aumentado para legibilidad
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun ErrorMessageCard(message: String, onDismiss: () -> Unit) {
-    Surface(
-        color = CrimsonRed, // Fondo rojo sólido para máxima visibilidad
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth(),
-        shadowElevation = 4.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.Error, contentDescription = null, tint = Color.White)
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = message,
-                color = Color.White, // Texto blanco sobre fondo rojo
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Default.Close, contentDescription = null, tint = Color.White)
-            }
-        }
-    }
-}
