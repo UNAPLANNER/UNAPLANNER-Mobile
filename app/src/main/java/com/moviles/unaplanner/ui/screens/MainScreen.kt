@@ -10,9 +10,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppTopBar
-import com.moviles.unaplanner.ui.screens.calendar.CalendarPlaceholderScreen
+import com.moviles.unaplanner.ui.screens.calendar.CalendarScreen
+import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
+import com.moviles.unaplanner.data.AppContainer
 import com.moviles.unaplanner.ui.screens.contact.CampusContactsListScreen
 import com.moviles.unaplanner.ui.screens.inicio.InicioPlaceholderScreen
 import com.moviles.unaplanner.ui.screens.malla.MallaPlaceholderScreen
@@ -26,9 +29,12 @@ fun MainScreen(
     onLogout: () -> Unit,
     onNavigateToContactDetail: (Int) -> Unit,
     onNavigateToNoteEdit: (Int?) -> Unit,
-    notesViewModel: NotesViewModel
+    onNavigateToAddActivity: () -> Unit,
+    notesViewModel: NotesViewModel,
+    calendarViewModel: StudentCalendarViewModel
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
+    
 
     // Cargar notas y cursos cuando se navega a la pestaña de notas
     LaunchedEffect(selectedIndex) {
@@ -87,7 +93,10 @@ fun MainScreen(
         ) {
             when (selectedIndex) {
                 0 -> InicioPlaceholderScreen()
-                1 -> CalendarPlaceholderScreen()
+                1 -> CalendarScreen(
+                    viewModel = calendarViewModel,
+                    onAddActivity = onNavigateToAddActivity
+                )
                 2 -> MallaPlaceholderScreen()
                 3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
                 4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)

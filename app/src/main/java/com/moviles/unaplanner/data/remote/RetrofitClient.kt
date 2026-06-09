@@ -47,4 +47,13 @@ object RetrofitClient {
             .build()
             .create(ContactApiService::class.java)
     }
+
+    val calendarApiService: StudentCalendarApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(AppConstants.Api.BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(StudentCalendarApiService::class.java)
+    }
 }
