@@ -24,18 +24,28 @@ import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
 import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
+import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
 import com.moviles.unaplanner.data.AppContainer
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
     val notesViewModel: NotesViewModel = viewModel()
-    
+
     val calendarViewModel: StudentCalendarViewModel = viewModel(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
                 return StudentCalendarViewModel(AppContainer.calendarRepository) as T
+            }
+        }
+    )
+
+    val mallaViewModel: MallaViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return MallaViewModel(AppContainer.curriculumRepository) as T
             }
         }
     )
@@ -107,7 +117,8 @@ fun AppNavHost() {
                     navController.navigate(AppDestinations.ADD_ACTIVITY)
                 },
                 notesViewModel = notesViewModel,
-                calendarViewModel = calendarViewModel
+                calendarViewModel = calendarViewModel,
+                mallaViewModel = mallaViewModel
             )
         }
 
