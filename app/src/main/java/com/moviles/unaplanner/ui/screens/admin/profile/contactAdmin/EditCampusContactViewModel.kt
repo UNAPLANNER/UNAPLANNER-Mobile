@@ -7,35 +7,74 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.moviles.unaplanner.core.UserMessages
-import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.data.repository.AdminRepository
 import com.moviles.unaplanner.data.repository.ApiResult
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-data class CreateContactUiState(
+/**
+ * UI State for the Edit Campus Contact screen.
+ */
+data class EditContactUiState(
+    val id: Int = 0,
     val departmentName: String = "",
     val phone: String = "",
     val email: String = "",
     val description: String = "",
-    val campusId: Int? = null,
+    val campusId: Int = 0,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val error: String? = null,
     val fieldErrors: Map<String, String> = emptyMap()
 )
 
-class CreateCampusContactViewModel(
+class EditCampusContactViewModel(
+    private val contactId: Int,
     private val repository: AdminRepository = AdminRepository()
 ) : ViewModel() {
 
-    var uiState by mutableStateOf(CreateContactUiState())
+    var uiState by mutableStateOf(EditContactUiState())
         private set
 
     init {
-        // Inicializar con el campus del admin si está disponible
-        uiState = uiState.copy(campusId = AuthSession.currentUser?.campusId ?: 1)
+        loadContactDetails()
+    }
+
+    /**
+     * Loads the initial contact details to pre-populate the form.
+     */
+    private fun loadContactDetails() {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+            // Note: We use the existing getCampusContact logic
+            // Since AdminRepository doesn't have a single GET, we might need to add it or use common repository
+            // For now, assuming we can get it or it's passed.
+            // Actually, let's add getCampusContact to AdminRepository or use ContactApiService directly.
+            
+            // For this implementation, we'll fetch it from the repository
+            when (val result = repository.getCampusContacts()) { // Mocking fetch for now or adding to repo
+                is ApiResult.Success -> {
+                    val contact = result.data.find { it.id == contactId }
+                    if (contact != null) {
+                        uiState = uiState.copy(
+                            id = contact.id,
+                            departmentName = contact.departmentName ?: "",
+                            phone = contact.phone ?: "",
+                            email = contact.email ?: "",
+                            description = contact.description ?: "",
+                            campusId = contact.campusId,
+                            isLoading = false
+                        )
+                    } else {
+                        uiState = uiState.copy(isLoading = false, error = "Contacto no encontrado")
+                    }
+                }
+                is ApiResult.Error -> {
+                    uiState = uiState.copy(isLoading = false, error = result.message)
+                }
+            }
+        }
     }
 
     fun onDepartmentNameChange(value: String) {
@@ -54,22 +93,25 @@ class CreateCampusContactViewModel(
         uiState = uiState.copy(description = value)
     }
 
-    fun createContact() {
+    /**
+     * Performs the update operation.
+     */
+    fun updateContact() {
         if (!validateFields()) return
 
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true, error = null, fieldErrors = emptyMap())
             
-            val newContact = CampusContact(
-                id = 0,
-                campusId = uiState.campusId ?: 1,
+            val updatedContact = CampusContact(
+                id = uiState.id,
+                campusId = uiState.campusId,
                 departmentName = uiState.departmentName,
                 phone = uiState.phone,
                 email = if (uiState.email.isBlank()) null else uiState.email,
                 description = if (uiState.description.isBlank()) null else uiState.description
             )
 
-            when (val result = repository.createCampusContact(newContact)) {
+            when (val result = repository.updateCampusContact(uiState.id, updatedContact)) {
                 is ApiResult.Success -> {
                     uiState = uiState.copy(isLoading = false, isSuccess = true)
                 }
@@ -154,10 +196,10 @@ class CreateCampusContactViewModel(
         uiState = uiState.copy(error = null)
     }
 
-    object Factory : ViewModelProvider.Factory {
+    class Factory(private val contactId: Int) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return CreateCampusContactViewModel() as T
+            return EditCampusContactViewModel(contactId) as T
         }
     }
 }

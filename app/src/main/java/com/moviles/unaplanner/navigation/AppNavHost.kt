@@ -19,20 +19,43 @@ import com.moviles.unaplanner.ui.screens.contact.detail.CampusContactsDetailScre
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampusContactScreen
+import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.EditCampusContactScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
+import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
+import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
+import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
+import com.moviles.unaplanner.data.AppContainer
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
     val notesViewModel: NotesViewModel = viewModel()
 
+    val calendarViewModel: StudentCalendarViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return StudentCalendarViewModel(AppContainer.calendarRepository) as T
+            }
+        }
+    )
+
+    val mallaViewModel: MallaViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return MallaViewModel(AppContainer.curriculumRepository) as T
+            }
+        }
+    )
+
     NavHost(
         navController = navController,
         startDestination = AppDestinations.LOGIN,
         modifier = Modifier.fillMaxSize()
     ) {
-        // --- PANTALLA DE INICIO (WELCOME) ---
+        // --- HOME SCREEN (WELCOME) ---
         composable(route = AppDestinations.WELCOME) {
             WelcomeScreen(
                 onNavigateToLogin = {
@@ -44,7 +67,7 @@ fun AppNavHost() {
             )
         }
 
-        // --- PANTALLA DE LOGIN ---
+        // --- LOGIN SCREEN---
         composable(route = AppDestinations.LOGIN) {
             LoginScreen(
                 onNavigateToRegister = {
@@ -68,7 +91,7 @@ fun AppNavHost() {
             )
         }
 
-        // --- PANTALLA PRINCIPAL (CON BOTTOM NAV) ---
+        // --- MAIN SCREEN (WITH BOTTOM NAV) ---
         composable(
             route = AppDestinations.MAIN,
             arguments = listOf(navArgument("initialIndex") { 
@@ -90,11 +113,16 @@ fun AppNavHost() {
                 onNavigateToNoteEdit = { noteId ->
                     navController.navigate(AppDestinations.createNoteEditRoute(noteId))
                 },
-                notesViewModel = notesViewModel
+                onNavigateToAddActivity = {
+                    navController.navigate(AppDestinations.ADD_ACTIVITY)
+                },
+                notesViewModel = notesViewModel,
+                calendarViewModel = calendarViewModel,
+                mallaViewModel = mallaViewModel
             )
         }
 
-        // --- PANTALLA PRINCIPAL ADMIN (CONTENEDOR DE PESTAÑAS) ---
+        // --- MAIN ADMIN SCREEN (TAB CONTAINER)---
         composable(route = AppDestinations.ADMIN_MAIN) {
             AdminMainScreen(
                 navController = navController,
@@ -105,11 +133,14 @@ fun AppNavHost() {
                 },
                 onNavigateToCreateContact = {
                     navController.navigate(AppDestinations.CREATE_CONTACT)
+                },
+                onNavigateToEditContact = { contact ->
+                    navController.navigate(AppDestinations.createEditContactRoute(contact.id))
                 }
             )
         }
 
-        // --- PANTALLA DE DETALLE DE CONTACTO ---
+        // --- CONTACT DETAILS SCREEN ---
         composable(
             route = AppDestinations.CONTACT_DETAIL,
             arguments = listOf(navArgument("contactId") { type = NavType.IntType })
@@ -124,16 +155,16 @@ fun AppNavHost() {
                     }
                 },
                 onNavigateToSection = { index ->
-                    // Navega a la pantalla principal con el índice seleccionado
+                    // Navigate to the main screen with the selected index
                     navController.navigate(AppDestinations.createMainRoute(index)) {
-                        // Limpia el detalle de la pila para que no "vuelva" al detalle al dar atrás
+                        // Clean the battery detail so that it doesn't "return" to the detail when you back out.
                         popUpTo(AppDestinations.MAIN) { inclusive = true }
                     }
                 }
             )
         }
 
-        // --- PANTALLA DE EDICIÓN/CREACIÓN DE NOTA ---
+        // --- NOTE EDITING/CREATION SCREEN ---
         composable(route = AppDestinations.NOTE_EDIT) { backStackEntry ->
             val noteId = backStackEntry.arguments?.getString("noteId")
             NoteEditorScreen(
@@ -145,7 +176,7 @@ fun AppNavHost() {
             )
         }
 
-        // --- PANTALLA DE CREACIÓN DE CONTACTO (ADMIN) ---
+        // --- CONTACT CREATION SCREEN (ADMIN) ---
         composable(route = AppDestinations.CREATE_CONTACT) {
             CreateCampusContactScreen(
                 onBackClick = { navController.popBackStack() },
@@ -156,27 +187,28 @@ fun AppNavHost() {
             )
         }
 
-        // --- PANTALLA DE REGISTRO ---
-        /*composable(route = AppDestinations.REGISTER) {
-            RegisterScreen(
-                onBack = { navController.popBackStack() },
-                onRegisterSuccess = {
-                    navController.navigate(AppDestinations.LOGIN)
+        // --- CONTACT EDITING SCREEN (ADMIN) ---
+        composable(
+            route = AppDestinations.EDIT_CONTACT,
+            arguments = listOf(navArgument("contactId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val contactId = backStackEntry.arguments?.getInt("contactId") ?: 0
+            EditCampusContactScreen(
+                contactId = contactId,
+                onBackClick = { navController.popBackStack() },
+                onSuccess = {
+                    navController.previousBackStackEntry?.savedStateHandle?.set("contact_updated", true)
+                    navController.popBackStack()
                 }
             )
         }
 
-        // --- PANTALLA DE PERFIL DE ADMIN ---
-        composable(route = AppDestinations.ADMIN_PROFILE) {
-            AdminProfileScreen(
-                onBackClick = { navController.popBackStack() },
-                onLogoutClick = {
-                    navController.navigate(AppDestinations.WELCOME) {
-                        popUpTo(AppDestinations.ADMIN_PROFILE) { inclusive = true }
-                    }
-                }
+        // --- ADD ACTIVITY SCREEN ---
+        composable(route = AppDestinations.ADD_ACTIVITY) {
+            AddActivityScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = calendarViewModel
             )
-        }*/
-
+        }
     }
 }

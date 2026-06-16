@@ -2,6 +2,7 @@ package com.moviles.unaplanner.ui.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.moviles.unaplanner.ui.theme.*
 
 data class DayHighlight(
@@ -32,11 +34,12 @@ private val weekDayLabels = listOf("L", "M", "X", "J", "V", "S", "D")
 
 @Composable
 fun CalendarGrid(
-    month: String,
+    monthName: String,
     year: Int,
-    startDayOfWeek: Int,
+    startDayOfWeek: Int, // 0 for Monday, 1 for Tuesday, etc.
     totalDays: Int,
     selectedDay: Int?,
+    today: Int? = null,
     highlights: List<DayHighlight> = emptyList(),
     onDaySelected: (Int) -> Unit,
     onPreviousMonth: () -> Unit,
@@ -45,15 +48,15 @@ fun CalendarGrid(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
+            // Header: <  MARZO 2026  >
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -63,38 +66,42 @@ fun CalendarGrid(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                         contentDescription = "Previous month",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = Color.Gray,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
                 Text(
-                    text = "$month $year".uppercase(),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = "$monthName $year".uppercase(),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 1.sp
+                    ),
+                    color = NavyBlue
                 )
                 IconButton(onClick = onNextMonth) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = "Next month",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = Color.Gray,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
-
+            // Weekday labels
             Row(modifier = Modifier.fillMaxWidth()) {
                 weekDayLabels.forEach { label ->
                     Text(
                         text = label,
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center,
-                        // Usa bodySmall de Type.kt (11sp)
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = Color.Gray.copy(alpha = 0.6f)
                     )
                 }
             }
 
-
+            // Days grid
             val totalCells = startDayOfWeek + totalDays
             val rows = (totalCells + 6) / 7
 
@@ -107,10 +114,12 @@ fun CalendarGrid(
                         if (day in 1..totalDays) {
                             val highlight = highlights.firstOrNull { it.day == day }
                             val isSelected = day == selectedDay
+                            val isToday = day == today
 
                             DayCell(
                                 day = day,
                                 isSelected = isSelected,
+                                isToday = isToday,
                                 highlightColor = highlight?.color,
                                 modifier = Modifier.weight(1f),
                                 onClick = { onDaySelected(day) }
@@ -129,36 +138,42 @@ fun CalendarGrid(
 private fun DayCell(
     day: Int,
     isSelected: Boolean,
+    isToday: Boolean = false,
     highlightColor: Color?,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-
     val background = when {
-        isSelected -> MaterialTheme.colorScheme.primary
-        highlightColor != null -> highlightColor
+        isSelected -> NavyBlue
+        highlightColor != null -> highlightColor.copy(alpha = 0.15f)
         else -> Color.Transparent
     }
 
-
     val textColor = when {
-        isSelected -> MaterialTheme.colorScheme.onPrimary
-        highlightColor != null -> TextOnDark
-        else -> MaterialTheme.colorScheme.onSurface
+        isSelected -> Color.White
+        highlightColor != null -> highlightColor
+        else -> Color.Black
     }
 
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .aspectRatio(1f)
-            .padding(3.dp)
-            .clip(CircleShape)
+            .padding(2.dp)
+            .height(36.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .then(
+                if (isToday && !isSelected) {
+                    Modifier.border(1.5.dp, NavyBlue, RoundedCornerShape(8.dp))
+                } else {
+                    Modifier
+                }
+            )
             .background(background)
             .clickable { onClick() }
     ) {
         Text(
             text = day.toString(),
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
             color = textColor,
             textAlign = TextAlign.Center
         )
@@ -173,11 +188,12 @@ fun CalendarGridPreview() {
         var selected by remember { mutableIntStateOf(15) }
         Surface(color = MaterialTheme.colorScheme.background) {
             CalendarGrid(
-                month = "Marzo",
+                monthName = "Marzo",
                 year = 2026,
                 startDayOfWeek = 6,
                 totalDays = 31,
                 selectedDay = selected,
+                today = 10,
                 highlights = listOf(
                     DayHighlight(3,  EventBlue),
                     DayHighlight(5,  EventOrange),
