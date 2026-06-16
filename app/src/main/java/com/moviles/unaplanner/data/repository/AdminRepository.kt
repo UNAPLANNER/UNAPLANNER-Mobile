@@ -1,6 +1,7 @@
 package com.moviles.unaplanner.data.repository
 
 import com.moviles.unaplanner.data.remote.ApiService
+import com.moviles.unaplanner.data.remote.ContactApiService
 import com.moviles.unaplanner.data.remote.RetrofitClient
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.data.remote.model.Career
@@ -9,11 +10,12 @@ import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UserDto
 
 class AdminRepository(
-    private val apiService: ApiService = RetrofitClient.apiService
+    private val apiService: ApiService = RetrofitClient.apiService,
+    private val contactApiService: ContactApiService = RetrofitClient.contactApiService
 ) {
     suspend fun getCampusContacts(): ApiResult<List<CampusContact>> {
         return try {
-            val response = apiService.getCampusContacts()
+            val response = contactApiService.getCampusContacts()
             if (response.isSuccessful) {
                 ApiResult.Success(response.body() ?: emptyList())
             } else {
@@ -26,7 +28,7 @@ class AdminRepository(
 
     suspend fun getContactsByCampus(campusId: Int): ApiResult<List<CampusContact>> {
         return try {
-            val response = apiService.getContactsByCampus(campusId)
+            val response = contactApiService.getContactsByCampus(campusId)
             if (response.isSuccessful) {
                 ApiResult.Success(response.body() ?: emptyList())
             } else {
@@ -91,7 +93,7 @@ class AdminRepository(
 
     suspend fun createCampusContact(contact: CampusContact): ApiResult<CampusContact> {
         return try {
-            val response = apiService.createCampusContact(contact)
+            val response = contactApiService.createCampusContact(contact)
             if (response.isSuccessful) {
                 ApiResult.Success(response.body()!!)
             } else {
@@ -105,12 +107,31 @@ class AdminRepository(
 
     suspend fun deleteCampusContact(id: Int): ApiResult<Unit> {
         return try {
-            val response = apiService.deleteCampusContact(id)
+            val response = contactApiService.deleteCampusContact(id)
             when (response.code()) {
                 204 -> ApiResult.Success(Unit)
                 404 -> ApiResult.Error("Este contacto ya no existe")
                 401, 403 -> ApiResult.Error("No tienes permisos para realizar esta accion")
                 else -> ApiResult.Error("Error al eliminar el contacto: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    /**
+     * Updates an existing campus contact.
+     * @param id The ID of the contact to update.
+     * @param contact The updated contact data.
+     */
+    suspend fun updateCampusContact(id: Int, contact: CampusContact): ApiResult<CampusContact> {
+        return try {
+            val response = contactApiService.updateCampusContact(id, contact)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string() ?: "Error al actualizar contacto"
+                ApiResult.Error(errorMsg)
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error de red")
