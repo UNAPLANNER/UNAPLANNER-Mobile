@@ -22,11 +22,33 @@ import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampus
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.EditCampusContactScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
+import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
+import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
+import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
+import com.moviles.unaplanner.data.AppContainer
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
     val notesViewModel: NotesViewModel = viewModel()
+
+    val calendarViewModel: StudentCalendarViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return StudentCalendarViewModel(AppContainer.calendarRepository) as T
+            }
+        }
+    )
+
+    val mallaViewModel: MallaViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return MallaViewModel(AppContainer.curriculumRepository) as T
+            }
+        }
+    )
 
     NavHost(
         navController = navController,
@@ -91,7 +113,12 @@ fun AppNavHost() {
                 onNavigateToNoteEdit = { noteId ->
                     navController.navigate(AppDestinations.createNoteEditRoute(noteId))
                 },
-                notesViewModel = notesViewModel
+                onNavigateToAddActivity = {
+                    navController.navigate(AppDestinations.ADD_ACTIVITY)
+                },
+                notesViewModel = notesViewModel,
+                calendarViewModel = calendarViewModel,
+                mallaViewModel = mallaViewModel
             )
         }
 
@@ -173,6 +200,14 @@ fun AppNavHost() {
                     navController.previousBackStackEntry?.savedStateHandle?.set("contact_updated", true)
                     navController.popBackStack()
                 }
+            )
+        }
+
+        // --- ADD ACTIVITY SCREEN ---
+        composable(route = AppDestinations.ADD_ACTIVITY) {
+            AddActivityScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = calendarViewModel
             )
         }
     }
