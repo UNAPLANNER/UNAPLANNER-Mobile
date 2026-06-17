@@ -37,9 +37,30 @@ fun MainScreen(
     mallaViewModel: MallaViewModel
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
-    
+    var userState by remember { mutableStateOf(com.moviles.unaplanner.data.AuthSession.currentUser) }
+    val careerName by mallaViewModel.careerName.collectAsState()
 
     // Load notes and courses when navigating to the notes tab
+    LaunchedEffect(userState) {
+        userState?.let { u ->
+            // Si el nombre no está en la sesión o es nulo, lo recuperamos del perfil completo
+            if (u.fullName.isNullOrBlank()) {
+                try {
+                    val response = com.moviles.unaplanner.data.remote.RetrofitClient.apiService.getProfile(u.id)
+                    if (response.isSuccessful) {
+                        response.body()?.let { fullUser ->
+                            com.moviles.unaplanner.data.AuthSession.setUser(fullUser)
+                            userState = fullUser
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Fallback silencioso
+                }
+            }
+            mallaViewModel.loadStudentCurriculum(u.id)
+        }
+    }
+
     LaunchedEffect(selectedIndex) {
         if (selectedIndex == 3) {
             notesViewModel.loadNotes()
@@ -47,8 +68,6 @@ fun MainScreen(
         }
     }
 
-    // Get data from the current user
-    val user = com.moviles.unaplanner.data.AuthSession.currentUser
     val currentMonthYear = remember {
         java.time.LocalDate.now().let { date ->
             val month = date.month.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale("es"))
@@ -56,13 +75,19 @@ fun MainScreen(
         }
     }
 
-    val titles = listOf("Inicio", "Calendario", "Malla Curricular", "Mis Notas", "Directorio")
+    val titles = listOf(
+        userState?.fullName ?: "Inicio",
+        "Calendario",
+        "Malla Curricular",
+        "Mis Notas",
+        "Directorio"
+    )
     val subtitles = listOf(
-        if (!user?.fullName.isNullOrBlank()) "Bienvenido, ${user?.fullName?.split(" ")?.firstOrNull()}" else "Bienvenido a UNAPLANNER",
+        careerName ?: userState?.department ?: "Estudiante",
         currentMonthYear,
-        user?.department ?: "Escuela de Informática",
+        careerName ?: userState?.department ?: "Escuela de Informática",
         "Apuntes por curso",
-        when(user?.campusId) {
+        when(userState?.campusId) {
             1 -> "Campus Omar Dengo · UNA"
             2 -> "Campus Benjamín Núñez · UNA"
             3 -> "Campus Pérez Zeledón · UNA"
@@ -112,7 +137,9 @@ fun MainScreen(
                 .padding(innerPadding)
         ) {
             when (selectedIndex) {
-                0 -> InicioPlaceholderScreen()
+                0 -> InicioPlaceholderScreen(
+                    onNavigateToTab = { index -> selectedIndex = index }
+                )
                 1 -> CalendarScreen(
                     viewModel = calendarViewModel,
                     onAddActivity = onNavigateToAddActivity,
