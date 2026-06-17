@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -18,10 +19,15 @@ import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 import com.moviles.unaplanner.ui.screens.contact.detail.CampusContactsDetailScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.moviles.unaplanner.data.AuthSession
+import com.moviles.unaplanner.data.StudentSession
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampusContactScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.EditCampusContactScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
+import com.moviles.unaplanner.ui.screens.student.EditProfileScreen
+import com.moviles.unaplanner.ui.screens.student.ProfileStudentViewModel
+import com.moviles.unaplanner.ui.screens.student.ProfileViewModel
 
 @Composable
 fun AppNavHost() {
@@ -90,6 +96,9 @@ fun AppNavHost() {
                 },
                 onNavigateToNoteEdit = { noteId ->
                     navController.navigate(AppDestinations.createNoteEditRoute(noteId))
+                },
+                onNavigateToEditProfile = {
+                    navController.navigate(AppDestinations.EDIT_PROFILE)
                 },
                 notesViewModel = notesViewModel
             )
@@ -173,6 +182,34 @@ fun AppNavHost() {
                     navController.previousBackStackEntry?.savedStateHandle?.set("contact_updated", true)
                     navController.popBackStack()
                 }
+            )
+        }
+        // --- UPDATE PROFILE STUDENT SCREEN ---
+        composable(route = AppDestinations.EDIT_PROFILE) {
+            val profile = StudentSession.profile
+
+            if (profile == null) {
+                navController.navigate(AppDestinations.LOGIN) {
+                    popUpTo(AppDestinations.EDIT_PROFILE) { inclusive = true }
+                }
+                return@composable
+            }
+
+
+            val viewModel: ProfileStudentViewModel = viewModel(
+                factory = ProfileStudentViewModel.Factory
+            )
+
+            LaunchedEffect(Unit) {
+                viewModel.setInitialProfile(StudentSession.profile!!)
+            }
+
+
+            EditProfileScreen(
+                userId = profile.userId,
+                viewModel = viewModel,
+                initialProfile = StudentSession.profile!!,
+                onBack = { navController.popBackStack() }
             )
         }
     }

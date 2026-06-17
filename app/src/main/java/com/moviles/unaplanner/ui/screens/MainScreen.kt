@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.moviles.unaplanner.data.StudentSession
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppTopBar
 import com.moviles.unaplanner.ui.screens.calendar.CalendarPlaceholderScreen
@@ -26,6 +27,7 @@ fun MainScreen(
     onLogout: () -> Unit,
     onNavigateToContactDetail: (Int) -> Unit,
     onNavigateToNoteEdit: (Int?) -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     notesViewModel: NotesViewModel
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
@@ -40,6 +42,7 @@ fun MainScreen(
 
     val titles = listOf("Inicio", "Calendario", "Malla Curricular", "Mis Notas", "Directorio")
     val subtitles = listOf(
+        StudentSession.profile?.fullName ?: "Bienvenido a UNAPLANNER",
         "Bienvenido a UNAPLANNER",
         "Marzo 2026",
         "Escuela de Informática",
@@ -53,6 +56,7 @@ fun MainScreen(
                 title = titles[selectedIndex],
                 subtitle = subtitles[selectedIndex],
                 onLogout = onLogout,
+                onNavigateToEditProfile = onNavigateToEditProfile,
                 action = if (selectedIndex == 3) {
                     {
                         Button(

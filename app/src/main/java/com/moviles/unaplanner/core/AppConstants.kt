@@ -53,6 +53,9 @@ object AppConstants {
             const val CONTACT_OPERATIONS = "api/campus-contacts/{id}"
             const val USER_PROFILE = "api/profile/{id}"
             const val CHANGE_PASSWORD = "api/profile/{id}/change-password"
+            const val PROFILE_STUDENT_UPDATE = "api/users/{userId}/profile"
+            const val PROFILE_STUDENT_GET = "api/users/{userId}/profile"
+
         }
     }
 }

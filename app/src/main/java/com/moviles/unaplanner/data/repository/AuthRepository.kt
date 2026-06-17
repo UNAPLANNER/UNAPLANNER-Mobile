@@ -3,9 +3,12 @@ package com.moviles.unaplanner.data.repository
 import com.google.gson.JsonParseException
 import com.moviles.unaplanner.core.UserMessages
 import com.moviles.unaplanner.data.AuthSession
+import com.moviles.unaplanner.data.StudentSession
 import com.moviles.unaplanner.data.remote.ApiService
 import com.moviles.unaplanner.data.remote.RetrofitClient
 import com.moviles.unaplanner.data.remote.model.LoginRequest
+import com.moviles.unaplanner.data.remote.model.StudentProfileDto
+import com.moviles.unaplanner.data.remote.model.UpdateStudentProfileRequest
 import com.moviles.unaplanner.data.remote.model.UserDto
 class AuthRepository(
     private val apiService: ApiService = RetrofitClient.apiService
@@ -21,7 +24,40 @@ class AuthRepository(
             if (response.isSuccessful) {
                 val user = response.body()
                 if (user != null) {
+
+                    android.util.Log.d("LOGIN_RESPONSE", "user=$user")
                     AuthSession.setUser(user)
+                    if (user.role?.lowercase() != "admin") {
+                        try {
+                            val profileResponse = apiService.getProfileStudent(user.id)
+                            if (profileResponse.isSuccessful && profileResponse.body() != null) {
+                                StudentSession.setProfile(profileResponse.body()!!)
+                            } else {
+                                // fallback si falla el GET
+                                StudentSession.setProfile(
+                                    StudentProfileDto(
+                                        studentId  = user.id,
+                                        email      = user.email,
+                                        fullName   = "",
+                                        careerId   = 0,
+                                        careerName = "",
+                                        enterYear  = null
+                                    )
+                                )
+                            }
+                        } catch (e: Exception) {
+                            StudentSession.setProfile(
+                                StudentProfileDto(
+                                    studentId  = user.id,
+                                    email      = user.email,
+                                    fullName   = "",
+                                    careerId   = 0,
+                                    careerName = "",
+                                    enterYear  = null
+                                )
+                            )
+                        }
+                    }
                     ApiResult.Success(user)
                 } else {
                     ApiResult.Error("El servidor respondió sin datos de usuario.")
@@ -41,5 +77,6 @@ class AuthRepository(
             ApiResult.Error("No se pudo conectar. Revisa tu conexión a internet.")
         }
     }
+
 }
 

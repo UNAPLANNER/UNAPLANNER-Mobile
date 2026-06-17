@@ -85,4 +85,30 @@ object UserMessages {
             const val NO_CONTACTS_FOUND = "No se encontraron contactos"
         }
     }
+
+    object EditProfile {
+        const val TITLE = "Editar Perfil"
+        const val SUBTITLE = "Actualiza tu información"
+        const val BTN_SAVE = "Guardar cambios"
+        const val SUCCESS = "✓ Perfil actualizado correctamente"
+        const val ERROR_GENERAL = "Error al actualizar el perfil"
+
+        object Labels {
+            const val EMAIL = "Correo electrónico"
+            const val FULL_NAME = "Nombre completo"
+            const val CAREER = "Carrera"
+            const val ENTER_YEAR = "Año de ingreso"
+        }
+
+        object Placeholders {
+            const val FULL_NAME = "Ingresa tu nombre"
+            const val ENTER_YEAR = "Ej: 2022"
+        }
+
+        object Errors {
+            const val EMPTY_FIELDS = "Por favor completa todos los campos"
+            const val INVALID_YEAR = "Ingresa un año válido"
+        }
+    }
+
 }

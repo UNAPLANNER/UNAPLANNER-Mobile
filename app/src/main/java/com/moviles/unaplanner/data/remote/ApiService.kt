@@ -41,4 +41,15 @@ interface ApiService {
         @Path("id") noteId: Int,
         @Body request: UpdateNoteRequest
     ): Response<NoteDto>
+
+    @PUT(AppConstants.Api.Paths.PROFILE_STUDENT_UPDATE)
+    suspend fun updateProfileStudent(
+        @Path("userId") userId: Int,
+        @Body request: UpdateStudentProfileRequest
+    ): Response<ProfileResponse>
+
+    @GET(AppConstants.Api.Paths.PROFILE_STUDENT_GET)
+    suspend fun getProfileStudent(
+        @Path("userId") userId: Int
+    ): Response<StudentProfileDto>
 }

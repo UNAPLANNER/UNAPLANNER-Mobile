@@ -21,6 +21,7 @@ fun AppTopBar(
     title: String,
     subtitle: String? = null,
     onLogout: (() -> Unit)? = null,
+    onNavigateToEditProfile: (() -> Unit)? = null,
     action: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -82,6 +83,17 @@ fun AppTopBar(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
+
+                            if (onNavigateToEditProfile != null) {
+                                DropdownMenuItem(
+                                    text = { Text("Editar Perfil") },
+                                    onClick = {
+                                        showMenu = false
+                                        onNavigateToEditProfile()
+                                    }
+                                )
+                            }
+
                             DropdownMenuItem(
                                 text = { Text("Cerrar Sesión") },
                                 onClick = {
