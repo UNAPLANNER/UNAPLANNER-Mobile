@@ -30,13 +30,14 @@ fun MainScreen(
     onNavigateToContactDetail: (Int) -> Unit,
     onNavigateToNoteEdit: (Int?) -> Unit,
     onNavigateToAddActivity: () -> Unit,
+    onNavigateToEditActivity: (Int) -> Unit,
     notesViewModel: NotesViewModel,
     calendarViewModel: StudentCalendarViewModel
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
     
 
-    // Cargar notas y cursos cuando se navega a la pestaña de notas
+    // Load notes and courses when navigating to the notes tab
     LaunchedEffect(selectedIndex) {
         if (selectedIndex == 3) {
             notesViewModel.loadNotes()
@@ -44,13 +45,30 @@ fun MainScreen(
         }
     }
 
+    // Get data from the current user
+    val user = com.moviles.unaplanner.data.AuthSession.currentUser
+    val currentMonthYear = remember {
+        java.time.LocalDate.now().let { date ->
+            val month = date.month.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale("es"))
+            "${month.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale("es")) else it.toString() }} ${date.year}"
+        }
+    }
+
     val titles = listOf("Inicio", "Calendario", "Malla Curricular", "Mis Notas", "Directorio")
     val subtitles = listOf(
-        "Bienvenido a UNAPLANNER",
-        "Marzo 2026",
-        "Escuela de Informática",
+        if (!user?.fullName.isNullOrBlank()) "Bienvenido, ${user?.fullName?.split(" ")?.firstOrNull()}" else "Bienvenido a UNAPLANNER",
+        currentMonthYear,
+        user?.department ?: "Escuela de Informática",
         "Apuntes por curso",
-        "Campus Sarapiquí · UNA"
+        when(user?.campusId) {
+            1 -> "Campus Omar Dengo · UNA"
+            2 -> "Campus Benjamín Núñez · UNA"
+            3 -> "Campus Pérez Zeledón · UNA"
+            4 -> "Campus Liberia · UNA"
+            5 -> "Campus Nicoya · UNA"
+            6 -> "Campus Sarapiquí · UNA"
+            else -> "Campus Sarapiquí · UNA"
+        }
     )
 
     Scaffold(
@@ -95,7 +113,8 @@ fun MainScreen(
                 0 -> InicioPlaceholderScreen()
                 1 -> CalendarScreen(
                     viewModel = calendarViewModel,
-                    onAddActivity = onNavigateToAddActivity
+                    onAddActivity = onNavigateToAddActivity,
+                    onEditActivity = onNavigateToEditActivity
                 )
                 2 -> MallaPlaceholderScreen()
                 3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)

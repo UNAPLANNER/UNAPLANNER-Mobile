@@ -1,6 +1,7 @@
 package com.moviles.unaplanner.ui.screens.calendar
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,7 +45,8 @@ import java.util.Locale
 @Composable
 fun CalendarScreen(
     viewModel: StudentCalendarViewModel,
-    onAddActivity: () -> Unit
+    onAddActivity: () -> Unit,
+    onEditActivity: (Int) -> Unit
 ) {
     val uiState by viewModel.calendarState.collectAsStateWithLifecycle()
     val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
@@ -59,12 +62,13 @@ fun CalendarScreen(
     // Bottom Sheet state
     var selectedEvent by remember { mutableStateOf<CalendarEvent?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     LaunchedEffect(studentId) {
         viewModel.loadStudentCalendar(studentId)
     }
 
-    // Manejo de mensajes de éxito
+    //Managing success messages
     LaunchedEffect(successMessage) {
         successMessage?.let {
             toastMessage = it
@@ -110,7 +114,7 @@ fun CalendarScreen(
             }
         }
 
-        // Toast de Éxito
+        // Success Toast
         AnimatedVisibility(
             visible = showSuccessToast,
             enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
@@ -125,12 +129,59 @@ fun CalendarScreen(
                 onDismiss = { showSuccessToast = false }
             )
         }
+
+        // Deletion Confirmation Dialog
+        if (showDeleteConfirmation && selectedEvent != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirmation = false },
+                containerColor = Color.White,
+                title = { 
+                    Text(
+                        "Eliminar Actividad", 
+                        fontWeight = FontWeight.ExtraBold, 
+                        color = NavyBlue,
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) 
+                },
+                text = { 
+                    Text(
+                        "¿Estás seguro de que deseas eliminar esta actividad? Esta acción no se puede deshacer.",
+                        color = Color.Black.copy(alpha = 0.8f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) 
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteEvent(studentId, selectedEvent!!.id)
+                            showDeleteConfirmation = false
+                            showBottomSheet = false
+                        }
+                    ) {
+                        Text("Eliminar", fontWeight = FontWeight.Bold, color = CrimsonRed)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteConfirmation = false }) {
+                        Text("Cancelar", color = NavyBlue, fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
+        }
     }
 
     if (showBottomSheet && selectedEvent != null) {
         EventDetailsBottomSheet(
             event = selectedEvent!!,
-            onDismiss = { showBottomSheet = false }
+            onDismiss = { showBottomSheet = false },
+            onEdit = {
+                showBottomSheet = false
+                onEditActivity(selectedEvent!!.id)
+            },
+            onDelete = { showDeleteConfirmation = true }
         )
     }
 }
@@ -139,7 +190,9 @@ fun CalendarScreen(
 @Composable
 fun EventDetailsBottomSheet(
     event: CalendarEvent,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
     
@@ -156,7 +209,10 @@ fun EventDetailsBottomSheet(
                 .padding(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Box(
                     modifier = Modifier
                         .size(12.dp)
@@ -170,6 +226,16 @@ fun EventDetailsBottomSheet(
                     color = Color(event.getActivityColor()),
                     fontWeight = FontWeight.Bold
                 )
+                
+                Spacer(modifier = Modifier.weight(1f))
+                
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar",
+                        tint = CrimsonRed
+                    )
+                }
             }
 
             Text(
@@ -225,13 +291,27 @@ fun EventDetailsBottomSheet(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            Button(
-                onClick = onDismiss,
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = NavyBlue)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Cerrar", fontWeight = FontWeight.Bold)
+                OutlinedButton(
+                    onClick = onEdit,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, NavyBlue)
+                ) {
+                    Text("Editar", fontWeight = FontWeight.Bold, color = NavyBlue)
+                }
+
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = NavyBlue)
+                ) {
+                    Text("Cerrar", fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
@@ -298,6 +378,18 @@ fun CalendarContent(
                 onDaySelected = { day ->
                     val date = currentMonth.atDay(day)
                     onDaySelected(if (selectedDay == date) null else date)
+                    
+                    // Check if there are any events on that day to open the details
+                    val eventsOnDay = events.filter {
+                        try {
+                            LocalDate.parse(it.activityDate.substringBefore("T")) == date
+                        } catch (e: Exception) {
+                            false
+                        }
+                    }
+                    if (eventsOnDay.isNotEmpty()) {
+                        onEventClick(eventsOnDay.first())
+                    }
                 },
                 onPreviousMonth = { onMonthChange(currentMonth.minusMonths(1)) },
                 onNextMonth = { onMonthChange(currentMonth.plusMonths(1)) }
@@ -351,7 +443,7 @@ fun CompactEventItem(
         val date = LocalDate.parse(event.activityDate.substringBefore("T"))
         val dayName = date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es")).replaceFirstChar { it.uppercase() }
         val dayNum = date.dayOfMonth
-        // Para la hora (asumiendo formato ISO)
+        // For the time (assuming ISO format)
         val timePart = event.activityDate.substringAfter("T").substring(0, 5)
         "$dayName $dayNum - $timePart"
     } catch (e: Exception) {

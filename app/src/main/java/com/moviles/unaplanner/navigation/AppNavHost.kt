@@ -106,6 +106,9 @@ fun AppNavHost() {
                 onNavigateToAddActivity = {
                     navController.navigate(AppDestinations.ADD_ACTIVITY)
                 },
+                onNavigateToEditActivity = { eventId ->
+                    navController.navigate(AppDestinations.createEditActivityRoute(eventId))
+                },
                 notesViewModel = notesViewModel,
                 calendarViewModel = calendarViewModel
             )
@@ -195,6 +198,19 @@ fun AppNavHost() {
         // --- ADD ACTIVITY SCREEN ---
         composable(route = AppDestinations.ADD_ACTIVITY) {
             AddActivityScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = calendarViewModel
+            )
+        }
+
+        // --- EDIT ACTIVITY SCREEN ---
+        composable(
+            route = AppDestinations.EDIT_ACTIVITY,
+            arguments = listOf(navArgument("eventId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getInt("eventId") ?: 0
+            AddActivityScreen(
+                eventId = eventId,
                 onBack = { navController.popBackStack() },
                 viewModel = calendarViewModel
             )
