@@ -25,6 +25,8 @@ import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
 import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
+import com.moviles.unaplanner.ui.screens.progreso.ProgresoAcademicoScreen
+import com.moviles.unaplanner.ui.screens.progreso.ProgresoViewModel
 import com.moviles.unaplanner.data.AppContainer
 
 @Composable
@@ -46,6 +48,15 @@ fun AppNavHost() {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
                 return MallaViewModel(AppContainer.curriculumRepository) as T
+            }
+        }
+    )
+
+    val progresoViewModel: ProgresoViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return ProgresoViewModel(AppContainer.curriculumRepository) as T
             }
         }
     )
@@ -115,6 +126,9 @@ fun AppNavHost() {
                 },
                 onNavigateToAddActivity = {
                     navController.navigate(AppDestinations.ADD_ACTIVITY)
+                },
+                onNavigateToProgreso = {
+                    navController.navigate(AppDestinations.PROGRESO)
                 },
                 notesViewModel = notesViewModel,
                 calendarViewModel = calendarViewModel,
@@ -208,6 +222,14 @@ fun AppNavHost() {
             AddActivityScreen(
                 onBack = { navController.popBackStack() },
                 viewModel = calendarViewModel
+            )
+        }
+
+        // --- PROGRESO ACADÉMICO SCREEN ---
+        composable(route = AppDestinations.PROGRESO) {
+            ProgresoAcademicoScreen(
+                viewModel = progresoViewModel,
+                onBack = { navController.popBackStack() }
             )
         }
     }

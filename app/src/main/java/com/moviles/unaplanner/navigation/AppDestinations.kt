@@ -24,6 +24,7 @@ object AppDestinations {
     fun createEditContactRoute(contactId: Int) = "edit_contact/$contactId"
     const val NOTE_EDIT = "note_edit/{noteId}"
     const val ADD_ACTIVITY = "add_activity"
+    const val PROGRESO = "progreso"
 
     fun createNoteEditRoute(noteId: Int?) = if (noteId != null) "note_edit/$noteId" else "note_edit/new"
 }
