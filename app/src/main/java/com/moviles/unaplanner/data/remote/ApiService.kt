@@ -18,6 +18,9 @@ interface ApiService {
     @POST(AppConstants.Api.Paths.CHANGE_PASSWORD)
     suspend fun changePassword(@Path("id") id: Int, @Body request: ChangePasswordRequest): Response<Unit>
 
+    @GET(AppConstants.Api.Paths.CAREERS)
+    suspend fun getCareers(): Response<List<Career>>
+
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>
 

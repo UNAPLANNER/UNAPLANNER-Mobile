@@ -67,7 +67,7 @@ class CareerAdminViewModel(
         return careers.filter { career ->
             career.name.lowercase().contains(normalizedQuery) ||
                 career.code.lowercase().contains(normalizedQuery) ||
-                career.campusName.lowercase().contains(normalizedQuery)
+                (career.campusName?.lowercase()?.contains(normalizedQuery) ?: false)
         }
     }
 

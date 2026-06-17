@@ -228,7 +228,7 @@ private fun CareerListItem(career: Career) {
                     color = Color.White
                 )
 
-                CareerStatusBadge(isActive = career.isStatus)
+                CareerStatusBadge(isActive = career.isStatus != false)
             }
 
             Column(
@@ -244,13 +244,13 @@ private fun CareerListItem(career: Career) {
                     MetricDivider()
                     CareerSummaryValue(
                         label = "Cursos",
-                        value = career.courseCount.toString(),
+                        value = (career.courseCount ?: 0).toString(),
                         modifier = Modifier.weight(1f)
                     )
                     MetricDivider()
                     CareerSummaryValue(
                         label = "Niveles",
-                        value = career.levelCount.toString(),
+                        value = (career.levelCount ?: 0).toString(),
                         modifier = Modifier.weight(1f)
                     )
                 }

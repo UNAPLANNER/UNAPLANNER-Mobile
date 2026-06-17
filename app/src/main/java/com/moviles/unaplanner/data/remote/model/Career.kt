@@ -2,8 +2,8 @@ package com.moviles.unaplanner.data.remote.model
 
 data class Career(
     val id: Int,
-    val campusId: Int,
-    val campusName: String,
+    val campusId: Int?,
+    val campusName: String?,
     val name: String,
     val code: String,
     val description: String?,
@@ -11,8 +11,8 @@ data class Career(
     val currentStudyPlanId: Int?,
     val currentStudyPlanName: String?,
     val currentStudyPlanYear: Int?,
-    val courseCount: Int,
-    val levelCount: Int,
-    val isStatus: Boolean,
-    val createdDate: String
+    val courseCount: Int?,
+    val levelCount: Int?,
+    val isStatus: Boolean?,
+    val createdDate: String?
 )

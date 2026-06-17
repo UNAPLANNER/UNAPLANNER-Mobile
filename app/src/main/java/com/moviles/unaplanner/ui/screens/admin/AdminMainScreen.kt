@@ -8,6 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.ui.components.AdminTopBar
@@ -31,7 +32,7 @@ fun AdminMainScreen(
     val careerViewModel: CareerAdminViewModel = viewModel(factory = CareerAdminViewModel.Factory)
     val careers = careerViewModel.uiState.careers
     val careersCampusLabel = careers
-        .map { it.campusName }
+        .mapNotNull { it.campusName }
         .distinct()
         .singleOrNull() ?: "Campus institucional"
     val careersSubtitle = if (careers.isEmpty()) {
