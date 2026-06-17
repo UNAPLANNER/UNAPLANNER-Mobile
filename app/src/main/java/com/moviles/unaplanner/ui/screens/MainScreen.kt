@@ -18,7 +18,8 @@ import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.data.AppContainer
 import com.moviles.unaplanner.ui.screens.contact.CampusContactsListScreen
 import com.moviles.unaplanner.ui.screens.inicio.InicioPlaceholderScreen
-import com.moviles.unaplanner.ui.screens.malla.MallaPlaceholderScreen
+import com.moviles.unaplanner.ui.screens.malla.MallaScreen
+import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
 import com.moviles.unaplanner.ui.screens.notes.NotesScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 import com.moviles.unaplanner.ui.theme.CrimsonRed
@@ -32,7 +33,8 @@ fun MainScreen(
     onNavigateToAddActivity: () -> Unit,
     onNavigateToEditActivity: (Int) -> Unit,
     notesViewModel: NotesViewModel,
-    calendarViewModel: StudentCalendarViewModel
+    calendarViewModel: StudentCalendarViewModel,
+    mallaViewModel: MallaViewModel
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
     
@@ -116,7 +118,7 @@ fun MainScreen(
                     onAddActivity = onNavigateToAddActivity,
                     onEditActivity = onNavigateToEditActivity
                 )
-                2 -> MallaPlaceholderScreen()
+                2 -> MallaScreen(viewModel = mallaViewModel)
                 3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
                 4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
             }
