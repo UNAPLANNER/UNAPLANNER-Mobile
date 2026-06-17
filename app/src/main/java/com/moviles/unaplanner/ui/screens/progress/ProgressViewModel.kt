@@ -1,4 +1,4 @@
-package com.moviles.unaplanner.ui.screens.progreso
+package com.moviles.unaplanner.ui.screens.progress
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,7 +16,7 @@ data class AreaProgress(
     val total: Int
 )
 
-data class ProgresoData(
+data class ProgressData(
     val totalCourses: Int,
     val approved: Int,
     val inProgress: Int,
@@ -27,29 +27,29 @@ data class ProgresoData(
     val careerName: String
 )
 
-sealed class ProgresoUiState {
-    object Idle : ProgresoUiState()
-    object Loading : ProgresoUiState()
-    data class Success(val data: ProgresoData) : ProgresoUiState()
-    data class Error(val message: String) : ProgresoUiState()
+sealed class ProgressUiState {
+    object Idle : ProgressUiState()
+    object Loading : ProgressUiState()
+    data class Success(val data: ProgressData) : ProgressUiState()
+    data class Error(val message: String) : ProgressUiState()
 }
 
-class ProgresoViewModel(private val repository: CurriculumRepository) : ViewModel() {
+class ProgressViewModel(private val repository: CurriculumRepository) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<ProgresoUiState>(ProgresoUiState.Idle)
-    val uiState: StateFlow<ProgresoUiState> = _uiState
+    private val _uiState = MutableStateFlow<ProgressUiState>(ProgressUiState.Idle)
+    val uiState: StateFlow<ProgressUiState> = _uiState
 
     fun load() {
-        if (_uiState.value is ProgresoUiState.Success) return
+        if (_uiState.value is ProgressUiState.Success) return
         val userId = AuthSession.currentUser?.id ?: return
         viewModelScope.launch {
-            _uiState.value = ProgresoUiState.Loading
+            _uiState.value = ProgressUiState.Loading
 
             val coursesResult = repository.getStudentCurriculumCourses(userId)
             val courses = coursesResult.getOrNull()
             if (courses == null) {
                 val msg = coursesResult.exceptionOrNull()?.message ?: "Error desconocido"
-                _uiState.value = ProgresoUiState.Error(msg)
+                _uiState.value = ProgressUiState.Error(msg)
                 return@launch
             }
 
@@ -59,8 +59,8 @@ class ProgresoViewModel(private val repository: CurriculumRepository) : ViewMode
             val pending = courses.count { it.status != "Aprobado" && it.status != "EnCurso" }
             val percent = if (total > 0) approved.toFloat() / total else 0f
 
-            _uiState.value = ProgresoUiState.Success(
-                ProgresoData(
+            _uiState.value = ProgressUiState.Success(
+                ProgressData(
                     totalCourses = total,
                     approved = approved,
                     inProgress = inProgress,
@@ -75,7 +75,7 @@ class ProgresoViewModel(private val repository: CurriculumRepository) : ViewMode
     }
 
     fun refresh() {
-        _uiState.value = ProgresoUiState.Idle
+        _uiState.value = ProgressUiState.Idle
         load()
     }
 

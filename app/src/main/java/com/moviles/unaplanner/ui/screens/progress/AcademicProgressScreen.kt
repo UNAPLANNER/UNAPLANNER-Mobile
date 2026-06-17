@@ -1,11 +1,10 @@
-package com.moviles.unaplanner.ui.screens.progreso
+package com.moviles.unaplanner.ui.screens.progress
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -33,8 +32,8 @@ import com.moviles.unaplanner.ui.theme.*
 import kotlin.math.roundToInt
 
 @Composable
-fun ProgresoAcademicoScreen(
-    viewModel: ProgresoViewModel,
+fun AcademicProgressScreen(
+    viewModel: ProgressViewModel,
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -45,13 +44,13 @@ fun ProgresoAcademicoScreen(
 
     Scaffold(
         topBar = {
-            val careerName = (uiState as? ProgresoUiState.Success)?.data?.careerName ?: ""
-            ProgresoTopBar(onBack = onBack, careerName = careerName)
+            val careerName = (uiState as? ProgressUiState.Success)?.data?.careerName ?: ""
+            ProgressTopBar(onBack = onBack, careerName = careerName)
         },
         containerColor = BackgroundLight
     ) { padding ->
         when (val state = uiState) {
-            is ProgresoUiState.Idle, is ProgresoUiState.Loading -> {
+            is ProgressUiState.Idle, is ProgressUiState.Loading -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -62,7 +61,7 @@ fun ProgresoAcademicoScreen(
                 }
             }
 
-            is ProgresoUiState.Error -> {
+            is ProgressUiState.Error -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -89,8 +88,8 @@ fun ProgresoAcademicoScreen(
                 }
             }
 
-            is ProgresoUiState.Success -> {
-                ProgresoContent(
+            is ProgressUiState.Success -> {
+                ProgressContent(
                     data = state.data,
                     modifier = Modifier.padding(padding)
                 )
@@ -100,7 +99,7 @@ fun ProgresoAcademicoScreen(
 }
 
 @Composable
-private fun ProgresoTopBar(onBack: () -> Unit, careerName: String) {
+private fun ProgressTopBar(onBack: () -> Unit, careerName: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -147,7 +146,7 @@ private fun ProgresoTopBar(onBack: () -> Unit, careerName: String) {
 }
 
 @Composable
-private fun ProgresoContent(data: ProgresoData, modifier: Modifier = Modifier) {
+private fun ProgressContent(data: ProgressData, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -198,7 +197,7 @@ private fun ProgresoContent(data: ProgresoData, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ProgressSummaryCard(data: ProgresoData) {
+private fun ProgressSummaryCard(data: ProgressData) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),

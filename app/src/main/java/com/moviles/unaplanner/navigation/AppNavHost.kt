@@ -25,8 +25,8 @@ import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
 import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
-import com.moviles.unaplanner.ui.screens.progreso.ProgresoAcademicoScreen
-import com.moviles.unaplanner.ui.screens.progreso.ProgresoViewModel
+import com.moviles.unaplanner.ui.screens.progress.AcademicProgressScreen
+import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
 import com.moviles.unaplanner.data.AppContainer
 
 @Composable
@@ -52,11 +52,11 @@ fun AppNavHost() {
         }
     )
 
-    val progresoViewModel: ProgresoViewModel = viewModel(
+    val progressViewModel: ProgressViewModel = viewModel(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
-                return ProgresoViewModel(AppContainer.curriculumRepository) as T
+                return ProgressViewModel(AppContainer.curriculumRepository) as T
             }
         }
     )
@@ -225,10 +225,10 @@ fun AppNavHost() {
             )
         }
 
-        // --- PROGRESO ACADÉMICO SCREEN ---
+        // --- ACADEMIC PROGRESS SCREEN ---
         composable(route = AppDestinations.PROGRESO) {
-            ProgresoAcademicoScreen(
-                viewModel = progresoViewModel,
+            AcademicProgressScreen(
+                viewModel = progressViewModel,
                 onBack = { navController.popBackStack() }
             )
         }
