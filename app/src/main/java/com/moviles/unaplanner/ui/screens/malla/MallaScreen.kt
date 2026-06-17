@@ -183,8 +183,8 @@ fun MallaScreen(modifier: Modifier = Modifier, viewModel: MallaViewModel) {
                 1 -> MisCursosTab(
                     state = studentCoursesState,
                     onRetry = { userId?.let { viewModel.loadStudentCourses(it) } },
-                    onUpdateStatus = { courseId, status, grade ->
-                        userId?.let { viewModel.updateCourseStatus(it, courseId, status, grade) }
+                    onUpdateStatus = { courseId, status, grade, semester, year ->
+                        userId?.let { viewModel.updateCourseStatus(it, courseId, status, grade, semester, year) }
                     }
                 )
             }
@@ -537,7 +537,7 @@ private fun StatusDot(label: String, color: Color) {
 private fun MisCursosTab(
     state: StudentCoursesUiState,
     onRetry: () -> Unit,
-    onUpdateStatus: (courseId: Int, status: String, grade: Double?) -> Unit
+    onUpdateStatus: (courseId: Int, status: String, grade: Double?, semester: Int?, year: Int?) -> Unit
 ) {
     when (state) {
         is StudentCoursesUiState.Idle,
@@ -563,6 +563,7 @@ private fun MisCursosTab(
             courses = state.courses,
             onUpdateStatus = onUpdateStatus
         )
+
     }
 }
 
@@ -570,7 +571,7 @@ private fun MisCursosTab(
 @Composable
 private fun StudentCoursesList(
     courses: List<StudentCourseProgressDto>,
-    onUpdateStatus: (courseId: Int, status: String, grade: Double?) -> Unit
+    onUpdateStatus: (courseId: Int, status: String, grade: Double?, semester: Int?, year: Int?) -> Unit
 ) {
     var filterStatus by remember { mutableStateOf<String?>(null) }
     val statuses = listOf("Pendiente", "EnCurso", "Aprobado", "Reprobado")
@@ -626,8 +627,8 @@ private fun StudentCoursesList(
         UpdateStatusDialog(
             course = course,
             onDismiss = { editingCourse = null },
-            onConfirm = { status, grade ->
-                onUpdateStatus(course.courseId, status, grade)
+            onConfirm = { status, grade, semester, year ->
+                onUpdateStatus(course.courseId, status, grade, semester, year)
                 editingCourse = null
             }
         )
@@ -718,12 +719,18 @@ private fun StudentCourseCard(
 private fun UpdateStatusDialog(
     course: StudentCourseProgressDto,
     onDismiss: () -> Unit,
-    onConfirm: (status: String, grade: Double?) -> Unit
+    onConfirm: (status: String, grade: Double?, semester: Int?, year: Int?) -> Unit
 ) {
     val statuses = listOf("Pendiente", "EnCurso", "Aprobado", "Reprobado")
     var selectedStatus by remember { mutableStateOf(course.status) }
     var gradeText by remember { mutableStateOf(course.finalGrade?.toString() ?: "") }
+    var yearText by remember { mutableStateOf(course.year?.toString() ?: "") }
+    var selectedSemester by remember { mutableStateOf<Int?>(course.semester) }
     var statusExpanded by remember { mutableStateOf(false) }
+    var semesterExpanded by remember { mutableStateOf(false) }
+
+    val needsDateFields = selectedStatus != "Pendiente"
+    val needsGradeField = selectedStatus == "Aprobado" || selectedStatus == "Reprobado"
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -732,6 +739,7 @@ private fun UpdateStatusDialog(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(course.code, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
 
+                // Estado dropdown
                 ExposedDropdownMenuBox(
                     expanded = statusExpanded,
                     onExpandedChange = { statusExpanded = it }
@@ -759,20 +767,72 @@ private fun UpdateStatusDialog(
                     }
                 }
 
-                if (selectedStatus == "Aprobado" || selectedStatus == "Reprobado") {
+                if (needsDateFields) {
+                    // Ciclo dropdown (1 o 2)
+                    ExposedDropdownMenuBox(
+                        expanded = semesterExpanded,
+                        onExpandedChange = { semesterExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedSemester?.let { "Ciclo $it" } ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Ciclo") },
+                            placeholder = { Text("Seleccionar ciclo") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = semesterExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = semesterExpanded,
+                            onDismissRequest = { semesterExpanded = false }
+                        ) {
+                            listOf(1, 2).forEach { ciclo ->
+                                DropdownMenuItem(
+                                    text = { Text("Ciclo $ciclo") },
+                                    onClick = { selectedSemester = ciclo; semesterExpanded = false }
+                                )
+                            }
+                        }
+                    }
+
+                    // Año
+                    OutlinedTextField(
+                        value = yearText,
+                        onValueChange = { if (it.length <= 4) yearText = it.filter { c -> c.isDigit() } },
+                        label = { Text("Año") },
+                        placeholder = { Text("Ej: 2025") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                        )
+                    )
+                }
+
+                if (needsGradeField) {
                     OutlinedTextField(
                         value = gradeText,
                         onValueChange = { gradeText = it },
                         label = { Text("Nota final (opcional)") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
+                        )
                     )
                 }
             }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(selectedStatus, gradeText.toDoubleOrNull()) },
+                onClick = {
+                    val semester = if (needsDateFields) selectedSemester else null
+                    val year = if (needsDateFields) yearText.toIntOrNull() else null
+                    val grade = if (needsGradeField) gradeText.toDoubleOrNull() else null
+                    onConfirm(selectedStatus, grade, semester, year)
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = NavyBlue)
             ) { Text("Guardar") }
         },
