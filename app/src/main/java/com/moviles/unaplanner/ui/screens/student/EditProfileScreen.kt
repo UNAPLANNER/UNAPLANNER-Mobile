@@ -1,15 +1,19 @@
 package com.moviles.unaplanner.ui.screens.student
 
 import android.R.attr.duration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -43,7 +47,6 @@ import androidx.compose.ui.unit.sp
 import com.moviles.unaplanner.data.remote.model.StudentProfileDto
 import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UpdateStudentProfileRequest
-import com.moviles.unaplanner.ui.components.AppTextField
 import com.moviles.unaplanner.ui.components.AppTopBar
 import com.moviles.unaplanner.ui.theme.NavyBlue
 import kotlinx.coroutines.launch
@@ -61,7 +64,12 @@ import com.moviles.unaplanner.ui.theme.AppDivider
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Brush
 import com.moviles.unaplanner.core.UserMessages
+import com.moviles.unaplanner.ui.components.ProfileTextField
+import com.moviles.unaplanner.ui.theme.HeaderGradientEnd
+import com.moviles.unaplanner.ui.theme.HeaderGradientStart
+import androidx.compose.foundation.background
 
 private val careers = listOf(
     Pair(1, "Ingeniería en Sistemas de Información"),
@@ -117,23 +125,21 @@ fun EditProfileScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = UserMessages.EditProfile.TITLE,
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(HeaderGradientStart, HeaderGradientEnd)
                         )
-                        Text(
-                            text = UserMessages.EditProfile.SUBTITLE,
-                            color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 13.sp
-                        )
-                    }
-                },
-                navigationIcon = {
+                    )
+                    .statusBarsPadding()
+                    .padding(horizontal = 24.dp, vertical = 20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -141,11 +147,25 @@ fun EditProfileScreen(
                             tint = Color.White
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0D1B3E)
-                )
-            )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Column {
+                        Text(
+                            text = UserMessages.EditProfile.TITLE,
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 34.sp
+                        )
+                        Text(
+                            text = UserMessages.EditProfile.SUBTITLE,
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -177,7 +197,7 @@ fun EditProfileScreen(
 
                 else -> {
                     //Email — read-only
-                    AppTextField(
+                    ProfileTextField(
                         value = email,
                         onValueChange = {},
                         label = UserMessages.EditProfile.Labels.EMAIL,
@@ -186,7 +206,7 @@ fun EditProfileScreen(
                     )
 
                     // Full Name
-                    AppTextField(
+                    ProfileTextField(
                         value = fullName,
                         onValueChange = { fullName = it },
                         label = UserMessages.EditProfile.Labels.FULL_NAME,
@@ -247,7 +267,7 @@ fun EditProfileScreen(
                     }
 
                     // Year of Enrollment
-                    AppTextField(
+                    ProfileTextField(
                         value = enterYear,
                         onValueChange = { enterYear = it },
                         label = UserMessages.EditProfile.Labels.ENTER_YEAR,
@@ -290,7 +310,7 @@ fun EditProfileScreen(
                             .fillMaxWidth()
                             .height(50.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF0D1B3E)
+                            containerColor = NavyBlue
                         ),
                         enabled = uiState !is ProfileStudentViewModel.UiState.Loading
                     ) {
