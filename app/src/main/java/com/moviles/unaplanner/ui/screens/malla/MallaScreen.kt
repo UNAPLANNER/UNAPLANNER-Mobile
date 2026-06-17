@@ -586,16 +586,43 @@ private fun StudentCoursesList(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            val todosSelected = filterStatus == null
             FilterChip(
-                selected = filterStatus == null,
+                selected = todosSelected,
                 onClick = { filterStatus = null },
-                label = { Text("Todos", fontSize = 12.sp) }
+                label = { Text("Todos", fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = NavyBlue,
+                    selectedLabelColor = Color.White,
+                    labelColor = NavyBlue
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = todosSelected,
+                    borderColor = NavyBlue.copy(alpha = 0.5f),
+                    selectedBorderColor = NavyBlue,
+                    borderWidth = 1.dp
+                )
             )
             statuses.forEach { status ->
+                val isSelected = filterStatus == status
+                val (_, accent) = statusColors(status)
                 FilterChip(
-                    selected = filterStatus == status,
-                    onClick = { filterStatus = if (filterStatus == status) null else status },
-                    label = { Text(statusLabel(status), fontSize = 12.sp) }
+                    selected = isSelected,
+                    onClick = { filterStatus = if (isSelected) null else status },
+                    label = { Text(statusLabel(status), fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = accent,
+                        selectedLabelColor = Color.White,
+                        labelColor = accent
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isSelected,
+                        borderColor = accent.copy(alpha = 0.5f),
+                        selectedBorderColor = accent,
+                        borderWidth = 1.dp
+                    )
                 )
             }
         }
