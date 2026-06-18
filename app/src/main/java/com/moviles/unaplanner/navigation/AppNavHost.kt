@@ -20,6 +20,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampusContactScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.EditCampusContactScreen
+import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CreateCareerScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
@@ -134,6 +135,9 @@ fun AppNavHost() {
                 onNavigateToCreateContact = {
                     navController.navigate(AppDestinations.CREATE_CONTACT)
                 },
+                onNavigateToCreateCareer = {
+                    navController.navigate(AppDestinations.CREATE_CAREER)
+                },
                 onNavigateToEditContact = { contact ->
                     navController.navigate(AppDestinations.createEditContactRoute(contact.id))
                 }
@@ -182,6 +186,17 @@ fun AppNavHost() {
                 onBackClick = { navController.popBackStack() },
                 onSuccess = {
                     navController.previousBackStackEntry?.savedStateHandle?.set("contact_created", true)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // --- CAREER CREATION SCREEN (ADMIN) ---
+        composable(route = AppDestinations.CREATE_CAREER) {
+            CreateCareerScreen(
+                onBackClick = { navController.popBackStack() },
+                onSuccess = {
+                    navController.previousBackStackEntry?.savedStateHandle?.set("career_created", true)
                     navController.popBackStack()
                 }
             )

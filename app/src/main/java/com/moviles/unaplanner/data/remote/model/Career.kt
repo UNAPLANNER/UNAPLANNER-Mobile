@@ -16,3 +16,11 @@ data class Career(
     val isStatus: Boolean?,
     val createdDate: String?
 )
+
+data class CreateCareerRequest(
+    val name: String,
+    val code: String,
+    val description: String?,
+    val totalCredits: Int,
+    val isStatus: Boolean = true
+)
