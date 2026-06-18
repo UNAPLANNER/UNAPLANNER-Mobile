@@ -79,6 +79,22 @@ class StudentCalendarRepository(private val apiService: StudentCalendarApiServic
         }
 
     /**
+     * Updates an existing calendar event
+     */
+    suspend fun updateEvent(
+        studentId: Int,
+        eventId: Int,
+        request: com.moviles.unaplanner.data.remote.model.CreateCalendarEventRequest
+    ): Result<CalendarEvent> = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val response = apiService.updateEvent(studentId, eventId, request)
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Fetches all courses for a student
      */
     suspend fun getStudentCourses(studentId: Int): Result<List<com.moviles.unaplanner.data.remote.model.CourseDto>> =
@@ -86,6 +102,23 @@ class StudentCalendarRepository(private val apiService: StudentCalendarApiServic
             return@withContext try {
                 val response = apiService.getStudentCourses(studentId)
                 Result.success(response.data)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    /**
+     * Deletes a calendar event
+     */
+    suspend fun deleteEvent(studentId: Int, eventId: Int): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            return@withContext try {
+                val response = apiService.deleteEvent(studentId, eventId)
+                if (response.isSuccessful) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Error deleting event"))
+                }
             } catch (e: Exception) {
                 Result.failure(e)
             }
