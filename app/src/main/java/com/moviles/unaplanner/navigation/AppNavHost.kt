@@ -214,6 +214,14 @@ fun AppNavHost() {
             val contactId = backStackEntry.arguments?.getInt("contactId") ?: 0
             EditCampusContactScreen(
                 contactId = contactId,
+                onBackClick = { navController.popBackStack() },
+                onSuccess = {
+                    navController.previousBackStackEntry?.savedStateHandle?.set("contact_updated", true)
+                    navController.popBackStack()
+                }
+            )
+        }
+
 
         // --- Register Student Screen ---
         composable(route = AppDestinations.REGISTER) {
