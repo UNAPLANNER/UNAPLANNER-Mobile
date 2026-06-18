@@ -17,6 +17,7 @@ import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminContent
+import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CreateCareerScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminViewModel
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.EditCareerScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.ContactAdminScreen
@@ -27,12 +28,19 @@ import com.moviles.unaplanner.ui.theme.BackgroundLight
 fun AdminMainScreen(
     onLogout: () -> Unit,
     onNavigateToCreateContact: () -> Unit = {},
+    onNavigateToCreateCareer: () -> Unit = {},
     onNavigateToEditContact: (CampusContact) -> Unit = {},
     navController: NavController? = null
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
     var editingCareer by remember { mutableStateOf<Career?>(null) }
+    var showCreateCareerModal by rememberSaveable { mutableStateOf(false) }
     val careerViewModel: CareerAdminViewModel = viewModel(factory = CareerAdminViewModel.Factory)
+    val careerCreated = navController
+        ?.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow("career_created", false)
+        ?.collectAsState()
     val careers = careerViewModel.uiState.careers
     val careersCampusLabel = careers
         .mapNotNull { it.campusName }
@@ -52,6 +60,14 @@ fun AdminMainScreen(
         null
     )
 
+    LaunchedEffect(careerCreated?.value) {
+        if (careerCreated?.value == true) {
+            selectedIndex = 1
+            careerViewModel.loadCareers()
+            navController?.currentBackStackEntry?.savedStateHandle?.set("career_created", false)
+        }
+    }
+
     Scaffold(
         topBar = {
             if (selectedIndex < 3) { // We do not show AdminTopBar on the profile because it has its own design
@@ -63,14 +79,17 @@ fun AdminMainScreen(
                     onBackClick = {
                         if (editingCareer != null) {
                             editingCareer = null
+                        } else if (showCreateCareerModal) {
+                            showCreateCareerModal = false
                         } else {
                             selectedIndex = 0
                         }
                     },
                     showAddButton = selectedIndex == 1 || selectedIndex == 2,
                     onAddClick = {
-                        if (selectedIndex == 2) {
-                            onNavigateToCreateContact()
+                        when (selectedIndex) {
+                            1 -> showCreateCareerModal = true
+                            2 -> onNavigateToCreateContact()
                         }
                     }
                 )
@@ -105,6 +124,15 @@ fun AdminMainScreen(
                                 careerViewModel.loadCareers()
                             }
                         )
+                    } else if (showCreateCareerModal) {
+                        CreateCareerScreen(
+                            onBackClick = { showCreateCareerModal = false },
+                            onSuccess = {
+                                showCreateCareerModal = false
+                                selectedIndex = 1
+                                careerViewModel.loadCareers()
+                            }
+                        )
                     } else {
                         CareerAdminContent(
                             viewModel = careerViewModel,
@@ -126,6 +154,7 @@ fun AdminMainScreen(
                     isInsideTab = true
                 )
             }
+
         }
     }
 }

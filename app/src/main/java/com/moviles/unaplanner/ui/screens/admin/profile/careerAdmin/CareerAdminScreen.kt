@@ -32,7 +32,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -237,15 +236,9 @@ private fun CareerListItem(
                     color = Color.White
                 )
 
-                IconButton(onClick = { onEditCareer(career) }) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar carrera",
-                        tint = Color.White
-                    )
-                }
-
                 CareerStatusBadge(isActive = career.isStatus != false)
+                Spacer(modifier = Modifier.width(8.dp))
+                CareerEditButton(onClick = { onEditCareer(career) })
             }
 
             Column(
@@ -322,6 +315,33 @@ private fun CareerListItem(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun CareerEditButton(onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        color = Color.White.copy(alpha = 0.18f),
+        contentColor = Color.White,
+        shape = RoundedCornerShape(50)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = "Editar",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

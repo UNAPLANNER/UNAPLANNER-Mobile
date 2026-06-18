@@ -54,22 +54,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.moviles.unaplanner.data.remote.model.Career
 import com.moviles.unaplanner.ui.theme.CrimsonRed
 
 @Composable
-fun EditCareerScreen(
-    career: Career,
+fun CreateCareerScreen(
     onBackClick: () -> Unit,
     onSuccess: () -> Unit,
-    viewModel: EditCareerViewModel = viewModel(
-        key = "edit-career-${career.id}",
-        factory = EditCareerViewModel.Factory(career)
-    )
+    viewModel: CreateCareerViewModel = viewModel(factory = CreateCareerViewModel.Factory)
 ) {
     val uiState = viewModel.uiState
 
-    EditCareerForm(
+    CreateCareerForm(
         uiState = uiState,
         degreeOptions = viewModel.degreeOptions,
         onNameChange = viewModel::onNameChange,
@@ -81,15 +76,18 @@ fun EditCareerScreen(
         onDegreeCreditsChange = viewModel::onDegreeCreditsChange,
         onOfficialResolutionChange = viewModel::onOfficialResolutionChange,
         onActiveChange = viewModel::onActiveChange,
-        onUpdateClick = viewModel::updateCareer,
-        onCancelClick = onBackClick,
+        onCreateClick = viewModel::createCareer,
+        onCancelClick = {
+            viewModel.resetForm()
+            onBackClick()
+        },
         onClearError = viewModel::clearError
     )
 
     if (uiState.isSuccess) {
-        CareerUpdatedDialog(
+        CareerCreatedDialog(
             onAccept = {
-                viewModel.clearSuccess()
+                viewModel.resetForm()
                 onSuccess()
             }
         )
@@ -97,8 +95,8 @@ fun EditCareerScreen(
 }
 
 @Composable
-private fun EditCareerForm(
-    uiState: EditCareerUiState,
+private fun CreateCareerForm(
+    uiState: CreateCareerUiState,
     degreeOptions: List<String>,
     onNameChange: (String) -> Unit,
     onDegreeChange: (String) -> Unit,
@@ -109,7 +107,7 @@ private fun EditCareerForm(
     onDegreeCreditsChange: (String) -> Unit,
     onOfficialResolutionChange: (String) -> Unit,
     onActiveChange: (Boolean) -> Unit,
-    onUpdateClick: () -> Unit,
+    onCreateClick: () -> Unit,
     onCancelClick: () -> Unit,
     onClearError: () -> Unit
 ) {
@@ -122,27 +120,27 @@ private fun EditCareerForm(
             .padding(horizontal = 22.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        EditFormHandle()
+        BoxHandle()
 
         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(
-                text = "Editar Carrera",
+                text = "+ Nueva Carrera",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color(0xFF07134B)
             )
             Text(
-                text = "Actualiza la informacion registrada",
+                text = "Registra una nueva carrera en el sistema",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF8A98AF)
             )
         }
 
         if (uiState.error != null) {
-            EditCareerErrorCard(message = uiState.error, onDismiss = onClearError)
+            CareerErrorCard(message = uiState.error, onDismiss = onClearError)
         }
 
-        EditCareerField(
+        CareerFormField(
             value = uiState.name,
             onValueChange = onNameChange,
             label = "Nombre de la carrera *",
@@ -151,7 +149,7 @@ private fun EditCareerForm(
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            EditDegreeSelector(
+            CareerDegreeSelector(
                 value = uiState.degree,
                 onValueChange = onDegreeChange,
                 options = degreeOptions,
@@ -159,7 +157,7 @@ private fun EditCareerForm(
                 error = uiState.fieldErrors["Degree"],
                 modifier = Modifier.weight(1f)
             )
-            EditCareerField(
+            CareerFormField(
                 value = uiState.planYear,
                 onValueChange = onPlanYearChange,
                 label = "Año del plan",
@@ -170,7 +168,7 @@ private fun EditCareerForm(
             )
         }
 
-        EditCareerField(
+        CareerFormField(
             value = uiState.school,
             onValueChange = onSchoolChange,
             label = "Escuela *",
@@ -179,7 +177,7 @@ private fun EditCareerForm(
         )
 
         if (requiresSpecificDegreeCredits(uiState.degree)) {
-            EditCareerField(
+            CareerFormField(
                 value = uiState.degreeCredits,
                 onValueChange = onDegreeCreditsChange,
                 label = "Cr. ${uiState.degree}",
@@ -189,7 +187,7 @@ private fun EditCareerForm(
             )
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                EditCareerField(
+                CareerFormField(
                     value = uiState.bachelorCredits,
                     onValueChange = onBachelorCreditsChange,
                     label = "Cr. Bachillerato",
@@ -198,7 +196,7 @@ private fun EditCareerForm(
                     error = uiState.fieldErrors["BachelorCredits"],
                     modifier = Modifier.weight(1f)
                 )
-                EditCareerField(
+                CareerFormField(
                     value = uiState.diplomaCredits,
                     onValueChange = onDiplomaCreditsChange,
                     label = "Cr. Diplomado",
@@ -210,7 +208,7 @@ private fun EditCareerForm(
             }
         }
 
-        EditCareerField(
+        CareerFormField(
             value = uiState.officialResolution,
             onValueChange = onOfficialResolutionChange,
             label = "Resolucion oficial *",
@@ -218,7 +216,7 @@ private fun EditCareerForm(
             error = uiState.fieldErrors["OfficialResolution"]
         )
 
-        EditActiveToggle(
+        ActiveCareerToggle(
             isActive = uiState.isActive,
             onActiveChange = onActiveChange
         )
@@ -240,7 +238,7 @@ private fun EditCareerForm(
             }
 
             Button(
-                onClick = onUpdateClick,
+                onClick = onCreateClick,
                 modifier = Modifier
                     .weight(1f)
                     .height(54.dp),
@@ -253,15 +251,19 @@ private fun EditCareerForm(
                 } else {
                     Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Actualizar", fontWeight = FontWeight.Bold)
+                    Text(text = "Crear carrera", fontWeight = FontWeight.Bold)
                 }
             }
         }
     }
 }
 
+private fun requiresSpecificDegreeCredits(degree: String): Boolean {
+    return degree in setOf("Licenciatura", "Maestría", "Doctorado")
+}
+
 @Composable
-private fun EditFormHandle() {
+private fun BoxHandle() {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
         Spacer(
             modifier = Modifier
@@ -274,7 +276,7 @@ private fun EditFormHandle() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EditDegreeSelector(
+private fun CareerDegreeSelector(
     value: String,
     onValueChange: (String) -> Unit,
     options: List<String>,
@@ -285,7 +287,7 @@ private fun EditDegreeSelector(
     var expanded by remember { mutableStateOf(false) }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        EditCareerLabel(label)
+        CareerFieldLabel(label)
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded }
@@ -307,7 +309,7 @@ private fun EditDegreeSelector(
                 isError = error != null,
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
-                colors = editTextFieldColors()
+                colors = careerTextFieldColors()
             )
 
             ExposedDropdownMenu(
@@ -326,12 +328,12 @@ private fun EditDegreeSelector(
                 }
             }
         }
-        EditCareerError(error)
+        CareerFieldError(error)
     }
 }
 
 @Composable
-private fun EditActiveToggle(
+private fun ActiveCareerToggle(
     isActive: Boolean,
     onActiveChange: (Boolean) -> Unit
 ) {
@@ -369,7 +371,7 @@ private fun EditActiveToggle(
 }
 
 @Composable
-private fun EditCareerField(
+private fun CareerFormField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -379,7 +381,7 @@ private fun EditCareerField(
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        EditCareerLabel(label)
+        CareerFieldLabel(label)
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
@@ -389,14 +391,14 @@ private fun EditCareerField(
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = RoundedCornerShape(12.dp),
-            colors = editTextFieldColors()
+            colors = careerTextFieldColors()
         )
-        EditCareerError(error)
+        CareerFieldError(error)
     }
 }
 
 @Composable
-private fun EditCareerLabel(label: String) {
+private fun CareerFieldLabel(label: String) {
     Text(
         text = label,
         style = MaterialTheme.typography.labelSmall,
@@ -406,7 +408,7 @@ private fun EditCareerLabel(label: String) {
 }
 
 @Composable
-private fun EditCareerError(error: String?) {
+private fun CareerFieldError(error: String?) {
     if (error != null) {
         Text(
             text = error,
@@ -417,7 +419,7 @@ private fun EditCareerError(error: String?) {
 }
 
 @Composable
-private fun editTextFieldColors() = OutlinedTextFieldDefaults.colors(
+private fun careerTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = CrimsonRed,
     unfocusedBorderColor = Color(0xFFE1E7F0),
     cursorColor = CrimsonRed,
@@ -428,7 +430,7 @@ private fun editTextFieldColors() = OutlinedTextFieldDefaults.colors(
 )
 
 @Composable
-private fun EditCareerErrorCard(message: String, onDismiss: () -> Unit) {
+private fun CareerErrorCard(message: String, onDismiss: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
@@ -462,7 +464,7 @@ private fun EditCareerErrorCard(message: String, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun CareerUpdatedDialog(onAccept: () -> Unit) {
+private fun CareerCreatedDialog(onAccept: () -> Unit) {
     AlertDialog(
         onDismissRequest = {},
         icon = {
@@ -473,10 +475,10 @@ private fun CareerUpdatedDialog(onAccept: () -> Unit) {
             )
         },
         title = {
-            Text(text = "Carrera actualizada", fontWeight = FontWeight.Bold)
+            Text(text = "Carrera creada", fontWeight = FontWeight.Bold)
         },
         text = {
-            Text(text = "La carrera se actualizo correctamente.")
+            Text(text = "La carrera se registro correctamente.")
         },
         confirmButton = {
             TextButton(onClick = onAccept) {
@@ -484,8 +486,4 @@ private fun CareerUpdatedDialog(onAccept: () -> Unit) {
             }
         }
     )
-}
-
-private fun requiresSpecificDegreeCredits(degree: String): Boolean {
-    return degree in setOf("Licenciatura", "Maestría", "Doctorado")
 }

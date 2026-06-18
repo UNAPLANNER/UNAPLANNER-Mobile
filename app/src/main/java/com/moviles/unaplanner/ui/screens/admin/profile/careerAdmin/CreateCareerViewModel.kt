@@ -6,15 +6,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.moviles.unaplanner.data.remote.model.Career
-import com.moviles.unaplanner.data.remote.model.UpdateCareerRequest
+import com.moviles.unaplanner.data.remote.model.CreateCareerRequest
 import com.moviles.unaplanner.data.repository.AdminRepository
 import com.moviles.unaplanner.data.repository.ApiResult
 import java.time.Year
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-data class EditCareerUiState(
+data class CreateCareerUiState(
     val name: String = "",
     val degree: String = "Bachillerato",
     val planYear: String = "",
@@ -30,14 +29,13 @@ data class EditCareerUiState(
     val fieldErrors: Map<String, String> = emptyMap()
 )
 
-class EditCareerViewModel(
-    private val career: Career,
+class CreateCareerViewModel(
     private val repository: AdminRepository = AdminRepository()
 ) : ViewModel() {
 
     val degreeOptions = listOf("Diplomado", "Bachillerato", "Licenciatura", "Maestría", "Doctorado")
 
-    var uiState by mutableStateOf(career.toUiState())
+    var uiState by mutableStateOf(CreateCareerUiState())
         private set
 
     fun onNameChange(value: String) {
@@ -49,6 +47,10 @@ class EditCareerViewModel(
             degree = value,
             fieldErrors = uiState.fieldErrors - "Degree" - "BachelorCredits" - "DiplomaCredits" - "DegreeCredits"
         )
+    }
+
+    fun onActiveChange(value: Boolean) {
+        uiState = uiState.copy(isActive = value)
     }
 
     fun onPlanYearChange(value: String) {
@@ -82,17 +84,13 @@ class EditCareerViewModel(
         )
     }
 
-    fun onActiveChange(value: Boolean) {
-        uiState = uiState.copy(isActive = value)
-    }
-
-    fun updateCareer() {
+    fun createCareer() {
         if (!validateFields()) return
 
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true, error = null, fieldErrors = emptyMap())
 
-            val request = UpdateCareerRequest(
+            val request = CreateCareerRequest(
                 name = uiState.name.trim(),
                 code = uiState.officialResolution.trim(),
                 description = buildDescription(),
@@ -100,8 +98,10 @@ class EditCareerViewModel(
                 isStatus = uiState.isActive
             )
 
-            when (val result = repository.updateCareer(career.id, request)) {
-                is ApiResult.Success -> uiState = uiState.copy(isLoading = false, isSuccess = true)
+            when (val result = repository.createCareer(request)) {
+                is ApiResult.Success -> {
+                    uiState = uiState.copy(isLoading = false, isSuccess = true)
+                }
                 is ApiResult.Error -> handleError(result.message)
             }
         }
@@ -111,8 +111,8 @@ class EditCareerViewModel(
         uiState = uiState.copy(error = null)
     }
 
-    fun clearSuccess() {
-        uiState = uiState.copy(isSuccess = false)
+    fun resetForm() {
+        uiState = CreateCareerUiState()
     }
 
     private fun validateFields(): Boolean {
@@ -199,49 +199,12 @@ class EditCareerViewModel(
         }
     }
 
-    private fun Career.toUiState(): EditCareerUiState {
-        val metadata = parseDescription(description)
-        val degree = metadata["Grado"] ?: "Bachillerato"
-        val planYear = metadata["Anio del plan"] ?: currentStudyPlanYear?.toString().orEmpty()
-        val school = metadata["Escuela"].orEmpty()
-        val specificCredits = findSpecificCredits(metadata, degree)
-        val totalCreditsValue = totalCredits.toString()
-
-        return EditCareerUiState(
-            name = name,
-            degree = degree,
-            planYear = planYear,
-            school = school,
-            bachelorCredits = if (requiresSpecificDegreeCredits(degree)) "" else totalCreditsValue,
-            diplomaCredits = metadata["Creditos diplomado"].orEmpty(),
-            degreeCredits = if (requiresSpecificDegreeCredits(degree)) specificCredits ?: totalCreditsValue else "",
-            officialResolution = code,
-            isActive = isStatus != false
-        )
-    }
-
-    private fun parseDescription(description: String?): Map<String, String> {
-        if (description.isNullOrBlank()) return emptyMap()
-
-        return description
-            .split("|")
-            .mapNotNull { segment ->
-                val parts = segment.split(":", limit = 2)
-                if (parts.size == 2) parts[0].trim() to parts[1].trim() else null
-            }
-            .toMap()
-    }
-
-    private fun findSpecificCredits(metadata: Map<String, String>, degree: String): String? {
-        return metadata["Creditos ${degree.lowercase()}"]
-    }
-
     private fun requiresSpecificDegreeCredits(degree: String): Boolean {
         return degree in setOf("Licenciatura", "Maestría", "Doctorado")
     }
 
     private fun handleError(message: String?) {
-        val fallback = "No se pudo actualizar la carrera"
+        val fallback = "No se pudo crear la carrera"
         if (message.isNullOrBlank()) {
             uiState = uiState.copy(isLoading = false, error = fallback)
             return
@@ -289,10 +252,10 @@ class EditCareerViewModel(
         }
     }
 
-    class Factory(private val career: Career) : ViewModelProvider.Factory {
+    object Factory : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return EditCareerViewModel(career) as T
+            return CreateCareerViewModel() as T
         }
     }
 }

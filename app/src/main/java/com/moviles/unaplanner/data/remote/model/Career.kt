@@ -17,6 +17,14 @@ data class Career(
     val createdDate: String?
 )
 
+data class CreateCareerRequest(
+    val name: String,
+    val code: String,
+    val description: String?,
+    val totalCredits: Int,
+    val isStatus: Boolean = true
+)
+
 data class UpdateCareerRequest(
     val name: String,
     val code: String,
