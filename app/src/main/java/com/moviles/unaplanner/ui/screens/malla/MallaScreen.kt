@@ -766,7 +766,7 @@ private fun UpdateStatusDialog(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(course.code, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
 
-                // Estado dropdown
+                // status dropdown
                 ExposedDropdownMenuBox(
                     expanded = statusExpanded,
                     onExpandedChange = { statusExpanded = it }
@@ -795,7 +795,7 @@ private fun UpdateStatusDialog(
                 }
 
                 if (needsDateFields) {
-                    // Ciclo dropdown (1 o 2)
+                    // Cycle dropdown (1 o 2)
                     ExposedDropdownMenuBox(
                         expanded = semesterExpanded,
                         onExpandedChange = { semesterExpanded = it }
@@ -824,7 +824,7 @@ private fun UpdateStatusDialog(
                         }
                     }
 
-                    // Año
+                    // year
                     OutlinedTextField(
                         value = yearText,
                         onValueChange = { if (it.length <= 4) yearText = it.filter { c -> c.isDigit() } },

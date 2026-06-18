@@ -55,8 +55,27 @@ interface StudentCalendarApiService {
     ): com.moviles.unaplanner.data.remote.model.CalendarEvent
 
     /**
+     * Updates an existing calendar event for a student
+     */
+    @PUT("api/student/{id}/calendar/{eventId}")
+    suspend fun updateEvent(
+        @Path("id") studentId: Int,
+        @Path("eventId") eventId: Int,
+        @Body request: com.moviles.unaplanner.data.remote.model.CreateCalendarEventRequest
+    ): com.moviles.unaplanner.data.remote.model.CalendarEvent
+
+    /**
      * Gets all courses for a student
      */
     @GET("api/student/{id}/courses")
     suspend fun getStudentCourses(@Path("id") studentId: Int): com.moviles.unaplanner.data.remote.model.CoursesResponse
+
+    /**
+     * Deletes a calendar event for a student
+     */
+    @DELETE("api/student/{id}/calendar/{eventId}")
+    suspend fun deleteEvent(
+        @Path("id") studentId: Int,
+        @Path("eventId") eventId: Int
+    ): retrofit2.Response<Unit>
 }

@@ -127,6 +127,8 @@ fun AppNavHost() {
                 onNavigateToAddActivity = {
                     navController.navigate(AppDestinations.ADD_ACTIVITY)
                 },
+                onNavigateToEditActivity = { eventId ->
+                    navController.navigate(AppDestinations.createEditActivityRoute(eventId))
                 onNavigateToProgreso = {
                     navController.navigate(AppDestinations.PROGRESO)
                 },
@@ -225,6 +227,16 @@ fun AppNavHost() {
             )
         }
 
+        // --- EDIT ACTIVITY SCREEN ---
+        composable(
+            route = AppDestinations.EDIT_ACTIVITY,
+            arguments = listOf(navArgument("eventId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getInt("eventId") ?: 0
+            AddActivityScreen(
+                eventId = eventId,
+                onBack = { navController.popBackStack() },
+                viewModel = calendarViewModel
         // --- ACADEMIC PROGRESS SCREEN ---
         composable(route = AppDestinations.PROGRESO) {
             AcademicProgressScreen(
