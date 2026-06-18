@@ -17,7 +17,7 @@ import com.moviles.unaplanner.ui.screens.calendar.CalendarScreen
 import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.data.AppContainer
 import com.moviles.unaplanner.ui.screens.contact.CampusContactsListScreen
-import com.moviles.unaplanner.ui.screens.inicio.InicioPlaceholderScreen
+import com.moviles.unaplanner.ui.screens.inicio.HomeScreen
 import com.moviles.unaplanner.ui.screens.malla.MallaScreen
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
 import com.moviles.unaplanner.ui.screens.notes.NotesScreen
@@ -137,7 +137,7 @@ fun MainScreen(
                 .padding(innerPadding)
         ) {
             when (selectedIndex) {
-                0 -> InicioPlaceholderScreen(
+                0 -> HomeScreen(
                     onNavigateToTab = { index -> selectedIndex = index }
                 )
                 1 -> CalendarScreen(

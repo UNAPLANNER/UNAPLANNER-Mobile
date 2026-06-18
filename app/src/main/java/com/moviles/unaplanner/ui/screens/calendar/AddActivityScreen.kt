@@ -345,9 +345,29 @@ fun AddActivityScreen(
                 AppButton(
                     text = if (isEditing) "Actualizar Actividad" else "Guardar Actividad",
                     onClick = {
+                        val today = LocalDate.now()
+
                         if (title.isBlank()) {
                             android.widget.Toast.makeText(context, "El título es obligatorio", android.widget.Toast.LENGTH_SHORT).show()
                             return@AppButton
+                        }
+
+                        // Validación: Fecha de actividad no puede ser pasada
+                        if (selectedDate.isBefore(today)) {
+                            android.widget.Toast.makeText(context, "La fecha de la actividad no puede ser una fecha pasada", android.widget.Toast.LENGTH_LONG).show()
+                            return@AppButton
+                        }
+
+                        // Validación: Recordatorio
+                        if (hasReminder) {
+                            if (reminderDate.isBefore(today)) {
+                                android.widget.Toast.makeText(context, "La fecha del recordatorio no puede ser una fecha pasada", android.widget.Toast.LENGTH_LONG).show()
+                                return@AppButton
+                            }
+                            if (reminderDate.isAfter(selectedDate)) {
+                                android.widget.Toast.makeText(context, "El recordatorio debe ser antes o el mismo día de la actividad", android.widget.Toast.LENGTH_LONG).show()
+                                return@AppButton
+                            }
                         }
 
                         val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
@@ -415,7 +435,14 @@ fun AddActivityScreen(
     }
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = System.currentTimeMillis()
+            initialSelectedDateMillis = System.currentTimeMillis(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    // Permite seleccionar solo desde hoy en adelante
+                    // Restamos un pequeño margen para asegurar que "hoy" sea seleccionable en todas las zonas horarias
+                    return utcTimeMillis >= System.currentTimeMillis() - 86400000
+                }
+            }
         )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -440,7 +467,17 @@ fun AddActivityScreen(
     //Dialogue for Reminder Date
     if (showReminderPicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = System.currentTimeMillis() - 86400000 // Ayer
+            initialSelectedDateMillis = System.currentTimeMillis(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    // El recordatorio no puede ser antes de hoy
+                    val today = System.currentTimeMillis() - 86400000
+                    // Además, el recordatorio no puede ser después de la fecha de la actividad
+                    val activityDateMillis = selectedDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
+                    
+                    return utcTimeMillis >= today && utcTimeMillis <= activityDateMillis
+                }
+            }
         )
         DatePickerDialog(
             onDismissRequest = { showReminderPicker = false },

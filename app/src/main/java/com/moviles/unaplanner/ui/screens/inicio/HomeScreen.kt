@@ -32,7 +32,7 @@ import com.moviles.unaplanner.R
 import com.moviles.unaplanner.ui.theme.*
 
 @Composable
-fun InicioPlaceholderScreen(
+fun HomeScreen(
     onNavigateToTab: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -59,7 +59,7 @@ fun InicioPlaceholderScreen(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // --- ACCESO RÁPIDO ---
+        // --- QUICK ACCESS ---
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -80,7 +80,7 @@ fun InicioPlaceholderScreen(
             )
         }
 
-        // Usamos Column + Rows en lugar de LazyGrid dentro de ScrollView
+        // We use Column + Rows instead of LazyGrid inside ScrollView
         quickAccessItems.chunked(2).forEach { rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
