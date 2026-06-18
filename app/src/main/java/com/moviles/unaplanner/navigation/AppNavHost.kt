@@ -25,6 +25,8 @@ import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
 import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
+import com.moviles.unaplanner.ui.screens.progress.AcademicProgressScreen
+import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
 import com.moviles.unaplanner.data.AppContainer
 
 @Composable
@@ -46,6 +48,15 @@ fun AppNavHost() {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
                 return MallaViewModel(AppContainer.curriculumRepository) as T
+            }
+        }
+    )
+
+    val progressViewModel: ProgressViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return ProgressViewModel(AppContainer.curriculumRepository) as T
             }
         }
     )
@@ -118,6 +129,8 @@ fun AppNavHost() {
                 },
                 onNavigateToEditActivity = { eventId ->
                     navController.navigate(AppDestinations.createEditActivityRoute(eventId))
+                onNavigateToProgreso = {
+                    navController.navigate(AppDestinations.PROGRESO)
                 },
                 notesViewModel = notesViewModel,
                 calendarViewModel = calendarViewModel,
@@ -224,6 +237,11 @@ fun AppNavHost() {
                 eventId = eventId,
                 onBack = { navController.popBackStack() },
                 viewModel = calendarViewModel
+        // --- ACADEMIC PROGRESS SCREEN ---
+        composable(route = AppDestinations.PROGRESO) {
+            AcademicProgressScreen(
+                viewModel = progressViewModel,
+                onBack = { navController.popBackStack() }
             )
         }
     }

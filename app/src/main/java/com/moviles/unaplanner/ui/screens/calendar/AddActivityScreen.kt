@@ -351,14 +351,13 @@ fun AddActivityScreen(
                             android.widget.Toast.makeText(context, "El título es obligatorio", android.widget.Toast.LENGTH_SHORT).show()
                             return@AppButton
                         }
-
-                        // Validación: Fecha de actividad no puede ser pasada
+                      // Validation: Activity date cannot be passed
                         if (selectedDate.isBefore(today)) {
                             android.widget.Toast.makeText(context, "La fecha de la actividad no puede ser una fecha pasada", android.widget.Toast.LENGTH_LONG).show()
                             return@AppButton
                         }
 
-                        // Validación: Recordatorio
+                       // Validation: Reminder
                         if (hasReminder) {
                             if (reminderDate.isBefore(today)) {
                                 android.widget.Toast.makeText(context, "La fecha del recordatorio no puede ser una fecha pasada", android.widget.Toast.LENGTH_LONG).show()

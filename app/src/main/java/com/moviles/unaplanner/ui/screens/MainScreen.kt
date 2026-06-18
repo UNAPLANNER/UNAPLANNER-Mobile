@@ -32,6 +32,7 @@ fun MainScreen(
     onNavigateToNoteEdit: (Int?) -> Unit,
     onNavigateToAddActivity: () -> Unit,
     onNavigateToEditActivity: (Int) -> Unit,
+    onNavigateToProgreso: () -> Unit,
     notesViewModel: NotesViewModel,
     calendarViewModel: StudentCalendarViewModel,
     mallaViewModel: MallaViewModel
