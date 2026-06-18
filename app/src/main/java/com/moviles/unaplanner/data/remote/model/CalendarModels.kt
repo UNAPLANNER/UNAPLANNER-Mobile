@@ -7,7 +7,7 @@ data class CreateCalendarEventRequest(
     val title: String,
     val description: String?,
     val activityDate: String,  // ISO 8601
-    val activityType: String,  // Examen, Tarea, Proyecto, etc.
+    val activityType: String,  // "Exam", "Assignment", "Project"
     val courseId: Int?,
     val hasReminder: Boolean = false,
     val reminderDate: String?
