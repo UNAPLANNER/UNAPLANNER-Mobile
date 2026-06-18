@@ -23,5 +23,9 @@ data class UserDto(
     @SerializedName("role")
     val role: String? = null,
     @SerializedName("campusId")
-    val campusId: Int? = null
+    val campusId: Int? = null,
+    @SerializedName("careerId", alternate = ["CareerID", "careerID", "career_id", "CareerIdFromStudyPlan", "careerIdFromStudyPlan"])
+    val careerId: Int? = null,
+    @SerializedName("studyPlanId", alternate = ["StudyPlanId", "studyPlanID"])
+    val studyPlanId: Int? = null
 )

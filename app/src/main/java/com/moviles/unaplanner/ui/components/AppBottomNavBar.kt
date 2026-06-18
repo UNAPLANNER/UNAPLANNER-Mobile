@@ -162,7 +162,7 @@ fun AdminAppBottomNavBar(
 )
 @Composable
 fun AppBottomNavBarPreview() {
-    UNAPLANNERTheme {
+    UNAPLANNERTheme(darkTheme = false) {
         var selected by remember { mutableIntStateOf(1) }
         AppBottomNavBar(
             selectedIndex = selected,
@@ -180,7 +180,7 @@ fun AppBottomNavBarPreview() {
 )
 @Composable
 fun AdminAppBottomNavBarPreview() {
-    UNAPLANNERTheme {
+    UNAPLANNERTheme(darkTheme = false) {
         var selected by remember { mutableIntStateOf(0) }
         AdminAppBottomNavBar(
             selectedIndex = selected,

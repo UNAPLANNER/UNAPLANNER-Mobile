@@ -28,11 +28,44 @@ import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 import com.moviles.unaplanner.ui.screens.student.EditProfileScreen
 import com.moviles.unaplanner.ui.screens.student.ProfileStudentViewModel
 import com.moviles.unaplanner.ui.screens.student.ProfileViewModel
+import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
+import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
+import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
+import com.moviles.unaplanner.ui.screens.progress.AcademicProgressScreen
+import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
+import com.moviles.unaplanner.data.AppContainer
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
     val notesViewModel: NotesViewModel = viewModel()
+
+    val calendarViewModel: StudentCalendarViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return StudentCalendarViewModel(AppContainer.calendarRepository) as T
+            }
+        }
+    )
+
+    val mallaViewModel: MallaViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return MallaViewModel(AppContainer.curriculumRepository) as T
+            }
+        }
+    )
+
+    val progressViewModel: ProgressViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return ProgressViewModel(AppContainer.curriculumRepository) as T
+            }
+        }
+    )
 
     NavHost(
         navController = navController,
@@ -101,6 +134,17 @@ fun AppNavHost() {
                     navController.navigate(AppDestinations.EDIT_PROFILE)
                 },
                 notesViewModel = notesViewModel
+                onNavigateToAddActivity = {
+                    navController.navigate(AppDestinations.ADD_ACTIVITY)
+                },
+                onNavigateToEditActivity = { eventId ->
+                    navController.navigate(AppDestinations.createEditActivityRoute(eventId))
+                onNavigateToProgreso = {
+                    navController.navigate(AppDestinations.PROGRESO)
+                },
+                notesViewModel = notesViewModel,
+                calendarViewModel = calendarViewModel,
+                mallaViewModel = mallaViewModel
             )
         }
 
@@ -209,6 +253,29 @@ fun AppNavHost() {
                 userId = profile.userId,
                 viewModel = viewModel,
                 initialProfile = StudentSession.profile!!,
+
+        // --- ADD ACTIVITY SCREEN ---
+        composable(route = AppDestinations.ADD_ACTIVITY) {
+            AddActivityScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = calendarViewModel
+            )
+        }
+
+        // --- EDIT ACTIVITY SCREEN ---
+        composable(
+            route = AppDestinations.EDIT_ACTIVITY,
+            arguments = listOf(navArgument("eventId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getInt("eventId") ?: 0
+            AddActivityScreen(
+                eventId = eventId,
+                onBack = { navController.popBackStack() },
+                viewModel = calendarViewModel
+        // --- ACADEMIC PROGRESS SCREEN ---
+        composable(route = AppDestinations.PROGRESO) {
+            AcademicProgressScreen(
+                viewModel = progressViewModel,
                 onBack = { navController.popBackStack() }
             )
         }
