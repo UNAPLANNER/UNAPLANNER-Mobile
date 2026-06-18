@@ -69,6 +69,23 @@ class NotesRepository(
         }
     }
 
+    suspend fun getNotesByCourse(userId: Int, courseId: Int): ApiResult<List<NoteDto>> {
+        return try {
+            val response = apiService.getStudentNotes(userId, courseId)
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null) ApiResult.Success(body.data)
+                else ApiResult.Error("Respuesta vacía del servidor")
+            } else {
+                ApiResult.Error("Error al obtener notas: ${response.code()}")
+            }
+        } catch (e: IOException) {
+            ApiResult.Error("Error de red: ${e.message}")
+        } catch (e: Exception) {
+            ApiResult.Error("Error inesperado: ${e.message}")
+        }
+    }
+
     suspend fun updateNote(noteId: Int, request: UpdateNoteRequest): ApiResult<NoteDto> {
         return try {
             val response = apiService.updateNote(noteId, request)
