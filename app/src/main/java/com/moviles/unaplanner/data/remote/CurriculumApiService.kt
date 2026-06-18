@@ -41,4 +41,10 @@ interface CurriculumApiService {
         @Path("courseId") courseId: Int,
         @Body request: UpdateCourseStatusRequest
     ): StudentCourseProgressDto
+
+    @GET("api/student/{id}/courses/{courseId}/detail")
+    suspend fun getCourseDetail(
+        @Path("id") studentId: Int,
+        @Path("courseId") courseId: Int
+    ): CourseDetailDto
 }
