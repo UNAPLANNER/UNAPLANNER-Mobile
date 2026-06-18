@@ -10,12 +10,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppTopBar
-import com.moviles.unaplanner.ui.screens.calendar.CalendarPlaceholderScreen
+import com.moviles.unaplanner.ui.screens.calendar.CalendarScreen
+import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
+import com.moviles.unaplanner.data.AppContainer
 import com.moviles.unaplanner.ui.screens.contact.CampusContactsListScreen
-import com.moviles.unaplanner.ui.screens.inicio.InicioPlaceholderScreen
-import com.moviles.unaplanner.ui.screens.malla.MallaPlaceholderScreen
+import com.moviles.unaplanner.ui.screens.inicio.HomeScreen
+import com.moviles.unaplanner.ui.screens.malla.MallaScreen
+import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
 import com.moviles.unaplanner.ui.screens.notes.NotesScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 import com.moviles.unaplanner.ui.theme.CrimsonRed
@@ -26,11 +30,38 @@ fun MainScreen(
     onLogout: () -> Unit,
     onNavigateToContactDetail: (Int) -> Unit,
     onNavigateToNoteEdit: (Int?) -> Unit,
-    notesViewModel: NotesViewModel
+    onNavigateToAddActivity: () -> Unit,
+    onNavigateToEditActivity: (Int) -> Unit,
+    onNavigateToProgreso: () -> Unit,
+    notesViewModel: NotesViewModel,
+    calendarViewModel: StudentCalendarViewModel,
+    mallaViewModel: MallaViewModel
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
+    var userState by remember { mutableStateOf(com.moviles.unaplanner.data.AuthSession.currentUser) }
+    val careerName by mallaViewModel.careerName.collectAsState()
 
-    // Cargar notas y cursos cuando se navega a la pestaña de notas
+    // Load notes and courses when navigating to the notes tab
+    LaunchedEffect(userState) {
+        userState?.let { u ->
+            // Si el nombre no está en la sesión o es nulo, lo recuperamos del perfil completo
+            if (u.fullName.isNullOrBlank()) {
+                try {
+                    val response = com.moviles.unaplanner.data.remote.RetrofitClient.apiService.getProfile(u.id)
+                    if (response.isSuccessful) {
+                        response.body()?.let { fullUser ->
+                            com.moviles.unaplanner.data.AuthSession.setUser(fullUser)
+                            userState = fullUser
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Fallback silencioso
+                }
+            }
+            mallaViewModel.loadStudentCurriculum(u.id)
+        }
+    }
+
     LaunchedEffect(selectedIndex) {
         if (selectedIndex == 3) {
             notesViewModel.loadNotes()
@@ -38,13 +69,34 @@ fun MainScreen(
         }
     }
 
-    val titles = listOf("Inicio", "Calendario", "Malla Curricular", "Mis Notas", "Directorio")
+    val currentMonthYear = remember {
+        java.time.LocalDate.now().let { date ->
+            val month = date.month.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale("es"))
+            "${month.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale("es")) else it.toString() }} ${date.year}"
+        }
+    }
+
+    val titles = listOf(
+        userState?.fullName ?: "Inicio",
+        "Calendario",
+        "Malla Curricular",
+        "Mis Notas",
+        "Directorio"
+    )
     val subtitles = listOf(
-        "Bienvenido a UNAPLANNER",
-        "Marzo 2026",
-        "Escuela de Informática",
+        careerName ?: userState?.department ?: "Estudiante",
+        currentMonthYear,
+        careerName ?: userState?.department ?: "Escuela de Informática",
         "Apuntes por curso",
-        "Campus Sarapiquí · UNA"
+        when(userState?.campusId) {
+            1 -> "Campus Omar Dengo · UNA"
+            2 -> "Campus Benjamín Núñez · UNA"
+            3 -> "Campus Pérez Zeledón · UNA"
+            4 -> "Campus Liberia · UNA"
+            5 -> "Campus Nicoya · UNA"
+            6 -> "Campus Sarapiquí · UNA"
+            else -> "Campus Sarapiquí · UNA"
+        }
     )
 
     Scaffold(
@@ -86,9 +138,15 @@ fun MainScreen(
                 .padding(innerPadding)
         ) {
             when (selectedIndex) {
-                0 -> InicioPlaceholderScreen()
-                1 -> CalendarPlaceholderScreen()
-                2 -> MallaPlaceholderScreen()
+                0 -> HomeScreen(
+                    onNavigateToTab = { index -> selectedIndex = index }
+                )
+                1 -> CalendarScreen(
+                    viewModel = calendarViewModel,
+                    onAddActivity = onNavigateToAddActivity,
+                    onEditActivity = onNavigateToEditActivity
+                )
+                2 -> MallaScreen(viewModel = mallaViewModel)
                 3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
                 4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
             }

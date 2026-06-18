@@ -9,12 +9,12 @@ object AppConstants {
         /** Emulator reaches host machine at 10.0.2.2; change port to match your API. */
         private const val EMULATOR_URL = "http://10.0.2.2:5232/"
         //KEYNA Usando IP local
-        //private const val PHYSICAL_DEVICE_URL = "http://192.168.100.128:5232/"
+        private const val PHYSICAL_DEVICE_URL = "http://192.168.100.128:5232/"
         //Adriana Usando IP local
         //private const val PHYSICAL_DEVICE_URL = "http://192.168.1.8:5232/"
         //REICHEL Usando IP local
-        //private const val PHYSICAL_DEVICE_URL = "http://192.168.100.124:5232/"
-        private const val PHYSICAL_DEVICE_URL = "http://192.168.100.64:5232/"
+        //private const val PHYSICAL_DEVICE_URL = "http://192.168.100.163:5232/"
+        //private const val PHYSICAL_DEVICE_URL = "http://192.168.100.64:5232/"
         //Natalia Usando IP local
 
         /**
@@ -24,7 +24,7 @@ object AppConstants {
             get() = if (isEmulator) com.moviles.unaplanner.core.AppConstants.Api.EMULATOR_URL else com.moviles.unaplanner.core.AppConstants.Api.PHYSICAL_DEVICE_URL
 
         /**
-         * Lógica para detectar si la app está corriendo en un emulador.
+         * Logic to detect if the app is running on an emulator.
          */
         private val isEmulator: Boolean
             get() = (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
@@ -49,12 +49,18 @@ object AppConstants {
             const val CAMPUS_CONTACTS = "api/campus-contacts"
             const val STUDENT_NOTES = "api/student/{id}/notes"
             const val STUDENT_COURSES = "api/student/{id}/courses"
+            const val STUDENT_CALENDAR = "api/student/{id}/calendar"
             const val NOTE_OPERATIONS = "api/notes/{id}"
             const val CONTACT_OPERATIONS = "api/campus-contacts/{id}"
             const val USER_PROFILE = "api/profile/{id}"
             const val CHANGE_PASSWORD = "api/profile/{id}/change-password"
             const val REGISTER_STUDENT = "api/auth/register"
 
+            const val CAREERS = "api/careers"
+            const val ADMIN_CAREERS = "api/admin/careers"
+            const val CAREER_CURRICULUM = "api/careers/{id}/curriculum"
+            const val STUDENT_CURRICULUM_COURSES = "api/student/{id}/curriculum/courses"
+            const val STUDENT_COURSE_PROGRESS = "api/student/{id}/courses/{courseId}"
         }
     }
 }

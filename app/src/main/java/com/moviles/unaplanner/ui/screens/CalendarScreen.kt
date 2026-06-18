@@ -57,7 +57,7 @@ fun CalendarScreen(
         ) {
             item {
                 CalendarGrid(
-                    month = "Marzo",
+                    monthName = "Marzo",
                     year = 2026,
                     startDayOfWeek = 6,
                     totalDays = 31,

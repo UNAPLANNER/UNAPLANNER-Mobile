@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moviles.unaplanner.ui.theme.AppDivider
+import com.moviles.unaplanner.ui.theme.CrimsonRed
 import com.moviles.unaplanner.ui.theme.NavyBlue
 import com.moviles.unaplanner.ui.theme.SurfaceLight
 import com.moviles.unaplanner.ui.theme.TextPrimary
@@ -34,6 +35,8 @@ fun AppTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     readOnly: Boolean = false,
+    singleLine: Boolean = true,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     onClick: (() -> Unit)? = null
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -56,29 +59,32 @@ fun AppTextField(
                 onValueChange = onValueChange,
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = readOnly,
-                singleLine = true,
+                singleLine = singleLine,
+                maxLines = maxLines,
                 enabled = true,
 
-                //textStyle = TextStyle(color = Color.Red),
-                textStyle = TextStyle(fontSize = 16.sp),
+                textStyle = TextStyle(
+                    color = TextPrimary,
+                    fontSize = 16.sp
+                ),
 
                 placeholder = {
                     Text(
                         text = placeholder,
-                        color = TextSecondary
+                        color = TextSecondary.copy(alpha = 0.6f)
                     )
                 },
 
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(12.dp),
                 keyboardOptions = keyboardOptions,
                 visualTransformation = visualTransformation,
 
 
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.Black,
-                    errorTextColor = Color.Black,
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    disabledTextColor = TextPrimary,
+                    errorTextColor = CrimsonRed,
 
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
