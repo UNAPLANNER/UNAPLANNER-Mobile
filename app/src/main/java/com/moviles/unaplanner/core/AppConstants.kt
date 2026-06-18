@@ -15,6 +15,8 @@ object AppConstants {
         //REICHEL Usando IP local
         private const val PHYSICAL_DEVICE_URL = "http://192.168.100.163:5232/"
         //private const val PHYSICAL_DEVICE_URL = "http://192.168.100.64:5232/"
+        //private const val PHYSICAL_DEVICE_URL = "http://192.168.100.124:5232/"
+        private const val PHYSICAL_DEVICE_URL = "http://192.168.0.2:5232/"
         //Natalia Usando IP local
 
         /**
