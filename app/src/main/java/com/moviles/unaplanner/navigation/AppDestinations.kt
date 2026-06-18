@@ -23,6 +23,7 @@ object AppDestinations {
     fun createContactDetailRoute(contactId: Int) = "contact_detail/$contactId"
     fun createEditContactRoute(contactId: Int) = "edit_contact/$contactId"
     const val NOTE_EDIT = "note_edit/{noteId}"
+    const val ADD_ACTIVITY = "add_activity"
 
     fun createNoteEditRoute(noteId: Int?) = if (noteId != null) "note_edit/$noteId" else "note_edit/new"
 }

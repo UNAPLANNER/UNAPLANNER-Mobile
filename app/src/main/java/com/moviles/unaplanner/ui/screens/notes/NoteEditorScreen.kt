@@ -93,7 +93,9 @@ fun NoteEditorScreen(
         focusedBorderColor = NavyBlue,
         unfocusedBorderColor = AppDivider,
         disabledBorderColor = AppDivider,
-        errorBorderColor = CrimsonRed
+        errorBorderColor = CrimsonRed,
+        focusedTrailingIconColor = NavyBlue,
+        unfocusedTrailingIconColor = NavyBlue.copy(alpha = 0.7f)
     )
 
     Column(
