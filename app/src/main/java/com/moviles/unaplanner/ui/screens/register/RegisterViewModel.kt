@@ -11,6 +11,8 @@ import com.moviles.unaplanner.core.UserMessages
 import com.moviles.unaplanner.core.UserMessages.Errors.GENERIC_ERROR
 import com.moviles.unaplanner.core.UserMessages.RegisterStudent.INVALID_ENTRY_YEAR
 import com.moviles.unaplanner.core.UserMessages.RegisterStudent.STUDY_PLAN_REQUIRED
+import com.moviles.unaplanner.data.remote.RetrofitClient
+import com.moviles.unaplanner.data.remote.model.CareerDto
 import com.moviles.unaplanner.data.remote.model.RegisterRequest
 import com.moviles.unaplanner.data.repository.ApiResult
 import com.moviles.unaplanner.data.repository.RegisterUserStudentRepository
@@ -19,6 +21,7 @@ import kotlinx.coroutines.launch
 import com.moviles.unaplanner.data.remote.model.StudyPlan
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.moviles.unaplanner.ui.screens.register.RegisterFormUtils
 
 enum class SelectionType {
     CAMPUS,
@@ -52,8 +55,14 @@ class RegisterViewModel : ViewModel() {
     var selectedPlan by mutableStateOf<StudyPlan?>(null)
     var studyPlanSelectedName by mutableStateOf("Seleccione un Plan")
 
+    // ← NUEVO: carrera seleccionada con su ID
+    var selectedMajorId by mutableStateOf(0)
+    var selectedSecondMajorId by mutableStateOf(0)
+
     private val _uiState = MutableStateFlow<RegisterState>(RegisterState.Idle)
     val uiState = _uiState.asStateFlow()
+    private val _careers = MutableStateFlow<List<CareerDto>>(emptyList())
+    val careers = _careers.asStateFlow()
 
     val campusList = listOf(
         "Campus Sarapiquí",
@@ -61,14 +70,6 @@ class RegisterViewModel : ViewModel() {
         "Campus Nicoya",
         "Sede Central"
     )
-
-    val majorsList = listOf(
-        "Ingeniería en Sistemas de Información",
-        "Ingeniería en Ciencia de Datos",
-        "Administración",
-        "Administración de Oficinas"
-    )
-
     val studyPlansList = listOf(
         StudyPlan(
             studyPlanId = 1,
@@ -77,15 +78,33 @@ class RegisterViewModel : ViewModel() {
         )
     )
 
+    init {
+        loadCareers()
+    }
+
+    // Load races from the API
+    private fun loadCareers() {
+        viewModelScope.launch {
+            try {
+                _careers.value = RetrofitClient.curriculumApiService.getCareers()
+            } catch (e: Exception) {
+                _careers.value = emptyList()
+            }
+        }
+    }
     fun onItemSelected(item: Any) {
-
         when (currentSelectionType) {
-
             SelectionType.CAMPUS -> if (item is String) campus = item
 
-            SelectionType.MAJOR -> if (item is String) major = item
+            SelectionType.MAJOR -> if (item is CareerDto) {
+                major = item.name
+                selectedMajorId = item.id
+            }
 
-            SelectionType.DOUBLE_MAJOR -> if (item is String) secondMajor = item
+            SelectionType.DOUBLE_MAJOR -> if (item is CareerDto) {
+                secondMajor = item.name
+                selectedSecondMajorId = item.id
+            }
 
             SelectionType.STUDY_PLAN -> if (item is StudyPlan) {
                 selectedPlan = item
@@ -94,62 +113,54 @@ class RegisterViewModel : ViewModel() {
 
             SelectionType.NONE -> {}
         }
-
         showBottomSheet = false
     }
 
     fun onRegisterClicked(onSuccess: () -> Unit) {
+        // validate the most likely errors
+        val error = RegisterFormUtils.validate(
+            name = name,
+            email = email,
+            password = password,
+            confirmPassword = confirmPassword,
+            campus = campus,
+            selectedMajorId = selectedMajorId,
+            selectedPlan = selectedPlan,
+            entryYear = entryYear
+        )
 
-        if (password != confirmPassword) {
-            _uiState.value = RegisterState.Error(UserMessages.Errors.PASSWORDS_DO_NOT_MATCH)
+        if (error != null) {
+            _uiState.value = RegisterState.Error(error)
             return
         }
-
         viewModelScope.launch {
-
             _uiState.value = RegisterState.Loading
-
             try {
-
-                val plan = selectedPlan ?: run {
-                    _uiState.value = RegisterState.Error(STUDY_PLAN_REQUIRED)
-                    return@launch
-                }
-
-                val year = entryYear.toIntOrNull()
-                if (year == null) {
-                    _uiState.value = RegisterState.Error(INVALID_ENTRY_YEAR)
-                    return@launch
-                }
 
                 val request = RegisterRequest(
                     email = email,
                     password = password,
                     fullName = name,
-                    enterYear = year,
-                    careerId = plan.careerId,
-                    studyPlanId = plan.studyPlanId
+                    enterYear = entryYear.toInt(),
+                    careerId = selectedMajorId,
+                    studyPlanId = selectedPlan!!.studyPlanId
                 )
 
                 val repository = RegisterUserStudentRepository()
                 val result = repository.registerUser(request)
 
                 when (result) {
-
                     is ApiResult.Success -> {
                         _uiState.value = RegisterState.Success
                         onSuccess()
                     }
-
                     is ApiResult.Error -> {
-                        _uiState.value = RegisterState.Error(result.message)
+                        _uiState.value = RegisterState.Error(
+                            RegisterFormUtils.mapError(result.message))
                     }
                 }
-
             } catch (e: Exception) {
-                _uiState.value = RegisterState.Error(
-                    e.localizedMessage ?: GENERIC_ERROR
-                )
+                _uiState.value = RegisterState.Error(e.localizedMessage ?: GENERIC_ERROR)
             }
         }
     }

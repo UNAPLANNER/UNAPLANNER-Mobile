@@ -70,6 +70,8 @@ fun RegisterScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
+    val careers by viewModel.careers.collectAsState()
+
     val scrollState = rememberScrollState()
 
     val sheetState = rememberModalBottomSheetState(
@@ -415,48 +417,35 @@ fun RegisterScreen(
 
                         // CAREER SELECTION
                         SelectionType.MAJOR -> {
-
-                            items(viewModel.majorsList) { major ->
-
+                            items(careers) { career ->
                                 Text(
-                                    text = major,
-
+                                    text = career.name,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-
-                                            viewModel.onItemSelected(major)
-
+                                            viewModel.onItemSelected(career)
                                         }
                                         .padding(16.dp),
-
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
                         }
 
-                        // DOBLE CAREER SELECTION
+                        // DOUBLE CAREER SELECTION
                         SelectionType.DOUBLE_MAJOR -> {
-
-                            items(viewModel.majorsList) { major ->
-
+                            items(careers) { career ->
                                 Text(
-                                    text = major,
-
+                                    text = career.name,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-
-                                            viewModel.onItemSelected(major)
-
+                                            viewModel.onItemSelected(career)
                                         }
                                         .padding(16.dp),
-
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
                         }
-
                         // SELECTION PLAN STUDY
                         SelectionType.STUDY_PLAN -> {
 

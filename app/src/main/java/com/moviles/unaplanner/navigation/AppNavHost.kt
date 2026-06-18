@@ -30,6 +30,7 @@ import com.moviles.unaplanner.ui.screens.progress.AcademicProgressScreen
 import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
 import com.moviles.unaplanner.data.AppContainer
 
+
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
@@ -106,9 +107,9 @@ fun AppNavHost() {
         // --- MAIN SCREEN (WITH BOTTOM NAV) ---
         composable(
             route = AppDestinations.MAIN,
-            arguments = listOf(navArgument("initialIndex") { 
+            arguments = listOf(navArgument("initialIndex") {
                 type = NavType.IntType
-                defaultValue = 0 
+                defaultValue = 0
             })
         ) { backStackEntry ->
             val initialIndex = backStackEntry.arguments?.getInt("initialIndex") ?: 0
@@ -130,6 +131,7 @@ fun AppNavHost() {
                 },
                 onNavigateToEditActivity = { eventId ->
                     navController.navigate(AppDestinations.createEditActivityRoute(eventId))
+                },
                 onNavigateToProgreso = {
                     navController.navigate(AppDestinations.PROGRESO)
                 },
@@ -204,7 +206,16 @@ fun AppNavHost() {
             )
         }
 
-        // --- PANTALLA DE REGISTRO ---
+        // --- CONTACT EDITING SCREEN (ADMIN) ---
+        composable(
+            route = AppDestinations.EDIT_CONTACT,
+            arguments = listOf(navArgument("contactId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val contactId = backStackEntry.arguments?.getInt("contactId") ?: 0
+            EditCampusContactScreen(
+                contactId = contactId,
+
+        // --- Register Student Screen ---
         composable(route = AppDestinations.REGISTER) {
             RegisterScreen(
                 onBack = {
@@ -214,17 +225,6 @@ fun AppNavHost() {
                     navController.navigate(AppDestinations.LOGIN) {
                         popUpTo(AppDestinations.REGISTER) { inclusive = true }
                     }
-                }
-            )
-        }
-
-        // --- PANTALLA DE PERFIL DE ADMIN ---
-        /*composable(route = AppDestinations.ADMIN_PROFILE) {
-            AdminProfileScreen(
-                onBackClick = { navController.popBackStack() },
-                onSuccess = {
-                    navController.previousBackStackEntry?.savedStateHandle?.set("contact_updated", true)
-                    navController.popBackStack()
                 }
             )
         }
@@ -247,6 +247,8 @@ fun AppNavHost() {
                 eventId = eventId,
                 onBack = { navController.popBackStack() },
                 viewModel = calendarViewModel
+            )
+        }
         // --- ACADEMIC PROGRESS SCREEN ---
         composable(route = AppDestinations.PROGRESO) {
             AcademicProgressScreen(
