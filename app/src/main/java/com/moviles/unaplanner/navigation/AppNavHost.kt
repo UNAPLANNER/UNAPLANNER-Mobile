@@ -129,6 +129,7 @@ fun AppNavHost() {
                 },
                 onNavigateToEditActivity = { eventId ->
                     navController.navigate(AppDestinations.createEditActivityRoute(eventId))
+                },
                 onNavigateToProgreso = {
                     navController.navigate(AppDestinations.PROGRESO)
                 },
@@ -237,6 +238,8 @@ fun AppNavHost() {
                 eventId = eventId,
                 onBack = { navController.popBackStack() },
                 viewModel = calendarViewModel
+            )
+        }
         // --- ACADEMIC PROGRESS SCREEN ---
         composable(route = AppDestinations.PROGRESO) {
             AcademicProgressScreen(

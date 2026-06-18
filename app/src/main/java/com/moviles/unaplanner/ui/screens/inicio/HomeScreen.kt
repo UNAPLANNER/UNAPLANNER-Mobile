@@ -34,13 +34,15 @@ import com.moviles.unaplanner.ui.theme.*
 @Composable
 fun HomeScreen(
     onNavigateToTab: (Int) -> Unit,
+    onNavigateToProgreso: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
 
     val quickAccessItems = listOf(
+        QuickAccessData("Calendario", "Mi agenda", Icons.Default.CalendarMonth, Color(0xFFE8F5E9), Color(0xFF2E7D32), 1),
         QuickAccessData("Malla", "Cursos y requisitos", Icons.Default.FolderOpen, Color(0xFFF3E5F5), Color(0xFF7B1FA2), 2),
-        QuickAccessData("Proyección", "Próximo ciclo", Icons.Default.Timeline, Color(0xFFE8F5E9), Color(0xFF2E7D32), 1),
+        QuickAccessData("Proyección", "Progreso académico", Icons.Default.Timeline, Color(0xFFFFEBEE), Color(0xFFD32F2F), -1),
         QuickAccessData("Notas", "Apuntes de cursos", Icons.Default.Description, Color(0xFFFFF3E0), Color(0xFFF57C00), 3),
         QuickAccessData("Contactos", "Directorio", Icons.Default.ListAlt, Color(0xFFE3F2FD), Color(0xFF1976D2), 4)
     )
@@ -90,7 +92,13 @@ fun HomeScreen(
                     QuickAccessCard(
                         data = item,
                         modifier = Modifier.weight(1f),
-                        onClick = { onNavigateToTab(item.tabIndex) }
+                        onClick = {
+                            if (item.tabIndex == -1) {
+                                onNavigateToProgreso()
+                            } else {
+                                onNavigateToTab(item.tabIndex)
+                            }
+                        }
                     )
                 }
                 if (rowItems.size == 1) {
