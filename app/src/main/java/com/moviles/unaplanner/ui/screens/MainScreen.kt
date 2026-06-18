@@ -139,7 +139,8 @@ fun MainScreen(
         ) {
             when (selectedIndex) {
                 0 -> HomeScreen(
-                    onNavigateToTab = { index -> selectedIndex = index }
+                    onNavigateToTab = { index -> selectedIndex = index },
+                    onNavigateToProgreso = onNavigateToProgreso
                 )
                 1 -> CalendarScreen(
                     viewModel = calendarViewModel,
