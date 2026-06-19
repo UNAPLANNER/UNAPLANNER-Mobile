@@ -147,6 +147,58 @@ class StudentCalendarViewModel(
             }
         }
     }
+
+    /**
+     * Updates an existing event
+     */
+    fun updateEvent(
+        studentId: Int,
+        eventId: Int,
+        title: String,
+        description: String?,
+        activityDate: String,
+        activityType: String,
+        courseId: Int?,
+        hasReminder: Boolean,
+        reminderDate: String?,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
+            val request = com.moviles.unaplanner.data.remote.model.CreateCalendarEventRequest(
+                title = title,
+                description = description,
+                activityDate = activityDate,
+                activityType = activityType,
+                courseId = courseId,
+                hasReminder = hasReminder,
+                reminderDate = reminderDate
+            )
+
+            val result = repository.updateEvent(studentId, eventId, request)
+            result.onSuccess {
+                _successMessage.value = "Actividad guardada exitosamente"
+                loadStudentCalendar(studentId)
+                onSuccess()
+            }.onFailure { error ->
+                _errorMessage.value = error.message ?: "Error al actualizar la actividad"
+            }
+        }
+    }
+
+    /**
+     * Deletes an event
+     */
+    fun deleteEvent(studentId: Int, eventId: Int) {
+        viewModelScope.launch {
+            val result = repository.deleteEvent(studentId, eventId)
+            result.onSuccess {
+                _successMessage.value = "Actividad eliminada exitosamente"
+                loadStudentCalendar(studentId)
+            }.onFailure { error ->
+                _errorMessage.value = error.message ?: "Error al eliminar la actividad"
+            }
+        }
+    }
 }
 
 /**
