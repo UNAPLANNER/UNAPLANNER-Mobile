@@ -40,20 +40,24 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddActivityScreen(
+    eventId: Int? = null,
     onBack: () -> Unit,
     viewModel: StudentCalendarViewModel
 ) {
+    val isEditing = eventId != null
+    val selectedEventState by viewModel.selectedEvent.collectAsStateWithLifecycle()
+
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var activityType by remember { mutableStateOf("Examen") }
     var selectedCourse by remember { mutableStateOf<CourseDto?>(null) }
     var expanded by remember { mutableStateOf(false) }
     
-    // Fecha de la actividad
+    // Date of activity
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
     
-    // Recordatorio
+    // Reminder
     var hasReminder by remember { mutableStateOf(false) }
     var reminderDate by remember { mutableStateOf(LocalDate.now().minusDays(1)) }
     var showReminderPicker by remember { mutableStateOf(false) }
@@ -67,12 +71,39 @@ fun AddActivityScreen(
     var showSuccessToast by remember { mutableStateOf(false) }
     var toastMessage by remember { mutableStateOf("") }
 
-    // Cargar cursos al iniciar
+    // Load courses on startup
     LaunchedEffect(Unit) {
         viewModel.loadStudentCourses(studentId)
+        if (isEditing && eventId != null) {
+            viewModel.loadEventDetail(studentId, eventId)
+        }
     }
 
-    // Manejo de errores
+    // Fill in the details if it's an edition
+    LaunchedEffect(selectedEventState) {
+        if (isEditing) {
+            selectedEventState?.let { event ->
+                title = event.title
+                description = event.description ?: ""
+                activityType = event.activityType
+                selectedDate = LocalDate.parse(event.activityDate.substringBefore("T"))
+                hasReminder = event.hasReminder
+                event.reminderDate?.let {
+                    reminderDate = LocalDate.parse(it.substringBefore("T"))
+                }
+                // The course will be assigned when the course list is loaded.
+            }
+        }
+    }
+
+    // Sync the selected course when the courses load
+    LaunchedEffect(studentCourses, selectedEventState) {
+        if (isEditing && selectedEventState != null) {
+            selectedCourse = studentCourses.find { it.id == selectedEventState?.courseId }
+        }
+    }
+
+    //Error handling
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_LONG).show()
@@ -80,7 +111,7 @@ fun AddActivityScreen(
         }
     }
 
-    // Colores para el ComboBox (Extraídos de NoteEditorScreen)
+    // Colors for the ComboBox (Extracted from NoteEditorScreen)
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedTextColor = TextPrimary,
         unfocusedTextColor = TextPrimary,
@@ -101,7 +132,6 @@ fun AddActivityScreen(
         ) {
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Header igual que Notas
             Surface(
                 modifier = Modifier.fillMaxWidth().height(64.dp),
                 color = Color.White,
@@ -119,7 +149,7 @@ fun AddActivityScreen(
                         )
                     }
                     Text(
-                        text = "Nueva Actividad",
+                        text = if (isEditing) "Editar Actividad" else "Nueva Actividad",
                         style = MaterialTheme.typography.titleLarge,
                         color = NavyBlue,
                         modifier = Modifier.weight(1f),
@@ -158,7 +188,7 @@ fun AddActivityScreen(
                     modifier = Modifier.height(100.dp)
                 )
 
-                // Selector de Curso Asociado (ComboBox como en Notas)
+                // Associate Course Selector
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Curso Asociado", style = MaterialTheme.typography.labelMedium, color = NavyBlue, fontWeight = FontWeight.Bold)
                     
@@ -273,7 +303,7 @@ fun AddActivityScreen(
                     }
                 }
 
-                // Sección de Recordatorio
+                // Reminder Section
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -312,11 +342,30 @@ fun AddActivityScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 AppButton(
-                    text = "Guardar Actividad",
+                    text = if (isEditing) "Actualizar Actividad" else "Guardar Actividad",
                     onClick = {
+                        val today = LocalDate.now()
+
                         if (title.isBlank()) {
                             android.widget.Toast.makeText(context, "El título es obligatorio", android.widget.Toast.LENGTH_SHORT).show()
                             return@AppButton
+                        }
+                      // Validation: Activity date cannot be passed
+                        if (selectedDate.isBefore(today)) {
+                            android.widget.Toast.makeText(context, "La fecha de la actividad no puede ser una fecha pasada", android.widget.Toast.LENGTH_LONG).show()
+                            return@AppButton
+                        }
+
+                       // Validation: Reminder
+                        if (hasReminder) {
+                            if (reminderDate.isBefore(today)) {
+                                android.widget.Toast.makeText(context, "La fecha del recordatorio no puede ser una fecha pasada", android.widget.Toast.LENGTH_LONG).show()
+                                return@AppButton
+                            }
+                            if (reminderDate.isAfter(selectedDate)) {
+                                android.widget.Toast.makeText(context, "El recordatorio debe ser antes o el mismo día de la actividad", android.widget.Toast.LENGTH_LONG).show()
+                                return@AppButton
+                            }
                         }
 
                         val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
@@ -325,18 +374,35 @@ fun AddActivityScreen(
                             LocalDateTime.of(reminderDate, LocalTime.of(9, 0)).format(dateFormatter)
                         } else null
 
-                        viewModel.createEvent(
-                            studentId = studentId,
-                            title = title,
-                            description = description.ifBlank { null },
-                            activityDate = activityDateTime,
-                            activityType = activityType,
-                            courseId = selectedCourse?.id,
-                            hasReminder = hasReminder,
-                            reminderDate = reminderDateTime
-                        ) {
-                            // Al terminar con éxito, volvemos al calendario
-                            onBack()
+                        if (isEditing && eventId != null) {
+                            viewModel.updateEvent(
+                                studentId = studentId,
+                                eventId = eventId,
+                                title = title,
+                                description = description.ifBlank { null },
+                                activityDate = activityDateTime,
+                                activityType = activityType,
+                                courseId = selectedCourse?.id,
+                                hasReminder = hasReminder,
+                                reminderDate = reminderDateTime
+                            ) {
+                                viewModel.clearSelectedEvent()
+                                onBack()
+                            }
+                        } else {
+                            viewModel.createEvent(
+                                studentId = studentId,
+                                title = title,
+                                description = description.ifBlank { null },
+                                activityDate = activityDateTime,
+                                activityType = activityType,
+                                courseId = selectedCourse?.id,
+                                hasReminder = hasReminder,
+                                reminderDate = reminderDateTime
+                            ) {
+                                // Upon successful completion, we return to the calendar
+                                onBack()
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -344,12 +410,12 @@ fun AddActivityScreen(
                     icon = Icons.Default.Save
                 )
 
-                // Espaciador final para asegurar visibilidad al final del scroll
+                //End spacer to ensure visibility at the end of the scroll
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
 
-        // Toast de Éxito animado (Top End como en Contactos)
+        // Animated Success Toast
         AnimatedVisibility(
             visible = showSuccessToast,
             enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
@@ -367,7 +433,14 @@ fun AddActivityScreen(
     }
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = System.currentTimeMillis()
+            initialSelectedDateMillis = System.currentTimeMillis(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    // Permite seleccionar solo desde hoy en adelante
+                    // Restamos un pequeño margen para asegurar que "hoy" sea seleccionable en todas las zonas horarias
+                    return utcTimeMillis >= System.currentTimeMillis() - 86400000
+                }
+            }
         )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -389,10 +462,20 @@ fun AddActivityScreen(
         }
     }
 
-    // Dialogo para Fecha de Recordatorio
+    //Dialogue for Reminder Date
     if (showReminderPicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = System.currentTimeMillis() - 86400000 // Ayer
+            initialSelectedDateMillis = System.currentTimeMillis(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    // El recordatorio no puede ser antes de hoy
+                    val today = System.currentTimeMillis() - 86400000
+                    // Además, el recordatorio no puede ser después de la fecha de la actividad
+                    val activityDateMillis = selectedDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
+                    
+                    return utcTimeMillis >= today && utcTimeMillis <= activityDateMillis
+                }
+            }
         )
         DatePickerDialog(
             onDismissRequest = { showReminderPicker = false },

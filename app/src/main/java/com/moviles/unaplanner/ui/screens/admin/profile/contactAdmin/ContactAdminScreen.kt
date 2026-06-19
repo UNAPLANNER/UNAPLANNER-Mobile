@@ -33,6 +33,7 @@ import com.moviles.unaplanner.ui.components.AdminTopBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.components.SuccessToast
 import com.moviles.unaplanner.ui.theme.BackgroundLight
+import com.moviles.unaplanner.ui.theme.CrimsonRed
 import com.moviles.unaplanner.ui.theme.NavyBlue
 import kotlinx.coroutines.delay
 
@@ -186,17 +187,16 @@ fun ContactAdminScreen(
                     ) 
                 },
                 confirmButton = {
-                    Button(
+                    TextButton(
                         onClick = {
                             contact.id.let { viewModel.deleteContact(it) }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+                        }
                     ) {
-                        Text(UserMessages.CampusContacts.DeleteDialog.CONFIRM, fontWeight = FontWeight.Bold)
+                        Text(
+                            UserMessages.CampusContacts.DeleteDialog.CONFIRM,
+                            color = CrimsonRed,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 },
                 dismissButton = {
