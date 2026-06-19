@@ -80,9 +80,17 @@ data class CourseDetailDto(
     val term: Int,
     val status: String,
     val finalGrade: Double?,
+    val enrolledDetailId: Int?,
     val professorName: String?,
     val classroom: String?,
     val schedule: String?,
     val syllabusUrl: String?,
     val prerequisites: List<PrerequisiteDto>?
+)
+
+data class EnrolledCourseDetailRequest(
+    val professorName: String?,
+    val classroom: String?,
+    val schedule: String?,
+    val syllabusUrl: String?
 )
