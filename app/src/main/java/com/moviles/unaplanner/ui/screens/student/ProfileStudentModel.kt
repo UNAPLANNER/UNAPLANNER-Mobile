@@ -7,7 +7,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.unaplanner.data.AppContainer
 import com.moviles.unaplanner.data.StudentSession
 import com.moviles.unaplanner.data.remote.RetrofitClient
-import com.moviles.unaplanner.data.remote.model.StudentProfileDto
+import com.moviles.unaplanner.data.remote.model.StudentsProfileDto
 import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UpdateStudentProfileRequest
 import com.moviles.unaplanner.data.repository.ProfileStudentRepository
@@ -22,7 +22,7 @@ class ProfileStudentViewModel(
     sealed class UiState {
         object Idle : UiState()
         object Loading : UiState()
-        data class Success(val profile: StudentProfileDto) : UiState()
+        data class Success(val profile: StudentsProfileDto) : UiState()
         data class Error(val message: String) : UiState()
     }
 
@@ -32,7 +32,7 @@ class ProfileStudentViewModel(
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess = _saveSuccess.asStateFlow()
 
-    fun setInitialProfile(profile: StudentProfileDto) {
+    fun setInitialProfile(profile: StudentsProfileDto) {
         _uiState.value = UiState.Success(profile)
     }
 

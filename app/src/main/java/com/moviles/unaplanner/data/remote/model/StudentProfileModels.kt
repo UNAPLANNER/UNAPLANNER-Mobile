@@ -2,7 +2,7 @@ package com.moviles.unaplanner.data.remote.model
 
 
 import com.google.gson.annotations.SerializedName
-data class StudentProfileDto(
+data class StudentsProfileDto(
     @SerializedName("studentId", alternate = ["StudentId"])
     val studentId: Int,
 
@@ -38,7 +38,7 @@ data class UpdateStudentProfileRequest(
 
 data class ProfileResponse(
     @SerializedName("data", alternate = ["Data"])
-    val data: StudentProfileDto,
+    val data: StudentsProfileDto,
 
     @SerializedName("message", alternate = ["Message"])
     val message: String = ""

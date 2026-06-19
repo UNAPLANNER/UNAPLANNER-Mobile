@@ -44,7 +44,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.moviles.unaplanner.data.remote.model.StudentProfileDto
 import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UpdateStudentProfileRequest
 import com.moviles.unaplanner.ui.components.AppTopBar
@@ -70,6 +69,7 @@ import com.moviles.unaplanner.ui.components.ProfileTextField
 import com.moviles.unaplanner.ui.theme.HeaderGradientEnd
 import com.moviles.unaplanner.ui.theme.HeaderGradientStart
 import androidx.compose.foundation.background
+import com.moviles.unaplanner.data.remote.model.StudentsProfileDto
 
 private val careers = listOf(
     Pair(1, "Ingeniería en Sistemas de Información"),
@@ -86,7 +86,7 @@ private val careers = listOf(
 fun EditProfileScreen(
     userId: Int,
     viewModel: ProfileStudentViewModel,
-    initialProfile: StudentProfileDto,
+    initialProfile: StudentsProfileDto,
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -109,6 +109,7 @@ fun EditProfileScreen(
     var expanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        println("DEBUG PROFILE: $initialProfile")
         viewModel.setInitialProfile(initialProfile)
     }
 

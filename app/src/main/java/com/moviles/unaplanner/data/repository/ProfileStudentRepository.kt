@@ -1,7 +1,7 @@
 package com.moviles.unaplanner.data.repository
 
 import com.moviles.unaplanner.data.remote.ApiService
-import com.moviles.unaplanner.data.remote.model.StudentProfileDto
+import com.moviles.unaplanner.data.remote.model.StudentsProfileDto
 import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UpdateStudentProfileRequest
 import com.moviles.unaplanner.data.remote.model.UserDto
@@ -14,7 +14,7 @@ class ProfileStudentRepository(
     suspend fun updateProfile(
         userId: Int,
         request: UpdateStudentProfileRequest
-    ): StudentProfileDto {
+    ): StudentsProfileDto {
 
         // ← TEMPORAL: ver qué se envía
         android.util.Log.d("UPDATE_PROFILE", "userId=$userId request=$request")

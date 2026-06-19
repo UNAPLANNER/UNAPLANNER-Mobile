@@ -32,7 +32,6 @@ fun MainScreen(
     onNavigateToContactDetail: (Int) -> Unit,
     onNavigateToNoteEdit: (Int?) -> Unit,
     onNavigateToEditProfile: () -> Unit,
-    notesViewModel: NotesViewModel
     onNavigateToAddActivity: () -> Unit,
     onNavigateToEditActivity: (Int) -> Unit,
     onNavigateToProgreso: () -> Unit,

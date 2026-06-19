@@ -2,7 +2,6 @@ package com.moviles.unaplanner.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,15 +24,14 @@ import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampus
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.EditCampusContactScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
-import com.moviles.unaplanner.ui.screens.student.EditProfileScreen
-import com.moviles.unaplanner.ui.screens.student.ProfileStudentViewModel
-import com.moviles.unaplanner.ui.screens.student.ProfileViewModel
 import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
 import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
 import com.moviles.unaplanner.ui.screens.progress.AcademicProgressScreen
 import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
 import com.moviles.unaplanner.data.AppContainer
+import com.moviles.unaplanner.ui.screens.student.EditProfileScreen
+import com.moviles.unaplanner.ui.screens.student.ProfileStudentViewModel
 
 @Composable
 fun AppNavHost() {
@@ -111,9 +109,9 @@ fun AppNavHost() {
         // --- MAIN SCREEN (WITH BOTTOM NAV) ---
         composable(
             route = AppDestinations.MAIN,
-            arguments = listOf(navArgument("initialIndex") { 
+            arguments = listOf(navArgument("initialIndex") {
                 type = NavType.IntType
-                defaultValue = 0 
+                defaultValue = 0
             })
         ) { backStackEntry ->
             val initialIndex = backStackEntry.arguments?.getInt("initialIndex") ?: 0
@@ -133,7 +131,6 @@ fun AppNavHost() {
                 onNavigateToEditProfile = {
                     navController.navigate(AppDestinations.EDIT_PROFILE)
                 },
-                notesViewModel = notesViewModel
                 onNavigateToAddActivity = {
                     navController.navigate(AppDestinations.ADD_ACTIVITY)
                 },
@@ -229,6 +226,7 @@ fun AppNavHost() {
                 }
             )
         }
+
         // --- UPDATE PROFILE STUDENT SCREEN ---
         composable(route = AppDestinations.EDIT_PROFILE) {
             val profile = StudentSession.profile
@@ -240,7 +238,6 @@ fun AppNavHost() {
                 return@composable
             }
 
-
             val viewModel: ProfileStudentViewModel = viewModel(
                 factory = ProfileStudentViewModel.Factory
             )
@@ -249,11 +246,13 @@ fun AppNavHost() {
                 viewModel.setInitialProfile(StudentSession.profile!!)
             }
 
-
             EditProfileScreen(
                 userId = profile.userId,
                 viewModel = viewModel,
                 initialProfile = StudentSession.profile!!,
+                onBack = { navController.popBackStack() }
+            )
+        }
 
         // --- ADD ACTIVITY SCREEN ---
         composable(route = AppDestinations.ADD_ACTIVITY) {
@@ -275,6 +274,7 @@ fun AppNavHost() {
                 viewModel = calendarViewModel
             )
         }
+
         // --- ACADEMIC PROGRESS SCREEN ---
         composable(route = AppDestinations.PROGRESO) {
             AcademicProgressScreen(

@@ -7,8 +7,7 @@ import com.moviles.unaplanner.data.StudentSession
 import com.moviles.unaplanner.data.remote.ApiService
 import com.moviles.unaplanner.data.remote.RetrofitClient
 import com.moviles.unaplanner.data.remote.model.LoginRequest
-import com.moviles.unaplanner.data.remote.model.StudentProfileDto
-import com.moviles.unaplanner.data.remote.model.UpdateStudentProfileRequest
+import com.moviles.unaplanner.data.remote.model.StudentsProfileDto
 import com.moviles.unaplanner.data.remote.model.UserDto
 class AuthRepository(
     private val apiService: ApiService = RetrofitClient.apiService
@@ -33,21 +32,20 @@ class AuthRepository(
                             if (profileResponse.isSuccessful && profileResponse.body() != null) {
                                 StudentSession.setProfile(profileResponse.body()!!)
                             } else {
-                                // fallback si falla el GET
                                 StudentSession.setProfile(
-                                    StudentProfileDto(
-                                        studentId  = user.id,
-                                        email      = user.email,
-                                        fullName   = "",
-                                        careerId   = 0,
+                                    StudentsProfileDto(
+                                        studentId = user.id,
+                                        email = user.email,
+                                        fullName = "",
+                                        careerId = 0,
                                         careerName = "",
-                                        enterYear  = null
+                                        enterYear = null
                                     )
                                 )
                             }
                         } catch (e: Exception) {
                             StudentSession.setProfile(
-                                StudentProfileDto(
+                                StudentsProfileDto(
                                     studentId  = user.id,
                                     email      = user.email,
                                     fullName   = "",

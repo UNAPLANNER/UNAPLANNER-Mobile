@@ -54,5 +54,5 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.PROFILE_STUDENT_GET)
     suspend fun getProfileStudent(
         @Path("userId") userId: Int
-    ): Response<StudentProfileDto>
+    ): Response<StudentsProfileDto>
 }
