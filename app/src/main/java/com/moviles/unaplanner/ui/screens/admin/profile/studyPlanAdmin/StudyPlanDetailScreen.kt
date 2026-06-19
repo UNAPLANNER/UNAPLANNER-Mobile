@@ -87,7 +87,11 @@ fun StudyPlanDetailScreen(
             )
         }
         uiState.studyPlan != null -> {
-            StudyPlanDetailContent(studyPlan = uiState.studyPlan, onBackClick = onBackClick)
+            StudyPlanDetailContent(
+                studyPlan = uiState.studyPlan,
+                onBackClick = onBackClick,
+                onStudyPlanUpdated = viewModel::updateStudyPlan
+            )
         }
     }
 }
@@ -95,9 +99,11 @@ fun StudyPlanDetailScreen(
 @Composable
 private fun StudyPlanDetailContent(
     studyPlan: StudyPlanDetail,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onStudyPlanUpdated: (StudyPlanDetail) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    var showCreateCourseSheet by remember { androidx.compose.runtime.mutableStateOf(false) }
     val tabs = listOf("Plan", "Optativos", "Info")
 
     LazyColumn(
@@ -136,7 +142,7 @@ private fun StudyPlanDetailContent(
                 }
             }
         }
-        item { AddCourseActionButton() }
+        item { AddCourseActionButton(onClick = { showCreateCourseSheet = true }) }
 
         when (selectedTab) {
             0 -> {
@@ -144,7 +150,7 @@ private fun StudyPlanDetailContent(
                     item {
                         EmptyStudyPlanSection(
                             title = "Sin cursos registrados",
-                            message = "Este plan aun no tiene cursos. Usa + Curso cuando se habilite la gestion manual."
+                            message = "Este plan aun no tiene cursos. Usa + Curso para registrarlos manualmente."
                         )
                     }
                 } else {
@@ -176,6 +182,18 @@ private fun StudyPlanDetailContent(
                 item { StudyPlanInfoGrid(studyPlan = studyPlan) }
             }
         }
+    }
+
+    if (showCreateCourseSheet) {
+        CreateStudyPlanCourseSheet(
+            studyPlan = studyPlan,
+            onDismiss = { showCreateCourseSheet = false },
+            onCourseCreated = { updatedStudyPlan ->
+                showCreateCourseSheet = false
+                selectedTab = 0
+                onStudyPlanUpdated(updatedStudyPlan)
+            }
+        )
     }
 }
 
@@ -236,10 +254,10 @@ private fun StudyPlanHero(studyPlan: StudyPlanDetail) {
 }
 
 @Composable
-private fun AddCourseActionButton() {
+private fun AddCourseActionButton(onClick: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Button(
-            onClick = {},
+            onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE20E2D), contentColor = Color.White),

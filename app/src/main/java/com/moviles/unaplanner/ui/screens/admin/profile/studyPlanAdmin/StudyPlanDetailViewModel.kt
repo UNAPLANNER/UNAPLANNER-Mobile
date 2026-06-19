@@ -59,6 +59,10 @@ class StudyPlanDetailViewModel(
         }
     }
 
+    fun updateStudyPlan(studyPlan: StudyPlanDetail) {
+        uiState = uiState.copy(studyPlan = studyPlan, isLoading = false, error = null)
+    }
+
     private fun Career.toEmptyStudyPlanDetail(): StudyPlanDetail {
         return StudyPlanDetail(
             id = 0,
