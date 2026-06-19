@@ -8,6 +8,7 @@ import com.moviles.unaplanner.data.remote.model.NoteDto
 import com.moviles.unaplanner.data.repository.ApiResult
 import com.moviles.unaplanner.data.repository.CurriculumRepository
 import com.moviles.unaplanner.data.repository.NotesRepository
+import retrofit2.HttpException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -51,7 +52,16 @@ class CourseDetailViewModel(
             _state.value = CourseDetailUiState.Loading
             repository.getCourseDetail(studentId, courseId)
                 .onSuccess { _state.value = CourseDetailUiState.Success(it) }
-                .onFailure { _state.value = CourseDetailUiState.Error(it.message ?: "Error al cargar el detalle del curso") }
+                .onFailure { e ->
+                    val message = when {
+                        e is HttpException && e.code() == 404 ->
+                            "No se encontraron datos del curso en el servidor."
+                        e is HttpException ->
+                            "Error del servidor (${e.code()}). Intente de nuevo."
+                        else -> e.message ?: "Error al cargar el detalle del curso"
+                    }
+                    _state.value = CourseDetailUiState.Error(message)
+                }
         }
     }
 
