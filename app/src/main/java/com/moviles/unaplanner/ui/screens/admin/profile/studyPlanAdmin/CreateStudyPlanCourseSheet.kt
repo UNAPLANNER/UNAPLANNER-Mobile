@@ -90,6 +90,7 @@ fun CreateStudyPlanCourseSheet(
             levelOptions = viewModel.levelOptions,
             termOptions = viewModel.termOptions,
             electiveTypeOptions = viewModel.electiveTypeOptions,
+            prerequisiteModeOptions = viewModel.prerequisiteModeOptions,
             onCodeChange = viewModel::onCodeChange,
             onNameChange = viewModel::onNameChange,
             onCreditsChange = viewModel::onCreditsChange,
@@ -100,6 +101,8 @@ fun CreateStudyPlanCourseSheet(
             onTermChange = viewModel::onTermChange,
             onElectiveTypeChange = viewModel::onElectiveTypeChange,
             onActiveChange = viewModel::onActiveChange,
+            onPrerequisiteModeChange = viewModel::onPrerequisiteModeChange,
+            onPrerequisiteSearchChange = viewModel::onPrerequisiteSearchChange,
             onPrerequisiteToggle = viewModel::onPrerequisiteToggle,
             onCreateClick = { viewModel.createCourse(studyPlan.id) },
             onCancelClick = {
@@ -130,6 +133,7 @@ private fun CreateStudyPlanCourseForm(
     levelOptions: List<String>,
     termOptions: List<String>,
     electiveTypeOptions: List<String>,
+    prerequisiteModeOptions: List<String>,
     onCodeChange: (String) -> Unit,
     onNameChange: (String) -> Unit,
     onCreditsChange: (String) -> Unit,
@@ -140,6 +144,8 @@ private fun CreateStudyPlanCourseForm(
     onTermChange: (String) -> Unit,
     onElectiveTypeChange: (String) -> Unit,
     onActiveChange: (Boolean) -> Unit,
+    onPrerequisiteModeChange: (String) -> Unit,
+    onPrerequisiteSearchChange: (String) -> Unit,
     onPrerequisiteToggle: (Int) -> Unit,
     onCreateClick: () -> Unit,
     onCancelClick: () -> Unit,
@@ -267,7 +273,12 @@ private fun CreateStudyPlanCourseForm(
 
         PrerequisiteSelector(
             courses = availablePrerequisites,
+            mode = uiState.prerequisiteMode,
+            modeOptions = prerequisiteModeOptions,
+            search = uiState.prerequisiteSearch,
             selectedIds = uiState.selectedPrerequisiteIds,
+            onModeChange = onPrerequisiteModeChange,
+            onSearchChange = onPrerequisiteSearchChange,
             onToggle = onPrerequisiteToggle
         )
 
@@ -368,14 +379,88 @@ private fun CourseSelector(
 @Composable
 private fun PrerequisiteSelector(
     courses: List<StudyPlanCourseDetail>,
+    mode: String,
+    modeOptions: List<String>,
+    search: String,
     selectedIds: Set<Int>,
+    onModeChange: (String) -> Unit,
+    onSearchChange: (String) -> Unit,
+    onToggle: (Int) -> Unit
+) {
+    val filteredCourses = remember(courses, search) {
+        val query = search.trim()
+        if (query.isBlank()) {
+            courses
+        } else {
+            courses.filter { course ->
+                course.code.contains(query, ignoreCase = true) ||
+                    course.name.contains(query, ignoreCase = true)
+            }
+        }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        CourseSelector(
+            value = mode,
+            onValueChange = onModeChange,
+            options = modeOptions,
+            label = "Requisito *"
+        )
+
+        when (mode) {
+            "Ingreso" -> {
+                Text(
+                    text = "Curso de primer ingreso. No se registran cursos requisito.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF8A98AF)
+                )
+            }
+            "No presenta" -> {
+                Text(
+                    text = "Este curso no presenta requisitos.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF8A98AF)
+                )
+            }
+            else -> CoursePrerequisitePicker(
+                courses = courses,
+                filteredCourses = filteredCourses,
+                search = search,
+                selectedIds = selectedIds,
+                onSearchChange = onSearchChange,
+                onToggle = onToggle
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CoursePrerequisitePicker(
+    courses: List<StudyPlanCourseDetail>,
+    filteredCourses: List<StudyPlanCourseDetail>,
+    search: String,
+    selectedIds: Set<Int>,
+    onSearchChange: (String) -> Unit,
     onToggle: (Int) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        CourseFieldLabel("Requisitos")
+        CourseFormField(
+            value = search,
+            onValueChange = onSearchChange,
+            label = "Buscar curso requisito",
+            placeholder = "Codigo o nombre del curso"
+        )
+
         if (courses.isEmpty()) {
             Text(
                 text = "Aun no hay cursos disponibles para seleccionar requisitos.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF8A98AF)
+            )
+        } else if (filteredCourses.isEmpty()) {
+            Text(
+                text = "No hay cursos que coincidan con la busqueda.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF8A98AF)
             )
@@ -384,7 +469,7 @@ private fun PrerequisiteSelector(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                courses.forEach { course ->
+                filteredCourses.forEach { course ->
                     val selected = course.id in selectedIds
                     FilterChip(
                         selected = selected,
@@ -399,6 +484,15 @@ private fun PrerequisiteSelector(
                     )
                 }
             }
+        }
+
+        if (selectedIds.isNotEmpty()) {
+            Text(
+                text = "${selectedIds.size} requisito(s) seleccionado(s)",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFF1E62D0),
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

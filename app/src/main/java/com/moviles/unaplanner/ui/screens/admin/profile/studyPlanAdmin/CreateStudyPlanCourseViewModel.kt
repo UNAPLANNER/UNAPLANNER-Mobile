@@ -23,6 +23,8 @@ data class CreateStudyPlanCourseUiState(
     val term: String = "1",
     val electiveType: String = "Obligatorio",
     val isActive: Boolean = true,
+    val prerequisiteMode: String = "Ingreso",
+    val prerequisiteSearch: String = "",
     val selectedPrerequisiteIds: Set<Int> = emptySet(),
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
@@ -37,6 +39,7 @@ class CreateStudyPlanCourseViewModel(
     val levelOptions = listOf("1", "2", "3", "4")
     val termOptions = listOf("1", "2")
     val electiveTypeOptions = listOf("Obligatorio", "OptativoDisciplinario", "OptativoLibre")
+    val prerequisiteModeOptions = listOf("Ingreso", "No presenta", "Cursos")
 
     var uiState by mutableStateOf(CreateStudyPlanCourseUiState())
         private set
@@ -84,6 +87,18 @@ class CreateStudyPlanCourseViewModel(
         uiState = uiState.copy(isActive = value)
     }
 
+    fun onPrerequisiteModeChange(value: String) {
+        uiState = uiState.copy(
+            prerequisiteMode = value,
+            prerequisiteSearch = if (value == "Cursos") uiState.prerequisiteSearch else "",
+            selectedPrerequisiteIds = if (value == "Cursos") uiState.selectedPrerequisiteIds else emptySet()
+        )
+    }
+
+    fun onPrerequisiteSearchChange(value: String) {
+        uiState = uiState.copy(prerequisiteSearch = value)
+    }
+
     fun onPrerequisiteToggle(courseId: Int) {
         val selected = uiState.selectedPrerequisiteIds
         uiState = uiState.copy(
@@ -110,7 +125,11 @@ class CreateStudyPlanCourseViewModel(
                 isElective = uiState.electiveType != "Obligatorio",
                 electiveType = uiState.electiveType,
                 isStatus = uiState.isActive,
-                prerequisiteCourseIds = uiState.selectedPrerequisiteIds.toList()
+                prerequisiteCourseIds = if (uiState.prerequisiteMode == "Cursos") {
+                    uiState.selectedPrerequisiteIds.toList()
+                } else {
+                    emptyList()
+                }
             )
 
             when (val result = repository.createStudyPlanCourse(studyPlanId, request)) {
