@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Canvas
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.moviles.unaplanner.ui.components.GpaCard
 import com.moviles.unaplanner.ui.theme.*
 import kotlin.math.roundToInt
 
@@ -156,6 +157,12 @@ private fun ProgressContent(data: ProgressData, modifier: Modifier = Modifier) {
     ) {
         // Circular progress + stats card
         ProgressSummaryCard(data = data)
+
+        //GPA CARD
+        GpaCard(
+            gpa = data.gpa,
+            lastCycleGpa = data.lastCycleGpa
+        )
 
         // Area progress section
         Text(

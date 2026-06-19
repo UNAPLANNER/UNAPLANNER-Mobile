@@ -1,6 +1,7 @@
 package com.moviles.unaplanner.data.remote
 
 import com.moviles.unaplanner.data.remote.model.*
+import retrofit2.Response
 import retrofit2.http.*
 
 // Minimal student DTO to resolve careerId when it's missing from the login response
@@ -41,4 +42,9 @@ interface CurriculumApiService {
         @Path("courseId") courseId: Int,
         @Body request: UpdateCourseStatusRequest
     ): StudentCourseProgressDto
+
+    @GET("api/student/{id}/gpa")
+    suspend fun getStudentGpa(
+        @Path("id") studentId: Int
+    ): Response<GpaResponseDto>
 }

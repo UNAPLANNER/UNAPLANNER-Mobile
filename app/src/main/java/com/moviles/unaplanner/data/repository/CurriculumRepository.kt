@@ -65,4 +65,23 @@ class CurriculumRepository(private val apiService: CurriculumApiService) {
             Result.failure(e)
         }
     }
+    suspend fun getStudentGpa(studentId: Int): ApiResult<GpaResponseDto> {
+        return try {
+            val response = apiService.getStudentGpa(studentId)
+            if (response.isSuccessful) {
+                val gpaData = response.body()
+                if (gpaData != null) {
+                    ApiResult.Success(gpaData)
+                } else {
+                    ApiResult.Error("Respuesta vacía del servidor.")
+                }
+            } else {
+                ApiResult.Error("Error del servidor: ${response.code()}", response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error("No se pudo conectar al servidor.")
+        }
+    }
+
+
 }
