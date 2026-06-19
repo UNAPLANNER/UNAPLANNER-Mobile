@@ -94,9 +94,13 @@ class EditCareerViewModel(
 
             val request = UpdateCareerRequest(
                 name = uiState.name.trim(),
-                code = uiState.officialResolution.trim(),
-                description = buildDescription(),
-                totalCredits = getSelectedTotalCredits(),
+                degreeLevel = uiState.degree.trim(),
+                planYear = uiState.planYear.toInt(),
+                school = uiState.school.trim(),
+                bachelorCredits = if (requiresSpecificDegreeCredits(uiState.degree)) null else uiState.bachelorCredits.toInt(),
+                diplomaCredits = if (requiresSpecificDegreeCredits(uiState.degree)) null else uiState.diplomaCredits.toInt(),
+                degreeCredits = if (requiresSpecificDegreeCredits(uiState.degree)) uiState.degreeCredits.toInt() else null,
+                officialResolution = uiState.officialResolution.trim(),
                 isStatus = uiState.isActive
             )
 
@@ -173,30 +177,6 @@ class EditCareerViewModel(
 
         uiState = uiState.copy(fieldErrors = errors)
         return errors.isEmpty()
-    }
-
-    private fun buildDescription(): String {
-        val creditsDescription = if (requiresSpecificDegreeCredits(uiState.degree)) {
-            "Creditos ${uiState.degree.lowercase()}: ${uiState.degreeCredits.trim()}"
-        } else {
-            "Creditos diplomado: ${uiState.diplomaCredits.trim()}"
-        }
-
-        return listOf(
-            "Grado: ${uiState.degree.trim()}",
-            "Anio del plan: ${uiState.planYear.trim()}",
-            "Escuela: ${uiState.school.trim()}",
-            creditsDescription,
-            "Resolucion oficial: ${uiState.officialResolution.trim()}"
-        ).joinToString(separator = " | ")
-    }
-
-    private fun getSelectedTotalCredits(): Int {
-        return if (requiresSpecificDegreeCredits(uiState.degree)) {
-            uiState.degreeCredits.toInt()
-        } else {
-            uiState.bachelorCredits.toInt()
-        }
     }
 
     private fun Career.toUiState(): EditCareerUiState {
@@ -284,6 +264,13 @@ class EditCareerViewModel(
     private fun toUiFieldKey(apiFieldKey: String): String {
         return when (apiFieldKey) {
             "Code" -> "OfficialResolution"
+            "OfficialResolution" -> "OfficialResolution"
+            "DegreeLevel" -> "Degree"
+            "PlanYear" -> "PlanYear"
+            "School" -> "School"
+            "BachelorCredits" -> "BachelorCredits"
+            "DiplomaCredits" -> "DiplomaCredits"
+            "DegreeCredits" -> "DegreeCredits"
             "TotalCredits" -> if (requiresSpecificDegreeCredits(uiState.degree)) "DegreeCredits" else "BachelorCredits"
             else -> apiFieldKey
         }
