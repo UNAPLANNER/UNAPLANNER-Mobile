@@ -20,6 +20,19 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <!-- Default channel for Firebase notifications when the app is in the background -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="unaplanner_notifications" />
+        <!-- Monochromatic icon for system-handled notifications (notification payload) -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notify" />
+        <!-- Accent color for notification -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/splash_background" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
