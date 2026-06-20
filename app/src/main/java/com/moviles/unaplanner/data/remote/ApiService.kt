@@ -27,6 +27,40 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.ADMIN_CAREERS)
     suspend fun getCareers(): Response<List<Career>>
 
+    @GET(AppConstants.Api.Paths.ADMIN_DASHBOARD)
+    suspend fun getAdminDashboard(): Response<AdminDashboard>
+
+    @POST(AppConstants.Api.Paths.ADMIN_CAREERS)
+    suspend fun createCareer(@Body request: CreateCareerRequest): Response<Career>
+
+    @PUT(AppConstants.Api.Paths.ADMIN_CAREER_OPERATIONS)
+    suspend fun updateCareer(
+        @Path("id") id: Int,
+        @Body request: UpdateCareerRequest
+    ): Response<Career>
+
+    @GET(AppConstants.Api.Paths.STUDY_PLAN_DETAIL)
+    suspend fun getStudyPlanDetail(@Path("id") id: Int): Response<StudyPlanDetail>
+
+    @POST(AppConstants.Api.Paths.STUDY_PLAN_COURSES)
+    suspend fun createStudyPlanCourse(
+        @Path("id") id: Int,
+        @Body request: CreateStudyPlanCourseRequest
+    ): Response<StudyPlanDetail>
+
+    @PUT(AppConstants.Api.Paths.STUDY_PLAN_COURSE_OPERATIONS)
+    suspend fun updateStudyPlanCourse(
+        @Path("id") id: Int,
+        @Path("courseId") courseId: Int,
+        @Body request: UpdateStudyPlanCourseRequest
+    ): Response<StudyPlanDetail>
+
+    @DELETE(AppConstants.Api.Paths.STUDY_PLAN_COURSE_OPERATIONS)
+    suspend fun deleteStudyPlanCourse(
+        @Path("id") id: Int,
+        @Path("courseId") courseId: Int
+    ): Response<StudyPlanDetail>
+
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun getStudentNotes(
         @Path("id") studentId: Int,
@@ -42,6 +76,9 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.STUDENT_COURSES)
     suspend fun getStudentCourses(@Path("id") studentId: Int): Response<CoursesResponse>
 
+    @GET("api/student/{id}/curriculum/courses")
+    suspend fun getStudentCurriculumCourses(@Path("id") studentId: Int): Response<List<StudentCourseProgressDto>>
+
     @DELETE(AppConstants.Api.Paths.NOTE_OPERATIONS)
     suspend fun deleteNote(
         @Path("id") noteId: Int
@@ -52,4 +89,17 @@ interface ApiService {
         @Path("id") noteId: Int,
         @Body request: UpdateNoteRequest
     ): Response<NoteDto>
+
+    @POST(AppConstants.Api.Paths.REGISTER_STUDENT)
+    suspend fun registerUser(
+        @Body request: RegisterRequest
+    ): Response<RegisterResponse>
+
+    @GET(AppConstants.Api.Paths.CAMPUS_LIST)
+    suspend fun getCampuses(): Response<List<CampusDto>>
+
+    @GET(AppConstants.Api.Paths.CAMPUS_CAREERS)
+    suspend fun getCampusCareers(
+        @Path("campusId") campusId: Int
+    ): Response<List<CampusCareerDto>>
 }

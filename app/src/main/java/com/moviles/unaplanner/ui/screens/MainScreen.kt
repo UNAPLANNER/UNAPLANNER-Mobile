@@ -55,7 +55,7 @@ fun MainScreen(
     var userState by remember { mutableStateOf(com.moviles.unaplanner.data.AuthSession.currentUser) }
     val careerName by mallaViewModel.careerName.collectAsState()
     val unreadCount by notificationViewModel.unreadCount.collectAsState()
-    
+
     var showNotifications by rememberSaveable { mutableStateOf(false) }
 
     // Handle the back button to close notifications
@@ -69,7 +69,7 @@ fun MainScreen(
     LaunchedEffect(userState) {
         userState?.let { u ->
             // If the session is missing studentId or fullName, refresh from /me
-            if (u.studentId == null || u.fullName.isNullOrBlank()) {
+            if ((u.studentId == null && u.role == "Student") || u.fullName.isNullOrBlank()) {
                 try {
                     val meResponse = com.moviles.unaplanner.data.remote.RetrofitClient.apiService.getMe()
                     if (meResponse.isSuccessful) {

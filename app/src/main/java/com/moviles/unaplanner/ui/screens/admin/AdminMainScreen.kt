@@ -11,12 +11,16 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.moviles.unaplanner.data.remote.model.CampusContact
+import com.moviles.unaplanner.data.remote.model.Career
 import com.moviles.unaplanner.ui.components.AdminTopBar
 import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminContent
+import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CreateCareerScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminViewModel
+import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.EditCareerScreen
+import com.moviles.unaplanner.ui.screens.admin.profile.studyPlanAdmin.StudyPlanDetailScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.ContactAdminScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.homeAdmin.HomeAdminContent
 import com.moviles.unaplanner.ui.theme.BackgroundLight
@@ -25,11 +29,20 @@ import com.moviles.unaplanner.ui.theme.BackgroundLight
 fun AdminMainScreen(
     onLogout: () -> Unit,
     onNavigateToCreateContact: () -> Unit = {},
+    onNavigateToCreateCareer: () -> Unit = {},
     onNavigateToEditContact: (CampusContact) -> Unit = {},
     navController: NavController? = null
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+    var editingCareer by remember { mutableStateOf<Career?>(null) }
+    var viewingStudyPlanCareer by remember { mutableStateOf<Career?>(null) }
+    var showCreateCareerModal by rememberSaveable { mutableStateOf(false) }
     val careerViewModel: CareerAdminViewModel = viewModel(factory = CareerAdminViewModel.Factory)
+    val careerCreated = navController
+        ?.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow("career_created", false)
+        ?.collectAsState()
     val careers = careerViewModel.uiState.careers
     val careersCampusLabel = careers
         .mapNotNull { it.campusName }
@@ -41,13 +54,26 @@ fun AdminMainScreen(
         "${careers.size} carreras registradas - $careersCampusLabel"
     }
 
-    val titles = listOf("UNAPlanner Admin", "Carreras", "Contactos", "Mi Perfil")
+    val titles = listOf(
+        "UNAPlanner Admin",
+        if (viewingStudyPlanCareer != null) "Plan de Estudio" else "Carreras",
+        "Contactos",
+        "Mi Perfil"
+    )
     val subtitles = listOf(
         null,
-        careersSubtitle,
+        viewingStudyPlanCareer?.name ?: careersSubtitle,
         "Directorio de la Sede",
         null
     )
+
+    LaunchedEffect(careerCreated?.value) {
+        if (careerCreated?.value == true) {
+            selectedIndex = 1
+            careerViewModel.loadCareers()
+            navController?.currentBackStackEntry?.savedStateHandle?.set("career_created", false)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -57,11 +83,22 @@ fun AdminMainScreen(
                     subtitle = subtitles[selectedIndex],
                     isHome = selectedIndex == 0,
                     showBackButton = selectedIndex != 0,
-                    onBackClick = { selectedIndex = 0 },
-                    showAddButton = selectedIndex == 1 || selectedIndex == 2,
+                    onBackClick = {
+                        if (editingCareer != null) {
+                            editingCareer = null
+                        } else if (viewingStudyPlanCareer != null) {
+                            viewingStudyPlanCareer = null
+                        } else if (showCreateCareerModal) {
+                            showCreateCareerModal = false
+                        } else {
+                            selectedIndex = 0
+                        }
+                    },
+                    showAddButton = (selectedIndex == 1 && editingCareer == null && viewingStudyPlanCareer == null && !showCreateCareerModal) || selectedIndex == 2,
                     onAddClick = {
-                        if (selectedIndex == 2) {
-                            onNavigateToCreateContact()
+                        when (selectedIndex) {
+                            1 -> showCreateCareerModal = true
+                            2 -> onNavigateToCreateContact()
                         }
                     }
                 )
@@ -83,10 +120,51 @@ fun AdminMainScreen(
         ) {
             when (selectedIndex) {
                 0 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
-                    HomeAdminContent()
+                    HomeAdminContent(
+                        onNavigateToSection = { selectedIndex = it },
+                        onCreateCareerClick = {
+                            selectedIndex = 1
+                            showCreateCareerModal = true
+                        },
+                        onViewStudyPlan = { career ->
+                            selectedIndex = 1
+                            viewingStudyPlanCareer = career
+                        }
+                    )
                 }
                 1 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
-                    CareerAdminContent(viewModel = careerViewModel)
+                    val careerToEdit = editingCareer
+                    val careerWithStudyPlan = viewingStudyPlanCareer
+                    if (careerToEdit != null) {
+                        EditCareerScreen(
+                            career = careerToEdit,
+                            onBackClick = { editingCareer = null },
+                            onSuccess = {
+                                editingCareer = null
+                                careerViewModel.loadCareers()
+                            }
+                        )
+                    } else if (careerWithStudyPlan != null) {
+                        StudyPlanDetailScreen(
+                            career = careerWithStudyPlan,
+                            onBackClick = { viewingStudyPlanCareer = null }
+                        )
+                    } else if (showCreateCareerModal) {
+                        CreateCareerScreen(
+                            onBackClick = { showCreateCareerModal = false },
+                            onSuccess = {
+                                showCreateCareerModal = false
+                                selectedIndex = 1
+                                careerViewModel.loadCareers()
+                            }
+                        )
+                    } else {
+                        CareerAdminContent(
+                            viewModel = careerViewModel,
+                            onEditCareer = { career -> editingCareer = career },
+                            onViewStudyPlan = { career -> viewingStudyPlanCareer = career }
+                        )
+                    }
                 }
                 2 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
                     ContactAdminScreen(
@@ -102,6 +180,7 @@ fun AdminMainScreen(
                     isInsideTab = true
                 )
             }
+
         }
     }
 }

@@ -3,6 +3,7 @@ package com.moviles.unaplanner.navigation
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampus
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.EditCampusContactScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
+import com.moviles.unaplanner.ui.screens.register.RegisterScreen
 import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
 import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
@@ -33,6 +35,7 @@ import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
 import com.moviles.unaplanner.ui.screens.notifications.NotificationScreen
 import com.moviles.unaplanner.ui.screens.notifications.NotificationViewModel
 import com.moviles.unaplanner.data.AppContainer
+
 
 @Composable
 fun AppNavHost() {
@@ -120,19 +123,31 @@ fun AppNavHost() {
             )
         }
 
+        // --- REGISTER SCREEN (PLACEHOLDER) ---
+        composable(route = AppDestinations.REGISTER) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Pantalla de Registro (Próximamente)")
+            }
+        }
+
         // --- MAIN SCREEN (WITH BOTTOM NAV) ---
         composable(
             route = AppDestinations.MAIN,
-            arguments = listOf(navArgument("initialIndex") { 
+            arguments = listOf(navArgument("initialIndex") {
                 type = NavType.IntType
-                defaultValue = 0 
+                defaultValue = 0
             })
         ) { backStackEntry ->
             val initialIndex = backStackEntry.arguments?.getInt("initialIndex") ?: 0
             MainScreen(
                 initialIndex = initialIndex,
                 onLogout = {
+                    AppContainer.authRepository.clearLocalSession()
                     mallaViewModel.clearForNewSession()
+                    progressViewModel.clearForNewSession()
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.MAIN) { inclusive = true }
                     }
@@ -153,7 +168,7 @@ fun AppNavHost() {
                     navController.navigate(AppDestinations.PROGRESO)
                 },
                 onNavigateToNotifications = {
-                    // Ahora se maneja internamente en MainScreen como un overlay
+                    // Now handled internally in MainScreen as an overlay
                 },
                 onNavigateToCourseDetail = { courseId ->
                     navController.navigate(AppDestinations.createCourseDetailRoute(courseId))
@@ -170,6 +185,7 @@ fun AppNavHost() {
             AdminMainScreen(
                 navController = navController,
                 onLogout = {
+                    AppContainer.authRepository.clearLocalSession()
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.ADMIN_MAIN) { inclusive = true }
                     }
@@ -208,10 +224,21 @@ fun AppNavHost() {
         }
 
         // --- NOTE EDITING/CREATION SCREEN ---
-        composable(route = AppDestinations.NOTE_EDIT) { backStackEntry ->
+        composable(
+            route = AppDestinations.NOTE_EDIT,
+            arguments = listOf(
+                androidx.navigation.navArgument("noteId") { type = androidx.navigation.NavType.StringType },
+                androidx.navigation.navArgument("courseId") {
+                    type = androidx.navigation.NavType.IntType
+                    defaultValue = -1
+                }
+            )
+        ) { backStackEntry ->
             val noteId = backStackEntry.arguments?.getString("noteId")
+            val preselectedCourseId = backStackEntry.arguments?.getInt("courseId")?.takeIf { it > 0 }
             NoteEditorScreen(
                 noteId = noteId,
+                preselectedCourseId = preselectedCourseId,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -242,6 +269,21 @@ fun AppNavHost() {
                 onSuccess = {
                     navController.previousBackStackEntry?.savedStateHandle?.set("contact_updated", true)
                     navController.popBackStack()
+                }
+            )
+        }
+
+
+        // --- Register Student Screen ---
+        composable(route = AppDestinations.REGISTER) {
+            RegisterScreen(
+                onBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(AppDestinations.LOGIN) {
+                        popUpTo(AppDestinations.REGISTER) { inclusive = true }
+                    }
                 }
             )
         }
@@ -317,7 +359,11 @@ fun AppNavHost() {
                 courseId = courseId,
                 onBack = { navController.popBackStack() },
                 onNavigateToNoteEdit = { noteId ->
-                    navController.navigate(AppDestinations.createNoteEditRoute(noteId))
+                    if (noteId == null) {
+                        navController.navigate(AppDestinations.createNoteWithCourseRoute(courseId))
+                    } else {
+                        navController.navigate(AppDestinations.createNoteEditRoute(noteId))
+                    }
                 },
                 viewModel = courseDetailViewModel
             )
