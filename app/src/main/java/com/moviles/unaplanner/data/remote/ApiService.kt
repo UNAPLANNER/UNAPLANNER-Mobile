@@ -42,6 +42,13 @@ interface ApiService {
         @Body request: CreateStudyPlanCourseRequest
     ): Response<StudyPlanDetail>
 
+    @PUT(AppConstants.Api.Paths.STUDY_PLAN_COURSE_OPERATIONS)
+    suspend fun updateStudyPlanCourse(
+        @Path("id") id: Int,
+        @Path("courseId") courseId: Int,
+        @Body request: UpdateStudyPlanCourseRequest
+    ): Response<StudyPlanDetail>
+
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>
 

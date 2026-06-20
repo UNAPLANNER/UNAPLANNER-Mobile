@@ -206,7 +206,11 @@ private fun StudyPlanDetailContent(
         CourseDetailReadOnlySheet(
             studyPlan = studyPlan,
             course = course,
-            onDismiss = { selectedCourse = null }
+            onDismiss = { selectedCourse = null },
+            onCourseUpdated = { updatedStudyPlan ->
+                selectedCourse = null
+                onStudyPlanUpdated(updatedStudyPlan)
+            }
         )
     }
 }
