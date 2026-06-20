@@ -89,4 +89,17 @@ interface ApiService {
         @Path("id") noteId: Int,
         @Body request: UpdateNoteRequest
     ): Response<NoteDto>
+
+    @POST(AppConstants.Api.Paths.REGISTER_STUDENT)
+    suspend fun registerUser(
+        @Body request: RegisterRequest
+    ): Response<RegisterResponse>
+
+    @GET(AppConstants.Api.Paths.CAMPUS_LIST)
+    suspend fun getCampuses(): Response<List<CampusDto>>
+
+    @GET(AppConstants.Api.Paths.CAMPUS_CAREERS)
+    suspend fun getCampusCareers(
+        @Path("campusId") campusId: Int
+    ): Response<List<CampusCareerDto>>
 }

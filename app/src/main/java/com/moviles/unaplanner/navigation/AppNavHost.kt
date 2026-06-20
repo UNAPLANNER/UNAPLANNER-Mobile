@@ -24,6 +24,7 @@ import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampus
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.EditCampusContactScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
+import com.moviles.unaplanner.ui.screens.register.RegisterScreen
 import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
 import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
@@ -34,6 +35,7 @@ import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
 import com.moviles.unaplanner.ui.screens.notifications.NotificationScreen
 import com.moviles.unaplanner.ui.screens.notifications.NotificationViewModel
 import com.moviles.unaplanner.data.AppContainer
+
 
 @Composable
 fun AppNavHost() {
@@ -134,9 +136,9 @@ fun AppNavHost() {
         // --- MAIN SCREEN (WITH BOTTOM NAV) ---
         composable(
             route = AppDestinations.MAIN,
-            arguments = listOf(navArgument("initialIndex") { 
+            arguments = listOf(navArgument("initialIndex") {
                 type = NavType.IntType
-                defaultValue = 0 
+                defaultValue = 0
             })
         ) { backStackEntry ->
             val initialIndex = backStackEntry.arguments?.getInt("initialIndex") ?: 0
@@ -267,6 +269,21 @@ fun AppNavHost() {
                 onSuccess = {
                     navController.previousBackStackEntry?.savedStateHandle?.set("contact_updated", true)
                     navController.popBackStack()
+                }
+            )
+        }
+
+
+        // --- Register Student Screen ---
+        composable(route = AppDestinations.REGISTER) {
+            RegisterScreen(
+                onBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(AppDestinations.LOGIN) {
+                        popUpTo(AppDestinations.REGISTER) { inclusive = true }
+                    }
                 }
             )
         }

@@ -19,6 +19,10 @@ okhttpLogging = "4.12.0"
 coroutines = "1.9.0"
 playServicesAuth = "21.2.0"
 lifecycleViewmodelKtx = "2.8.6"
+ui = "1.11.1"
+uiText = "1.11.1"
+material3 = "1.4.0"
+foundation = "1.11.1"
 googleServices = "4.4.2"
 firebaseBom = "33.5.1"
 
@@ -49,6 +53,11 @@ squareup-okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-inte
 org-jetbrains-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

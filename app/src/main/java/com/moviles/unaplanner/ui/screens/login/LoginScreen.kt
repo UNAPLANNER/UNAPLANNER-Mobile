@@ -31,6 +31,7 @@ import com.moviles.unaplanner.R
 import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.ui.components.AppButton
 import com.moviles.unaplanner.ui.components.AppTextField
+import com.moviles.unaplanner.ui.components.CustomInputField
 import com.moviles.unaplanner.ui.theme.*
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
@@ -281,32 +282,19 @@ fun EmailTextField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
     )
 }
-
 @Composable
 fun PasswordTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var passwordVisible by remember { mutableStateOf(false) }
 
-    AppTextField(
-        value = value,
+    CustomInputField(
         label = "CONTRASEÑA",
-        placeholder = "********",
+        value = value,
         onValueChange = onValueChange,
-        modifier = modifier,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-        trailingIcon = {
-            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                Icon(
-                    imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                    contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
-                    tint = Color.Gray
-                )
-            }
-        }
+        placeholder = "********",
+        isPassword = true
     )
 }
 
