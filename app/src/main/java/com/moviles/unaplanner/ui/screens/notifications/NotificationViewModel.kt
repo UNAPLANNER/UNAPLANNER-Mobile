@@ -119,4 +119,10 @@ class NotificationViewModel(
             }
         }
     }
+
+    fun clearForNewSession() {
+        _notifications.value = emptyList()
+        _selectedFilter.value = "All"
+        _isLoading.value = false
+    }
 }

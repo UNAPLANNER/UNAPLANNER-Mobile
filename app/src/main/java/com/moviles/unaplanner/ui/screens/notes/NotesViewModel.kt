@@ -235,6 +235,14 @@ class NotesViewModel(
         _editorState.value = NoteEditorUiState.Idle
     }
 
+    fun clearForNewSession() {
+        allNotes = emptyList()
+        selectedCourse = "Todos"
+        _uiState.value = NotesUiState.Loading
+        _editorState.value = NoteEditorUiState.Idle
+        _studentCourses.value = emptyList()
+    }
+
     private fun updateState() {
         val filtered = if (selectedCourse == "Todas") {
             allNotes
