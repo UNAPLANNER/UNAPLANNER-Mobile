@@ -36,6 +36,7 @@ sealed class RegisterState {
     object Success : RegisterState()
     data class Error(val message: String) : RegisterState()
 }
+
 class RegisterViewModel : ViewModel() {
 
     var name by mutableStateOf("")
@@ -53,9 +54,8 @@ class RegisterViewModel : ViewModel() {
     var currentSelectionType by mutableStateOf(SelectionType.NONE)
 
     var selectedPlan by mutableStateOf<StudyPlan?>(null)
-    var studyPlanSelectedName by mutableStateOf("Seleccione un Plan")
+    var studyPlanSelectedName by mutableStateOf("Seleccione un Plan de Estudio")
 
-    // ← NUEVO: carrera seleccionada con su ID
     var selectedMajorId by mutableStateOf(0)
     var selectedSecondMajorId by mutableStateOf(0)
 
@@ -70,28 +70,37 @@ class RegisterViewModel : ViewModel() {
         "Campus Nicoya",
         "Sede Central"
     )
+
+    // Temporary MOCK — replace with an actual API call when the backend
+    // exposes a public endpoint for study plans GET api/studyplans).
+    // The current endpoint (api/student/{id}/curriculum) requires a studentId
+    // that does not yet exist on the registration screen, so it cannot be used here.
     val studyPlansList = listOf(
-        StudyPlan(
-            studyPlanId = 1,
-            careerId = 1,
-            name = "Bachillerato en Ingeniería en Sistemas de Información"
-        )
+        StudyPlan(studyPlanId = 1, careerId = 1, name = "Bachillerato en Ingeniería en Sistemas de Información"),
+        StudyPlan(studyPlanId = 2, careerId = 5, name = "Bachillerato en Educación Comercial"),
+        StudyPlan(studyPlanId = 3, careerId = 3, name = "Bachillerato en Administración"),
+        StudyPlan(studyPlanId = 4, careerId = 7, name = "Bachillerato en Inglés")
     )
+
+    val availableStudyPlans: List<StudyPlan>
+        get() = studyPlansList.filter { it.careerId == selectedMajorId }
 
     init {
         loadCareers()
     }
 
-    // Load races from the API
+    // Load careers from the API
     private fun loadCareers() {
         viewModelScope.launch {
             try {
-                _careers.value = RetrofitClient.curriculumApiService.getCareers()
+                val result = RetrofitClient.curriculumApiService.getCareers()
+                _careers.value = result
             } catch (e: Exception) {
                 _careers.value = emptyList()
             }
         }
     }
+
     fun onItemSelected(item: Any) {
         when (currentSelectionType) {
             SelectionType.CAMPUS -> if (item is String) campus = item
@@ -99,6 +108,20 @@ class RegisterViewModel : ViewModel() {
             SelectionType.MAJOR -> if (item is CareerDto) {
                 major = item.name
                 selectedMajorId = item.id
+
+                // associate career wtih plan
+                val matchingPlans = studyPlansList.filter { it.careerId == item.id }
+                when {
+                    matchingPlans.size == 1 -> {
+                        selectedPlan = matchingPlans.first()
+                        studyPlanSelectedName = matchingPlans.first().name
+                    }
+                    else -> {
+
+                        selectedPlan = null
+                        studyPlanSelectedName = "Seleccione un Plan"
+                    }
+                }
             }
 
             SelectionType.DOUBLE_MAJOR -> if (item is CareerDto) {

@@ -265,22 +265,6 @@ fun RegisterScreen(
                     }
                 )
 
-                // DOUBLE CAREER
-                CustomInputField(
-                    label = UserMessages.RegisterStudent.DOUBLE_MAJOR_LABEL,
-                    value = viewModel.secondMajor,
-                    onValueChange = {},
-                    readOnly = true,
-                    isSelector = true,
-                    onClick = {
-
-                        viewModel.currentSelectionType =
-                            SelectionType.DOUBLE_MAJOR
-
-                        viewModel.showBottomSheet = true
-                    }
-                )
-
                 //PLAN STUDY
                 CustomInputField(
                     label = "PLAN DE ESTUDIOS",
@@ -449,7 +433,7 @@ fun RegisterScreen(
                         // SELECTION PLAN STUDY
                         SelectionType.STUDY_PLAN -> {
 
-                            items(viewModel.studyPlansList) { plan ->
+                            items(viewModel.availableStudyPlans) { plan ->
 
                                 Text(
                                     text = plan.name,
