@@ -18,6 +18,30 @@ interface ApiService {
     @POST(AppConstants.Api.Paths.CHANGE_PASSWORD)
     suspend fun changePassword(@Path("id") id: Int, @Body request: ChangePasswordRequest): Response<Unit>
 
+    @GET(AppConstants.Api.Paths.ADMIN_CAREERS)
+    suspend fun getCareers(): Response<List<Career>>
+
+    @GET(AppConstants.Api.Paths.ADMIN_DASHBOARD)
+    suspend fun getAdminDashboard(): Response<AdminDashboard>
+
+    @POST(AppConstants.Api.Paths.ADMIN_CAREERS)
+    suspend fun createCareer(@Body request: CreateCareerRequest): Response<Career>
+
+    @PUT(AppConstants.Api.Paths.ADMIN_CAREER_OPERATIONS)
+    suspend fun updateCareer(
+        @Path("id") id: Int,
+        @Body request: UpdateCareerRequest
+    ): Response<Career>
+
+    @GET(AppConstants.Api.Paths.STUDY_PLAN_DETAIL)
+    suspend fun getStudyPlanDetail(@Path("id") id: Int): Response<StudyPlanDetail>
+
+    @POST(AppConstants.Api.Paths.STUDY_PLAN_COURSES)
+    suspend fun createStudyPlanCourse(
+        @Path("id") id: Int,
+        @Body request: CreateStudyPlanCourseRequest
+    ): Response<StudyPlanDetail>
+
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>
 

@@ -3,8 +3,14 @@ package com.moviles.unaplanner.data.repository
 import com.moviles.unaplanner.data.remote.ApiService
 import com.moviles.unaplanner.data.remote.ContactApiService
 import com.moviles.unaplanner.data.remote.RetrofitClient
+import com.moviles.unaplanner.data.remote.model.AdminDashboard
 import com.moviles.unaplanner.data.remote.model.CampusContact
+import com.moviles.unaplanner.data.remote.model.Career
 import com.moviles.unaplanner.data.remote.model.ChangePasswordRequest
+import com.moviles.unaplanner.data.remote.model.CreateCareerRequest
+import com.moviles.unaplanner.data.remote.model.CreateStudyPlanCourseRequest
+import com.moviles.unaplanner.data.remote.model.StudyPlanDetail
+import com.moviles.unaplanner.data.remote.model.UpdateCareerRequest
 import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UserDto
 
@@ -32,6 +38,90 @@ class AdminRepository(
                 ApiResult.Success(response.body() ?: emptyList())
             } else {
                 ApiResult.Error("Error al obtener contactos por sede")
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun getCareers(): ApiResult<List<Career>> {
+        return try {
+            val response = apiService.getCareers()
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body() ?: emptyList())
+            } else {
+                ApiResult.Error(careerErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun createCareer(request: CreateCareerRequest): ApiResult<Career> {
+        return try {
+            val response = apiService.createCareer(request)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string()
+                ApiResult.Error(errorMsg ?: createCareerErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun updateCareer(id: Int, request: UpdateCareerRequest): ApiResult<Career> {
+        return try {
+            val response = apiService.updateCareer(id, request)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string()
+                ApiResult.Error(errorMsg ?: updateCareerErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun getDashboard(): ApiResult<AdminDashboard> {
+        return try {
+            val response = apiService.getAdminDashboard()
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error(dashboardErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun getStudyPlanDetail(id: Int): ApiResult<StudyPlanDetail> {
+        return try {
+            val response = apiService.getStudyPlanDetail(id)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error(studyPlanErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun createStudyPlanCourse(
+        studyPlanId: Int,
+        request: CreateStudyPlanCourseRequest
+    ): ApiResult<StudyPlanDetail> {
+        return try {
+            val response = apiService.createStudyPlanCourse(studyPlanId, request)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string()
+                ApiResult.Error(errorMsg ?: createStudyPlanCourseErrorMessage(response.code()), response.code())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error de red")
@@ -141,6 +231,65 @@ class AdminRepository(
             403 -> "No tienes permisos para cambiar esta contrasena."
             500 -> "Error del servidor al cambiar la contrasena."
             else -> "Error al cambiar la contrasena: $statusCode"
+        }
+    }
+
+    private fun careerErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            401, 403 -> "No tienes permisos para consultar las carreras."
+            500 -> "Error del servidor al obtener las carreras."
+            else -> "Error al obtener las carreras: $statusCode"
+        }
+    }
+
+    private fun createCareerErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            400 -> "Revisa los datos de la carrera."
+            401, 403 -> "No tienes permisos para crear carreras."
+            404 -> "No se encontro el perfil administrativo."
+            409 -> "Ya existe una carrera con esos datos."
+            500 -> "Error del servidor al crear la carrera."
+            else -> "Error al crear la carrera: $statusCode"
+        }
+    }
+
+    private fun updateCareerErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            400 -> "Revisa los datos de la carrera."
+            401, 403 -> "No tienes permisos para actualizar carreras."
+            404 -> "No se encontro la carrera."
+            409 -> "Ya existe una carrera con ese codigo."
+            500 -> "Error del servidor al actualizar la carrera."
+            else -> "Error al actualizar la carrera: $statusCode"
+        }
+    }
+
+    private fun dashboardErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            401, 403 -> "No tienes permisos para consultar el dashboard."
+            404 -> "No se encontro el perfil administrativo."
+            500 -> "Error del servidor al obtener el dashboard."
+            else -> "Error al obtener el dashboard: $statusCode"
+        }
+    }
+
+    private fun studyPlanErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            401, 403 -> "No tienes permisos para consultar el plan."
+            404 -> "No se encontro el plan de estudios."
+            500 -> "Error del servidor al obtener el plan."
+            else -> "Error al obtener el plan: $statusCode"
+        }
+    }
+
+    private fun createStudyPlanCourseErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            400 -> "Revisa los datos del curso."
+            401, 403 -> "No tienes permisos para crear cursos."
+            404 -> "No se encontro el plan de estudios."
+            409 -> "Ya existe un curso con ese codigo."
+            500 -> "Error del servidor al crear el curso."
+            else -> "Error al crear el curso: $statusCode"
         }
     }
 }
