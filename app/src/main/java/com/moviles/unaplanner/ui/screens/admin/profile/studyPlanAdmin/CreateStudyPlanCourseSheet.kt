@@ -320,21 +320,22 @@ private fun CreateStudyPlanCourseForm(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CourseSelector(
+fun CourseSelector(
     value: String,
     onValueChange: (String) -> Unit,
     options: List<String>,
     label: String,
     modifier: Modifier = Modifier,
-    error: String? = null
+    error: String? = null,
+    enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
         CourseFieldLabel(label)
         ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
+            expanded = expanded && enabled,
+            onExpandedChange = { if (enabled) expanded = !expanded }
         ) {
             OutlinedTextField(
                 value = value,
@@ -352,6 +353,7 @@ private fun CourseSelector(
                 },
                 isError = error != null,
                 singleLine = true,
+                enabled = enabled,
                 shape = RoundedCornerShape(12.dp),
                 colors = courseTextFieldColors()
             )
@@ -377,7 +379,7 @@ private fun CourseSelector(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PrerequisiteSelector(
+fun PrerequisiteSelector(
     courses: List<StudyPlanCourseDetail>,
     mode: String,
     modeOptions: List<String>,
@@ -385,7 +387,8 @@ private fun PrerequisiteSelector(
     selectedIds: Set<Int>,
     onModeChange: (String) -> Unit,
     onSearchChange: (String) -> Unit,
-    onToggle: (Int) -> Unit
+    onToggle: (Int) -> Unit,
+    enabled: Boolean = true
 ) {
     val filteredCourses = remember(courses, search) {
         val query = search.trim()
@@ -404,7 +407,8 @@ private fun PrerequisiteSelector(
             value = mode,
             onValueChange = onModeChange,
             options = modeOptions,
-            label = "Requisito *"
+            label = "Requisito *",
+            enabled = enabled
         )
 
         when (mode) {
@@ -428,7 +432,8 @@ private fun PrerequisiteSelector(
                 search = search,
                 selectedIds = selectedIds,
                 onSearchChange = onSearchChange,
-                onToggle = onToggle
+                onToggle = onToggle,
+                enabled = enabled
             )
         }
     }
@@ -442,14 +447,16 @@ private fun CoursePrerequisitePicker(
     search: String,
     selectedIds: Set<Int>,
     onSearchChange: (String) -> Unit,
-    onToggle: (Int) -> Unit
+    onToggle: (Int) -> Unit,
+    enabled: Boolean
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         CourseFormField(
             value = search,
             onValueChange = onSearchChange,
             label = "Buscar curso requisito",
-            placeholder = "Codigo o nombre del curso"
+            placeholder = "Codigo o nombre del curso",
+            enabled = enabled
         )
 
         if (courses.isEmpty()) {
@@ -473,6 +480,7 @@ private fun CoursePrerequisitePicker(
                     val selected = course.id in selectedIds
                     FilterChip(
                         selected = selected,
+                        enabled = enabled,
                         onClick = { onToggle(course.id) },
                         label = { Text("${course.code} - ${course.name}") },
                         colors = FilterChipDefaults.filterChipColors(
@@ -498,12 +506,14 @@ private fun CoursePrerequisitePicker(
 }
 
 @Composable
-private fun CourseActiveToggle(
+fun CourseActiveToggle(
     isActive: Boolean,
-    onActiveChange: (Boolean) -> Unit
+    onActiveChange: (Boolean) -> Unit,
+    enabled: Boolean = true
 ) {
     FilterChip(
         selected = isActive,
+        enabled = enabled,
         onClick = { onActiveChange(!isActive) },
         label = {
             Text(text = if (isActive) "Esta activo" else "Inactivo", fontWeight = FontWeight.Bold)
@@ -530,7 +540,7 @@ private fun CourseActiveToggle(
 }
 
 @Composable
-private fun CourseFormField(
+fun CourseFormField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
