@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,10 +45,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.unaplanner.data.remote.model.AdminDashboard
 import com.moviles.unaplanner.data.remote.model.AdminDashboardCareer
+import com.moviles.unaplanner.data.remote.model.Career
 import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AdminTopBar
 import com.moviles.unaplanner.ui.theme.BackgroundLight
@@ -83,6 +86,7 @@ fun HomeAdminScreen(
 fun HomeAdminContent(
     onNavigateToSection: (Int) -> Unit = {},
     onCreateCareerClick: () -> Unit = {},
+    onViewStudyPlan: (Career) -> Unit = {},
     viewModel: HomeAdminViewModel = viewModel(factory = HomeAdminViewModel.Factory)
 ) {
     val uiState = viewModel.uiState
@@ -97,7 +101,8 @@ fun HomeAdminContent(
             dashboard = uiState.dashboard,
             onCreateCareerClick = onCreateCareerClick,
             onPlanClick = { onNavigateToSection(1) },
-            onViewAllCareersClick = { onNavigateToSection(1) }
+            onViewAllCareersClick = { onNavigateToSection(1) },
+            onViewStudyPlan = onViewStudyPlan
         )
     }
 }
@@ -107,7 +112,8 @@ private fun DashboardContent(
     dashboard: AdminDashboard,
     onCreateCareerClick: () -> Unit,
     onPlanClick: () -> Unit,
-    onViewAllCareersClick: () -> Unit
+    onViewAllCareersClick: () -> Unit,
+    onViewStudyPlan: (Career) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -212,7 +218,10 @@ private fun DashboardContent(
             }
         }
         items(dashboard.careers.take(3), key = { it.id }) { career ->
-            DashboardCareerRow(career = career)
+            DashboardCareerRow(
+                career = career,
+                onClick = { onViewStudyPlan(career.toCareer(dashboard.campusId, dashboard.campusName)) }
+            )
         }
     }
 }
@@ -263,7 +272,7 @@ private fun DashboardMetricCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(112.dp),
+        modifier = modifier.heightIn(min = 126.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -291,8 +300,19 @@ private fun DashboardMetricCard(
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
-            Text(text = value, color = Color(0xFF07134B), fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.headlineSmall)
-            Text(text = label, color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = value,
+                color = Color(0xFF07134B),
+                fontWeight = FontWeight.ExtraBold,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Text(
+                text = label,
+                color = TextSecondary,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -326,9 +346,11 @@ private fun LatestCareerCard(career: AdminDashboardCareer) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Ultima carrera implementada", color = Color.White, fontWeight = FontWeight.Bold)
                 Text(
-                    text = "${career.name} · ${career.courseCount} cursos",
+                    text = "${career.name} - ${career.courseCount} cursos",
                     color = Color.White.copy(alpha = 0.62f),
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(7.dp))
                 Box(
@@ -343,11 +365,17 @@ private fun LatestCareerCard(career: AdminDashboardCareer) {
 }
 
 @Composable
-private fun DashboardCareerRow(career: AdminDashboardCareer) {
+private fun DashboardCareerRow(
+    career: AdminDashboardCareer,
+    onClick: () -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 76.dp),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -363,17 +391,44 @@ private fun DashboardCareerRow(career: AdminDashboardCareer) {
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = career.name, color = Color(0xFF07134B), fontWeight = FontWeight.ExtraBold)
                 Text(
-                    text = "${career.totalCredits} cr · ${career.courseCount} cursos · ${career.studyPlanYear?.let { "Plan $it" } ?: "Sin plan"}",
+                    text = career.name,
+                    color = Color(0xFF07134B),
+                    fontWeight = FontWeight.ExtraBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${career.totalCredits} cr - ${career.courseCount} cursos - ${career.studyPlanYear?.let { "Plan $it" } ?: "Sin plan"}",
                     color = TextSecondary,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             StatusPill(isActive = career.isStatus)
             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFFC4CCDB), modifier = Modifier.size(18.dp))
         }
     }
+}
+
+private fun AdminDashboardCareer.toCareer(campusId: Int, campusName: String): Career {
+    return Career(
+        id = id,
+        campusId = campusId,
+        campusName = campusName,
+        name = name,
+        code = code,
+        description = null,
+        totalCredits = totalCredits,
+        currentStudyPlanId = studyPlanId,
+        currentStudyPlanName = studyPlanYear?.let { "Plan $it" },
+        currentStudyPlanYear = studyPlanYear,
+        courseCount = courseCount,
+        levelCount = null,
+        isStatus = isStatus,
+        createdDate = createdDate
+    )
 }
 
 @Composable

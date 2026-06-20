@@ -125,6 +125,10 @@ fun AdminMainScreen(
                         onCreateCareerClick = {
                             selectedIndex = 1
                             showCreateCareerModal = true
+                        },
+                        onViewStudyPlan = { career ->
+                            selectedIndex = 1
+                            viewingStudyPlanCareer = career
                         }
                     )
                 }
