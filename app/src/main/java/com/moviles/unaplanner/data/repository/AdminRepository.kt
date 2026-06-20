@@ -147,6 +147,22 @@ class AdminRepository(
         }
     }
 
+    suspend fun deleteStudyPlanCourse(
+        studyPlanId: Int,
+        courseId: Int
+    ): ApiResult<StudyPlanDetail> {
+        return try {
+            val response = apiService.deleteStudyPlanCourse(studyPlanId, courseId)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error(deleteStudyPlanCourseErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
     suspend fun getProfile(id: Int): ApiResult<UserDto> {
         return try {
             val response = apiService.getProfile(id)
@@ -320,6 +336,15 @@ class AdminRepository(
             409 -> "Ya existe un curso con ese codigo."
             500 -> "Error del servidor al actualizar el curso."
             else -> "Error al actualizar el curso: $statusCode"
+        }
+    }
+
+    private fun deleteStudyPlanCourseErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            401, 403 -> "No tienes permisos para eliminar cursos."
+            404 -> "No se encontro el curso en el plan."
+            500 -> "Error del servidor al eliminar el curso."
+            else -> "Error al eliminar el curso: $statusCode"
         }
     }
 }
