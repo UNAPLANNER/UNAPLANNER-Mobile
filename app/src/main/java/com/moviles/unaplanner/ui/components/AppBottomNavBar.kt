@@ -18,9 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.moviles.unaplanner.ui.theme.CrimsonRed
-import com.moviles.unaplanner.ui.theme.NavyBlue
-import com.moviles.unaplanner.ui.theme.NavyBlueDark
 import com.moviles.unaplanner.ui.theme.UNAPLANNERTheme
 
 data class NavItem(
@@ -51,50 +48,36 @@ fun AppBottomNavBar(
     isAdmin: Boolean = false
 ) {
     val items = if (isAdmin) adminNavItems else studentNavItems
-
-    Box {
-        Box(
-            Modifier
-                .matchParentSize()
-                .background(
-                    Brush.linearGradient(
-                        listOf(NavyBlueDark, NavyBlue)
+    
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp
+    ) {
+        items.forEachIndexed { index, item ->
+            val isSelected = selectedIndex == index
+            NavigationBarItem(
+                selected = isSelected,
+                onClick = { onItemSelected(index) },
+                icon = {
+                    Icon(
+                        imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                        contentDescription = item.label
                     )
-                )
-        )
-
-        NavigationBar(
-            containerColor = Color.Transparent,
-            tonalElevation = 0.dp
-        ) {
-            items.forEachIndexed { index, item ->
-                val isSelected = selectedIndex == index
-                NavigationBarItem(
-                    selected = isSelected,
-                    onClick = { onItemSelected(index) },
-                    icon = {
-                        Icon(
-                            imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                            contentDescription = item.label,
-                            tint = if (isSelected) CrimsonRed else Color.White.copy(alpha = 0.7f)
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = item.label,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (isSelected) CrimsonRed else Color.White.copy(alpha = 0.7f)
-                        )
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor   = CrimsonRed,
-                        selectedTextColor   = CrimsonRed,
-                        indicatorColor      = CrimsonRed.copy(alpha = 0.15f),
-                        unselectedIconColor = Color.White.copy(alpha = 0.7f),
-                        unselectedTextColor = Color.White.copy(alpha = 0.7f)
+                },
+                label = {
+                    Text(
+                        text = item.label,
+                        style = MaterialTheme.typography.labelSmall
                     )
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor   = MaterialTheme.colorScheme.secondary,
+                    selectedTextColor   = MaterialTheme.colorScheme.secondary,
+                    indicatorColor      = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f),
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
+            )
         }
     }
 }

@@ -90,16 +90,14 @@ interface ApiService {
         @Body request: UpdateNoteRequest
     ): Response<NoteDto>
 
-    @POST(AppConstants.Api.Paths.REGISTER_STUDENT)
-    suspend fun registerUser(
-        @Body request: RegisterRequest
-    ): Response<RegisterResponse>
+    @PUT(AppConstants.Api.Paths.PROFILE_STUDENT_UPDATE)
+    suspend fun updateProfileStudent(
+        @Path("userId") userId: Int,
+        @Body request: UpdateStudentProfileRequest
+    ): Response<ProfileResponse>
 
-    @GET(AppConstants.Api.Paths.CAMPUS_LIST)
-    suspend fun getCampuses(): Response<List<CampusDto>>
-
-    @GET(AppConstants.Api.Paths.CAMPUS_CAREERS)
-    suspend fun getCampusCareers(
-        @Path("campusId") campusId: Int
-    ): Response<List<CampusCareerDto>>
+    @GET(AppConstants.Api.Paths.PROFILE_STUDENT_GET)
+    suspend fun getProfileStudent(
+        @Path("userId") userId: Int
+    ): Response<StudentsProfileDto>
 }

@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -20,11 +21,12 @@ import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 import com.moviles.unaplanner.ui.screens.contact.detail.CampusContactsDetailScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.moviles.unaplanner.data.AuthSession
+import com.moviles.unaplanner.data.StudentSession
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampusContactScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.EditCampusContactScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
-import com.moviles.unaplanner.ui.screens.register.RegisterScreen
 import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
 import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
@@ -35,7 +37,8 @@ import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
 import com.moviles.unaplanner.ui.screens.notifications.NotificationScreen
 import com.moviles.unaplanner.ui.screens.notifications.NotificationViewModel
 import com.moviles.unaplanner.data.AppContainer
-
+import com.moviles.unaplanner.ui.screens.student.EditProfileScreen
+import com.moviles.unaplanner.ui.screens.student.ProfileStudentViewModel
 
 @Composable
 fun AppNavHost() {
@@ -158,6 +161,9 @@ fun AppNavHost() {
                 onNavigateToNoteEdit = { noteId ->
                     navController.navigate(AppDestinations.createNoteEditRoute(noteId))
                 },
+                onNavigateToEditProfile = {
+                    navController.navigate(AppDestinations.EDIT_PROFILE)
+                },
                 onNavigateToAddActivity = {
                     navController.navigate(AppDestinations.ADD_ACTIVITY)
                 },
@@ -273,18 +279,30 @@ fun AppNavHost() {
             )
         }
 
+        // --- UPDATE PROFILE STUDENT SCREEN ---
+        composable(route = AppDestinations.EDIT_PROFILE) {
+            val profile = StudentSession.profile
 
-        // --- Register Student Screen ---
-        composable(route = AppDestinations.REGISTER) {
-            RegisterScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToHome = {
-                    navController.navigate(AppDestinations.LOGIN) {
-                        popUpTo(AppDestinations.REGISTER) { inclusive = true }
-                    }
+            if (profile == null) {
+                navController.navigate(AppDestinations.LOGIN) {
+                    popUpTo(AppDestinations.EDIT_PROFILE) { inclusive = true }
                 }
+                return@composable
+            }
+
+            val viewModel: ProfileStudentViewModel = viewModel(
+                factory = ProfileStudentViewModel.Factory
+            )
+
+            LaunchedEffect(Unit) {
+                viewModel.setInitialProfile(StudentSession.profile!!)
+            }
+
+            EditProfileScreen(
+                userId = profile.userId,
+                viewModel = viewModel,
+                initialProfile = StudentSession.profile!!,
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -308,6 +326,7 @@ fun AppNavHost() {
                 viewModel = calendarViewModel
             )
         }
+
         // --- ACADEMIC PROGRESS SCREEN ---
         composable(route = AppDestinations.PROGRESO) {
             AcademicProgressScreen(
@@ -348,10 +367,7 @@ fun AppNavHost() {
                 factory = object : androidx.lifecycle.ViewModelProvider.Factory {
                     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                         @Suppress("UNCHECKED_CAST")
-                        return CourseDetailViewModel(
-                            AppContainer.curriculumRepository,
-                            AppContainer.evaluationRepository
-                        ) as T
+                        return CourseDetailViewModel(AppContainer.curriculumRepository) as T
                     }
                 }
             )

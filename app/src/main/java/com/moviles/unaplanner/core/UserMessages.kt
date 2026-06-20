@@ -86,34 +86,29 @@ object UserMessages {
         }
     }
 
-    object RegisterStudent{
-        const val HEADER_TITLE = "Crear cuenta"
-        const val HEADER_SUBTITLE = "Completa tus datos para registrarte"
-        const val BACK_BUTTON = "< Volver"
-        const val NAME_LABEL = "NOMBRE COMPLETO"
-        const val NAME_PLACEHOLDER = "Ej: María Juarez Pereira"
+    object EditProfile {
+        const val TITLE = "Editar Perfil"
+        const val SUBTITLE = "Actualiza tu información"
+        const val BTN_SAVE = "Guardar cambios"
+        const val SUCCESS = "✓ Perfil actualizado correctamente"
+        const val ERROR_GENERAL = "Error al actualizar el perfil"
 
-        const val EMAIL_LABEL = "CORREO ELECTRÓNICO"
-        const val EMAIL_PLACEHOLDER = "usuario@est.una.ac.cr"
-        const val PASSWORD_LABEL = "CONTRASEÑA"
-        const val PASSWORD_PLACEHOLDER = "Mínimo 8 caracteres"
-        const val CONFIRM_PASSWORD_LABEL = "CONFIRMAR CONTRASEÑA"
-        const val CONFIRM_PASSWORD_PLACEHOLDER = "Repite tu contraseña"
-        const val CAMPUS_LABEL = "CAMPUS"
-        const val MAJOR_LABEL = "CARRERA PRINCIPAL"
-        const val DOUBLE_MAJOR_LABEL = "¿LLEVÁS DOBLE CARRERA? (OPCIONAL)"
-        const val CYCLE_LABEL = "CICLO ACTUAL"
-        const val BUTTON_REGISTER = "Registrarme"
-        const val REGISTER_SUCCESS = "¡Registro exitoso!"
-        const val NO_OPTIONS = "No hay opciones disponibles"
-        const val STUDY_PLAN_REQUIRED = "Debe seleccionar un plan de estudio."
-        const val INVALID_ENTRY_YEAR = "Año de ingreso inválido."
+        object Labels {
+            const val EMAIL = "Correo electrónico"
+            const val FULL_NAME = "Nombre completo"
+            const val CAREER = "Carrera"
+            const val ENTER_YEAR = "Año de ingreso"
+        }
+
+        object Placeholders {
+            const val FULL_NAME = "Ingresa tu nombre"
+            const val ENTER_YEAR = "Ej: 2022"
+        }
+
+        object Errors {
+            const val EMPTY_FIELDS = "Por favor completa todos los campos"
+            const val INVALID_YEAR = "Ingresa un año válido"
+        }
     }
-    object Errors {
-        const val SERVER_ERROR = "El servidor no respondió correctamente."
-        const val CONNECTION_ERROR = "No se pudo conectar con el servidor. Revisa tu conexión."
-        const val GENERIC_ERROR = "Ocurrió un error inesperado"
-        const val AUTH_FAILED = "Credenciales incorrectas o usuario ya existe."
-        const val PASSWORDS_DO_NOT_MATCH = "Las contraseñas no coinciden."
-    }
+
 }

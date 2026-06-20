@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.moviles.unaplanner.data.StudentSession
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppTopBar
@@ -41,6 +42,7 @@ fun MainScreen(
     onLogout: () -> Unit,
     onNavigateToContactDetail: (Int) -> Unit,
     onNavigateToNoteEdit: (Int?) -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     onNavigateToAddActivity: () -> Unit,
     onNavigateToEditActivity: (Int) -> Unit,
     onNavigateToProgreso: () -> Unit,
@@ -117,6 +119,10 @@ fun MainScreen(
         "Directorio"
     )
     val subtitles = listOf(
+        StudentSession.profile?.fullName ?: "Bienvenido a UNAPLANNER",
+        "Bienvenido a UNAPLANNER",
+        "Marzo 2026",
+        "Escuela de Informática",
         careerName ?: userState?.department ?: "Estudiante",
         currentMonthYear,
         careerName ?: userState?.department ?: "Escuela de Informática",

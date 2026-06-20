@@ -4,9 +4,11 @@ import android.util.Base64
 import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import com.moviles.unaplanner.data.AuthSession
+import com.moviles.unaplanner.data.StudentSession
 import com.moviles.unaplanner.data.remote.ApiService
 import com.moviles.unaplanner.data.remote.RetrofitClient
 import com.moviles.unaplanner.data.remote.model.LoginRequest
+import com.moviles.unaplanner.data.remote.model.StudentsProfileDto
 import com.moviles.unaplanner.data.remote.model.UserDto
 
 class AuthRepository(
