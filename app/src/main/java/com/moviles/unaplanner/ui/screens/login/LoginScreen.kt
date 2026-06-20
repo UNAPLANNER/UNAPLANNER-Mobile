@@ -33,6 +33,10 @@ import com.moviles.unaplanner.ui.components.AppButton
 import com.moviles.unaplanner.ui.components.AppTextField
 import com.moviles.unaplanner.ui.theme.*
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.text.input.VisualTransformation
 
 @Composable
 fun LoginScreen(
@@ -40,10 +44,18 @@ fun LoginScreen(
     onBack: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToAdminHome: () -> Unit,
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(
+            application = LocalContext.current.applicationContext as android.app.Application
+        )
+    )
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val savedEmail by viewModel.savedEmail.collectAsState()
+    val savedPassword by viewModel.savedPassword.collectAsState()
+    val rememberMe by viewModel.rememberMe.collectAsState()
+
+    var email by remember(savedEmail) { mutableStateOf(savedEmail) }
+    var password by remember(savedPassword) { mutableStateOf(savedPassword) }
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -98,16 +110,38 @@ fun LoginScreen(
 
                 PasswordTextField(value = password, onValueChange = { password = it })
 
-                Text(
-                    text = "¿Olvidaste tu contraseña?",
-                    color = Color(0xFFC62828),
-                    fontSize = 12.sp,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clickable {  },
-                    textAlign = TextAlign.End
-                )
+                        .padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { viewModel.setRememberMe(!rememberMe) }
+                    ) {
+                        Checkbox(
+                            checked = rememberMe,
+                            onCheckedChange = { viewModel.setRememberMe(it) },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = Color(0xFFC62828),
+                                uncheckedColor = Color.Gray
+                            )
+                        )
+                        Text(
+                            text = "Recordar mis datos",
+                            color = Color.DarkGray,
+                            fontSize = 13.sp
+                        )
+                    }
+                    Text(
+                        text = "¿Olvidaste tu contraseña?",
+                        color = Color(0xFFC62828),
+                        fontSize = 12.sp,
+                        modifier = Modifier.clickable { }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -118,7 +152,7 @@ fun LoginScreen(
                                 snackbarHostState.showSnackbar("Por favor completa los campos")
                             }
                         } else {
-                            viewModel.login(email, password)
+                            viewModel.login(email, password, rememberMe)
                         }
                     },
                     enabled = uiState !is LoginUiState.Loading
@@ -254,6 +288,8 @@ fun PasswordTextField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
     AppTextField(
         value = value,
         label = "CONTRASEÑA",
@@ -261,7 +297,16 @@ fun PasswordTextField(
         onValueChange = onValueChange,
         modifier = modifier,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        visualTransformation = PasswordVisualTransformation()
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                Icon(
+                    imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                    contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                    tint = Color.Gray
+                )
+            }
+        }
     )
 }
 

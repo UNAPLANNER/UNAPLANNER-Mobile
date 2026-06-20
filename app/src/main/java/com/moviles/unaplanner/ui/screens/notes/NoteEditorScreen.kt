@@ -25,12 +25,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.moviles.unaplanner.data.remote.model.CourseDto
+import com.moviles.unaplanner.data.remote.model.StudentCourseProgressDto
 import com.moviles.unaplanner.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteEditorScreen(
     noteId: String?,
+    preselectedCourseId: Int? = null,
     onNavigateBack: () -> Unit,
     viewModel: NotesViewModel
 ) {
@@ -58,6 +60,16 @@ fun NoteEditorScreen(
                 content = it.content ?: ""
                 selectedCourse = it.course
                 noteCourseName = it.displayCourseName
+            }
+        }
+    }
+
+    // Pre-seleccionar el curso cuando viene desde el detalle de un curso
+    LaunchedEffect(studentCourses, preselectedCourseId) {
+        if (preselectedCourseId != null && selectedCourse == null && studentCourses.isNotEmpty()) {
+            val course = studentCourses.find { it.courseId == preselectedCourseId }
+            if (course != null) {
+                selectedCourse = CourseDto(id = course.courseId, code = course.code, name = course.name)
             }
         }
     }
@@ -191,7 +203,7 @@ fun NoteEditorScreen(
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                        modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
                         shape = RoundedCornerShape(12.dp),
                         colors = textFieldColors,
                         textStyle = TextStyle(fontSize = 16.sp, color = TextPrimary),
@@ -240,7 +252,7 @@ fun NoteEditorScreen(
                                     }
                                 },
                                 onClick = {
-                                    selectedCourse = course
+                                    selectedCourse = CourseDto(id = course.courseId, code = course.code, name = course.name)
                                     expanded = false
                                 },
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)

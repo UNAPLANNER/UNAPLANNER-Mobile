@@ -10,6 +10,8 @@ data class LoginRequest(
 data class UserDto(
     @SerializedName("id", alternate = ["userId", "UserId"])
     val id: Int,
+    @SerializedName("studentId", alternate = ["StudentId", "student_id"])
+    val studentId: Int? = null,
     @SerializedName("email")
     val email: String,
     @SerializedName("fullName")
