@@ -179,9 +179,24 @@ fun CourseDetailReadOnlySheet(
                         color = Color(0xFF8A98AF)
                     )
                 }
-                if (!isEditing) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = { showDeleteConfirmation = true },
+                        enabled = !isLoading && !isDeleting,
+                        shape = RoundedCornerShape(50)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = CrimsonRed,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(text = "Eliminar", fontWeight = FontWeight.Bold, color = CrimsonRed)
+                    }
                     Button(
                         onClick = { isEditing = true },
+                        enabled = !isEditing && !isLoading && !isDeleting,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF061450))
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -252,26 +267,6 @@ fun CourseDetailReadOnlySheet(
                 },
                 enabled = isEditing
             )
-
-            if (isEditing) {
-                OutlinedButton(
-                    onClick = { showDeleteConfirmation = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    enabled = !isLoading && !isDeleting,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = null,
-                        tint = CrimsonRed,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Eliminar curso", fontWeight = FontWeight.Bold, color = CrimsonRed)
-                }
-            }
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(
