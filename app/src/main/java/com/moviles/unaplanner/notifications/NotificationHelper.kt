@@ -71,8 +71,11 @@ object NotificationHelper {
 
         val notificationId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
 
+        val largeIcon = BitmapFactory.decodeResource(context.resources, R.mipmap.ic_unaplanner)
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_stat_notify)
+            .setSmallIcon(R.mipmap.ic_unaplanner_monochrome)
+            .setLargeIcon(largeIcon)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))

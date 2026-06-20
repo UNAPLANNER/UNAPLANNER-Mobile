@@ -27,7 +27,7 @@
         <!-- Monochromatic icon for system-handled notifications (notification payload) -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_stat_notify" />
+            android:resource="@mipmap/ic_unaplanner_monochrome" />
         <!-- Accent color for notification -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
