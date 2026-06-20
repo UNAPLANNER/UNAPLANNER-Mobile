@@ -21,6 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// NOTA: gpa y lastCycleGpa vienen en escala 0-100 (igual que las notas
+// individuales de los cursos), no en escala 0-10. Los umbrales de abajo
+// están ajustados a esa escala.
 @Composable
 fun GpaCard(
     gpa: Double,
@@ -28,20 +31,20 @@ fun GpaCard(
     modifier: Modifier = Modifier
 ) {
     val gpaLabel = when {
-        gpa >= 9.0 -> "Excelente"
-        gpa >= 8.0 -> "Muy bueno"
-        gpa >= 7.0 -> "Bueno"
-        else       -> "En riesgo"
+        gpa >= 90.0 -> "Excelente"
+        gpa >= 80.0 -> "Muy bueno"
+        gpa >= 70.0 -> "Bueno"
+        else        -> "En riesgo"
     }
     val labelColor = when {
-        gpa >= 9.0 -> Color(0xFF4ECFA3)
-        gpa >= 8.0 -> Color(0xFF4ECFA3)
-        gpa >= 7.0 -> Color(0xFFF5C842)
-        else       -> Color(0xFFE84040)
+        gpa >= 90.0 -> Color(0xFF4ECFA3)
+        gpa >= 80.0 -> Color(0xFF4ECFA3)
+        gpa >= 70.0 -> Color(0xFFF5C842)
+        else        -> Color(0xFFE84040)
     }
     val labelBg = when {
-        gpa >= 7.0 -> Color(0xFF0F3D2E)
-        else       -> Color(0xFF3D0F0F)
+        gpa >= 70.0 -> Color(0xFF0F3D2E)
+        else        -> Color(0xFF3D0F0F)
     }
     val trend = lastCycleGpa - gpa
     val trendText = if (trend >= 0) "▲ ${"%.1f".format(lastCycleGpa)}"
@@ -73,7 +76,7 @@ fun GpaCard(
                     color = Color.White
                 )
                 Text(
-                    text = "/ 10 puntos",
+                    text = "/ 100 puntos",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color(0xFF8899BB)
                 )
