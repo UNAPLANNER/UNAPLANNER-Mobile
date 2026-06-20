@@ -9,6 +9,12 @@ interface ApiService {
     @POST(AppConstants.Api.Paths.AUTH_LOGIN)
     suspend fun login(@Body request: LoginRequest): Response<UserDto>
 
+    @GET("api/auth/me")
+    suspend fun getMe(): Response<UserDto>
+
+    @POST("api/auth/logout")
+    suspend fun logout(): Response<Unit>
+
     @GET(AppConstants.Api.Paths.USER_PROFILE)
     suspend fun getProfile(@Path("id") id: Int): Response<UserDto>
 
@@ -21,22 +27,58 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.ADMIN_CAREERS)
     suspend fun getCareers(): Response<List<Career>>
 
+    @GET(AppConstants.Api.Paths.ADMIN_DASHBOARD)
+    suspend fun getAdminDashboard(): Response<AdminDashboard>
+
+    @POST(AppConstants.Api.Paths.ADMIN_CAREERS)
+    suspend fun createCareer(@Body request: CreateCareerRequest): Response<Career>
+
+    @PUT(AppConstants.Api.Paths.ADMIN_CAREER_OPERATIONS)
+    suspend fun updateCareer(
+        @Path("id") id: Int,
+        @Body request: UpdateCareerRequest
+    ): Response<Career>
+
+    @GET(AppConstants.Api.Paths.STUDY_PLAN_DETAIL)
+    suspend fun getStudyPlanDetail(@Path("id") id: Int): Response<StudyPlanDetail>
+
+    @POST(AppConstants.Api.Paths.STUDY_PLAN_COURSES)
+    suspend fun createStudyPlanCourse(
+        @Path("id") id: Int,
+        @Body request: CreateStudyPlanCourseRequest
+    ): Response<StudyPlanDetail>
+
+    @PUT(AppConstants.Api.Paths.STUDY_PLAN_COURSE_OPERATIONS)
+    suspend fun updateStudyPlanCourse(
+        @Path("id") id: Int,
+        @Path("courseId") courseId: Int,
+        @Body request: UpdateStudyPlanCourseRequest
+    ): Response<StudyPlanDetail>
+
+    @DELETE(AppConstants.Api.Paths.STUDY_PLAN_COURSE_OPERATIONS)
+    suspend fun deleteStudyPlanCourse(
+        @Path("id") id: Int,
+        @Path("courseId") courseId: Int
+    ): Response<StudyPlanDetail>
+
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
-    suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>
+    suspend fun getStudentNotes(
+        @Path("id") studentId: Int,
+        @Query("courseId") courseId: Int? = null
+    ): Response<NotesResponse>
 
     @POST(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun createNote(
-        @Path("id") userId: Int,
+        @Path("id") studentId: Int,
         @Body request: CreateNoteRequest
     ): Response<NoteDto>
 
     @GET(AppConstants.Api.Paths.STUDENT_COURSES)
-    suspend fun getStudentCourses(@Path("id") userId: Int): Response<CoursesResponse>
+    suspend fun getStudentCourses(@Path("id") studentId: Int): Response<CoursesResponse>
 
     @DELETE(AppConstants.Api.Paths.NOTE_OPERATIONS)
     suspend fun deleteNote(
-        @Path("id") noteId: Int,
-        @Query("userId") userId: Int
+        @Path("id") noteId: Int
     ): Response<Unit>
 
     @PUT(AppConstants.Api.Paths.NOTE_OPERATIONS)

@@ -58,9 +58,21 @@ object AppConstants {
 
             const val CAREERS = "api/careers"
             const val ADMIN_CAREERS = "api/admin/careers"
+            const val ADMIN_DASHBOARD = "api/admin/dashboard"
+            const val ADMIN_CAREER_OPERATIONS = "api/admin/careers/{id}"
+            const val STUDY_PLAN_DETAIL = "api/study-plans/{id}"
+            const val STUDY_PLAN_COURSES = "api/study-plans/{id}/courses"
+            const val STUDY_PLAN_COURSE_OPERATIONS = "api/study-plans/{id}/courses/{courseId}"
             const val CAREER_CURRICULUM = "api/careers/{id}/curriculum"
             const val STUDENT_CURRICULUM_COURSES = "api/student/{id}/curriculum/courses"
             const val STUDENT_COURSE_PROGRESS = "api/student/{id}/courses/{courseId}"
+            // Notifications
+            const val DEVICE_TOKEN = "api/users/{userId}/notifications/device-token"
+            const val NOTIFICATIONS = "api/users/{userId}/notifications"
+            const val NOTIFICATION_READ = "api/users/{userId}/notifications/{notificationId}/read"
+            const val NOTIFICATIONS_READ_ALL = "api/users/{userId}/notifications/read-all"
+            const val NOTIFICATION_DELETE = "api/users/{userId}/notifications/{notificationId}"
+            const val NOTIFICATIONS_DELETE_ALL = "api/users/{userId}/notifications"
         }
     }
 }

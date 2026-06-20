@@ -7,6 +7,9 @@ object AuthSession {
     var currentUser: UserDto? = null
         private set
 
+    /** Student ID from the JWT. Only non-null for student accounts. */
+    val studentId: Int? get() = currentUser?.studentId
+
     fun setUser(user: UserDto) {
         currentUser = user
     }
