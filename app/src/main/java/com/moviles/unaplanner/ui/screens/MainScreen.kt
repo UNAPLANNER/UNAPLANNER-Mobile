@@ -183,7 +183,7 @@ fun MainScreen(
                         onAddActivity = onNavigateToAddActivity,
                         onEditActivity = onNavigateToEditActivity
                     )
-                    2 -> MallaScreen(viewModel = mallaViewModel)
+                    2 -> MallaScreen(viewModel = mallaViewModel, onCourseClick = onNavigateToCourseDetail)
                     3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
                     4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
                 }
@@ -229,14 +229,6 @@ fun MainScreen(
                         onBack = { showNotifications = false }
                     )
                 }
-                1 -> CalendarScreen(
-                    viewModel = calendarViewModel,
-                    onAddActivity = onNavigateToAddActivity,
-                    onEditActivity = onNavigateToEditActivity
-                )
-                2 -> MallaScreen(viewModel = mallaViewModel, onCourseClick = onNavigateToCourseDetail)
-                3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
-                4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
             }
         }
     }

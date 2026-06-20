@@ -4,8 +4,6 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -156,6 +154,7 @@ fun AppNavHost() {
                 },
                 onNavigateToNotifications = {
                     // Ahora se maneja internamente en MainScreen como un overlay
+                },
                 onNavigateToCourseDetail = { courseId ->
                     navController.navigate(AppDestinations.createCourseDetailRoute(courseId))
                 },
@@ -294,6 +293,8 @@ fun AppNavHost() {
             NotificationScreen(
                 viewModel = notificationViewModel,
                 onBack = { navController.popBackStack() }
+            )
+        }
         // --- COURSE DETAIL SCREEN ---
         composable(
             route = AppDestinations.COURSE_DETAIL,
