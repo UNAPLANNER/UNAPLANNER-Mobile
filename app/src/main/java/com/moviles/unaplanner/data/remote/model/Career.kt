@@ -72,6 +72,9 @@ data class StudyPlanCourseDetail(
     val code: String,
     val name: String,
     val credits: Int,
+    val theoryHours: Int = 0,
+    val practiceHours: Int = 0,
+    val labHours: Int = 0,
     val isElective: Boolean,
     val electiveType: String? = "Obligatorio",
     val prerequisites: List<StudyPlanCourseRequirement> = emptyList()
@@ -82,6 +85,21 @@ data class StudyPlanCourseRequirement(
     val code: String,
     val name: String,
     val requirementType: String
+)
+
+data class CreateStudyPlanCourseRequest(
+    val code: String,
+    val name: String,
+    val credits: Int,
+    val theoryHours: Int,
+    val practiceHours: Int,
+    val labHours: Int,
+    val level: Int,
+    val term: Int,
+    val isElective: Boolean,
+    val electiveType: String,
+    val isStatus: Boolean = true,
+    val prerequisiteCourseIds: List<Int> = emptyList()
     val code: String,
     val description: String?,
     val totalCredits: Int,
