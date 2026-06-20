@@ -6,6 +6,7 @@ import com.moviles.unaplanner.data.remote.RetrofitClient
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.data.remote.model.Career
 import com.moviles.unaplanner.data.remote.model.ChangePasswordRequest
+import com.moviles.unaplanner.data.remote.model.CreateCareerRequest
 import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UserDto
 
@@ -46,6 +47,20 @@ class AdminRepository(
                 ApiResult.Success(response.body() ?: emptyList())
             } else {
                 ApiResult.Error(careerErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun createCareer(request: CreateCareerRequest): ApiResult<Career> {
+        return try {
+            val response = apiService.createCareer(request)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string()
+                ApiResult.Error(errorMsg ?: createCareerErrorMessage(response.code()), response.code())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error de red")
@@ -163,6 +178,17 @@ class AdminRepository(
             401, 403 -> "No tienes permisos para consultar las carreras."
             500 -> "Error del servidor al obtener las carreras."
             else -> "Error al obtener las carreras: $statusCode"
+        }
+    }
+
+    private fun createCareerErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            400 -> "Revisa los datos de la carrera."
+            401, 403 -> "No tienes permisos para crear carreras."
+            404 -> "No se encontro el perfil administrativo."
+            409 -> "Ya existe una carrera con esos datos."
+            500 -> "Error del servidor al crear la carrera."
+            else -> "Error al crear la carrera: $statusCode"
         }
     }
 }
