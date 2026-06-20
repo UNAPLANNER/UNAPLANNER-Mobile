@@ -53,7 +53,7 @@ class NotesRepository(
 
     suspend fun getStudentEnrolledCourses(studentId: Int): ApiResult<List<StudentCourseProgressDto>> {
         return try {
-            // Usamos el endpoint que devuelve el progreso detallado (status, etc)
+            // We use the endpoint that returns detailed progress (status, etc.)
             val response = apiService.getStudentCurriculumCourses(studentId)
             if (response.isSuccessful) {
                 val courses = response.body()
