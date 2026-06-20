@@ -555,19 +555,33 @@ private fun EvaluationFormDialog(
     var type by remember { mutableStateOf(initialType) }
     var percentage by remember { mutableStateOf(initialPercentage?.toString() ?: "") }
     var grade by remember { mutableStateOf(initialGrade?.toString() ?: "") }
-    var date by remember { mutableStateOf(initialDate ?: "") }
     var hasReminder by remember { mutableStateOf(initialHasReminder) }
     val types = listOf("Examen", "Tarea", "Proyecto", "Exposición", "Otro")
 
+    // Parse date and optional time from initialDate ("2026-06-21" or "2026-06-21T10:00:00")
+    val initDateOnly = remember { initialDate?.substringBefore('T') ?: "" }
+    val initTimeStr  = remember {
+        if (initialDate?.contains('T') == true) initialDate.substringAfter('T').take(5) else null
+    }
+    var date by remember { mutableStateOf(initDateOnly) }
+    var time by remember { mutableStateOf(initTimeStr) }  // "HH:mm" or null
+
     var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialDate?.let {
+        initialSelectedDateMillis = initDateOnly.takeIf { it.isNotBlank() }?.let {
             try {
                 java.time.LocalDate.parse(it).atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli()
             } catch (e: Exception) {
                 null
             }
         }
+    )
+    val timePickerState = rememberTimePickerState(
+        initialHour   = initTimeStr?.substringBefore(':')?.toIntOrNull() ?: 8,
+        initialMinute = initTimeStr?.substringAfter(':')?.take(2)?.toIntOrNull() ?: 0,
+        is24Hour      = true
     )
 
     // Percentage validation logic
@@ -633,7 +647,7 @@ private fun EvaluationFormDialog(
 
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
-                        value = date,
+                        value = if (date.isNotBlank() && time != null) "$date  $time" else date,
                         onValueChange = { },
                         label = { Text("Fecha") },
                         placeholder = { Text("Seleccionar fecha") },
@@ -651,6 +665,30 @@ private fun EvaluationFormDialog(
                             .matchParentSize()
                             .clickable { showDatePicker = true }
                     )
+                }
+
+                if (date.isNotBlank()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = if (time != null) "Hora: $time" else "Sin hora específica",
+                            fontSize = 13.sp,
+                            color = if (time != null) TextPrimary else TextSecondary
+                        )
+                        Row {
+                            TextButton(onClick = { showTimePicker = true }) {
+                                Text(if (time != null) "Cambiar" else "Agregar hora", color = NavyBlue, fontSize = 13.sp)
+                            }
+                            if (time != null) {
+                                TextButton(onClick = { time = null }) {
+                                    Text("Quitar", color = CrimsonRed, fontSize = 13.sp)
+                                }
+                            }
+                        }
+                    }
                 }
 
                 Row(
@@ -679,7 +717,11 @@ private fun EvaluationFormDialog(
                 onClick = {
                     val p = percentage.toDoubleOrNull() ?: 0.0
                     val g = grade.toDoubleOrNull()
-                    val d = date.takeIf { it.isNotBlank() }
+                    val d = when {
+                        date.isBlank() -> null
+                        time != null   -> "${date}T${time}:00"
+                        else           -> date
+                    }
                     if (name.isNotBlank() && isPercentageValid) {
                         onConfirm(name, type, p, g, d, hasReminder)
                     }
@@ -712,6 +754,27 @@ private fun EvaluationFormDialog(
         ) {
             DatePicker(state = datePickerState)
         }
+    }
+
+    if (showTimePicker) {
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            title = { Text("Hora de la evaluación", fontWeight = FontWeight.Bold) },
+            text = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TimePicker(state = timePickerState)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    time = "%02d:%02d".format(timePickerState.hour, timePickerState.minute)
+                    showTimePicker = false
+                }) { Text("Aceptar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) { Text("Cancelar") }
+            }
+        )
     }
 }
 
@@ -1057,11 +1120,25 @@ private fun NoteCard(note: NoteDto, onClick: () -> Unit) {
 
 private fun formatNoteDate(isoDate: String): String {
     return try {
-        val instant = java.time.Instant.parse(isoDate)
-        val local = java.time.ZoneId.systemDefault().let { instant.atZone(it) }
-        "%02d/%02d/%d".format(local.dayOfMonth, local.monthValue, local.year)
+        if (isoDate.length > 10 && isoDate[10] == 'T' && !isoDate.endsWith('Z')) {
+            val dt = java.time.LocalDateTime.parse(isoDate)
+            val hasTime = dt.hour != 0 || dt.minute != 0
+            if (hasTime)
+                "%02d/%02d/%d %02d:%02d".format(dt.dayOfMonth, dt.monthValue, dt.year, dt.hour, dt.minute)
+            else
+                "%02d/%02d/%d".format(dt.dayOfMonth, dt.monthValue, dt.year)
+        } else {
+            val instant = java.time.Instant.parse(isoDate)
+            val local = instant.atZone(java.time.ZoneId.systemDefault())
+            "%02d/%02d/%d".format(local.dayOfMonth, local.monthValue, local.year)
+        }
     } catch (e: Exception) {
-        isoDate.take(10)
+        try {
+            val ld = java.time.LocalDate.parse(isoDate.take(10))
+            "%02d/%02d/%d".format(ld.dayOfMonth, ld.monthValue, ld.year)
+        } catch (e2: Exception) {
+            isoDate.take(10)
+        }
     }
 }
 

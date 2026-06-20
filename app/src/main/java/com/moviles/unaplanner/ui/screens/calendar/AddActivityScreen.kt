@@ -53,14 +53,18 @@ fun AddActivityScreen(
     var selectedCourse by remember { mutableStateOf<CourseDto?>(null) }
     var expanded by remember { mutableStateOf(false) }
     
-    // Date of activity
+    // Date & time of activity
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var selectedTime by remember { mutableStateOf(LocalTime.of(14, 0)) }
     var showDatePicker by remember { mutableStateOf(false) }
-    
+    var showTimePicker by remember { mutableStateOf(false) }
+
     // Reminder
     var hasReminder by remember { mutableStateOf(false) }
     var reminderDate by remember { mutableStateOf(LocalDate.now()) }
+    var reminderTime by remember { mutableStateOf(LocalTime.of(9, 0)) }
     var showReminderPicker by remember { mutableStateOf(false) }
+    var showReminderTimePicker by remember { mutableStateOf(false) }
 
     val activityTypes = listOf("Examen", "Tarea", "Proyecto", "Exposición", "Evento", "Otro")
     val studentId = AuthSession.studentId ?: return
@@ -87,9 +91,11 @@ fun AddActivityScreen(
                 description = event.description ?: ""
                 activityType = event.activityType
                 selectedDate = LocalDate.parse(event.activityDate.substringBefore("T"))
+                try { selectedTime = LocalTime.parse(event.activityDate.substringAfter("T").take(8)) } catch (_: Exception) {}
                 hasReminder = event.hasReminder
                 event.reminderDate?.let {
                     reminderDate = LocalDate.parse(it.substringBefore("T"))
+                    try { reminderTime = LocalTime.parse(it.substringAfter("T").take(8)) } catch (_: Exception) {}
                 }
                 // The course will be assigned when the course list is loaded.
             }
@@ -284,24 +290,48 @@ fun AddActivityScreen(
                     }
                 }
 
-                Text("Fecha de Actividad", fontWeight = FontWeight.Bold, color = NavyBlue, fontSize = 14.sp)
-                OutlinedCard(
-                    onClick = { showDatePicker = true },
+                Text("Fecha y Hora de Actividad", fontWeight = FontWeight.Bold, color = NavyBlue, fontSize = 14.sp)
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    OutlinedCard(
+                        onClick = { showDatePicker = true },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
                     ) {
-                        Icon(Icons.Default.DateRange, contentDescription = null, tint = CrimsonRed)
-                        Text(
-                            text = selectedDate.format(DateTimeFormatter.ofPattern("dd 'de' MMMM, yyyy")),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = TextPrimary
-                        )
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.DateRange, contentDescription = null, tint = CrimsonRed)
+                            Text(
+                                text = selectedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextPrimary
+                            )
+                        }
+                    }
+                    OutlinedCard(
+                        onClick = { showTimePicker = true },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Notifications, contentDescription = null, tint = CrimsonRed)
+                            Text(
+                                text = selectedTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextPrimary
+                            )
+                        }
                     }
                 }
 
@@ -320,23 +350,48 @@ fun AddActivityScreen(
                 }
 
                 if (hasReminder) {
-                    OutlinedCard(
-                        onClick = { showReminderPicker = true },
+                    Text("Fecha y hora del recordatorio", fontWeight = FontWeight.Medium, color = NavyBlue, fontSize = 13.sp)
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        OutlinedCard(
+                            onClick = { showReminderPicker = true },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
                         ) {
-                            Icon(Icons.Default.Notifications, contentDescription = null, tint = CrimsonRed)
-                            Text(
-                                text = "Avisar el: " + reminderDate.format(DateTimeFormatter.ofPattern("dd 'de' MMMM, yyyy")),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = TextPrimary
-                            )
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.DateRange, contentDescription = null, tint = CrimsonRed)
+                                Text(
+                                    text = reminderDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = TextPrimary
+                                )
+                            }
+                        }
+                        OutlinedCard(
+                            onClick = { showReminderTimePicker = true },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Notifications, contentDescription = null, tint = CrimsonRed)
+                                Text(
+                                    text = reminderTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = TextPrimary
+                                )
+                            }
                         }
                     }
                 }
@@ -371,9 +426,9 @@ fun AddActivityScreen(
                         }
 
                         val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-                        val activityDateTime = LocalDateTime.of(selectedDate, LocalTime.of(14, 0)).format(dateFormatter)
+                        val activityDateTime = LocalDateTime.of(selectedDate, selectedTime).format(dateFormatter)
                         val reminderDateTime = if (hasReminder) {
-                            LocalDateTime.of(reminderDate, LocalTime.of(9, 0)).format(dateFormatter)
+                            LocalDateTime.of(reminderDate, reminderTime).format(dateFormatter)
                         } else null
 
                         if (isEditing && eventId != null) {
@@ -462,6 +517,60 @@ fun AddActivityScreen(
         ) {
             DatePicker(state = datePickerState)
         }
+    }
+
+    // TimePicker for activity time
+    if (showTimePicker) {
+        val state = rememberTimePickerState(
+            initialHour = selectedTime.hour,
+            initialMinute = selectedTime.minute,
+            is24Hour = true
+        )
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            title = { Text("Hora de la actividad", fontWeight = FontWeight.Bold, color = NavyBlue) },
+            text = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TimePicker(state = state)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedTime = LocalTime.of(state.hour, state.minute)
+                    showTimePicker = false
+                }) { Text("ACEPTAR", color = NavyBlue, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) { Text("CANCELAR", color = Color.Gray) }
+            }
+        )
+    }
+
+    // TimePicker for reminder time
+    if (showReminderTimePicker) {
+        val state = rememberTimePickerState(
+            initialHour = reminderTime.hour,
+            initialMinute = reminderTime.minute,
+            is24Hour = true
+        )
+        AlertDialog(
+            onDismissRequest = { showReminderTimePicker = false },
+            title = { Text("Hora del recordatorio", fontWeight = FontWeight.Bold, color = NavyBlue) },
+            text = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TimePicker(state = state)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    reminderTime = LocalTime.of(state.hour, state.minute)
+                    showReminderTimePicker = false
+                }) { Text("ACEPTAR", color = NavyBlue, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showReminderTimePicker = false }) { Text("CANCELAR", color = Color.Gray) }
+            }
+        )
     }
 
     //Dialogue for Reminder Date
