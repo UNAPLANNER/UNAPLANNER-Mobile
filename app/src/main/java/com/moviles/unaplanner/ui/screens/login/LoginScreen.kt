@@ -293,7 +293,7 @@ fun PasswordTextField(
     AppTextField(
         value = value,
         label = "CONTRASEÑA",
-        value = value,
+        placeholder = "Tu contraseña",
         onValueChange = onValueChange,
         modifier = modifier,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
