@@ -191,7 +191,7 @@ fun NoteEditorScreen(
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                        modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
                         shape = RoundedCornerShape(12.dp),
                         colors = textFieldColors,
                         textStyle = TextStyle(fontSize = 16.sp, color = TextPrimary),
