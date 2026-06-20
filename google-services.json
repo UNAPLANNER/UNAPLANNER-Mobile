@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "341000856599",
+    "project_id": "unaplanner-ab4bb",
+    "storage_bucket": "unaplanner-ab4bb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:341000856599:android:b284dcddf4de3f2dca2852",
+        "android_client_info": {
+          "package_name": "com.moviles.unaplanner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQQvl2dMdPYc7_HVp1TewvRr0_ywxxOCo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

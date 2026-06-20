@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,6 +13,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moviles.unaplanner.ui.theme.*
@@ -21,6 +24,10 @@ fun AppTopBar(
     title: String,
     subtitle: String? = null,
     onLogout: (() -> Unit)? = null,
+    onNotificationsClick: (() -> Unit)? = null,
+    hasUnreadNotifications: Boolean = false,
+    titleFontSize: TextUnit = 28.sp,
+    navigationIcon: (@Composable () -> Unit)? = null,
     action: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -34,7 +41,7 @@ fun AppTopBar(
         modifier = modifier
             .fillMaxWidth()
             .background(gradientBrush)
-            .statusBarsPadding() // Respeta la barra de estado
+            .statusBarsPadding()
             .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
         Row(
@@ -42,13 +49,17 @@ fun AppTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (navigationIcon != null) {
+                navigationIcon()
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     color = Color.White,
-                    fontSize = 28.sp,
+                    fontSize = titleFontSize,
                     fontWeight = FontWeight.Bold,
-                    lineHeight = 34.sp
+                    lineHeight = titleFontSize * 1.2
                 )
                 if (subtitle != null) {
                     Text(
@@ -62,7 +73,33 @@ fun AppTopBar(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (action != null) {
                     action()
-                    if (onLogout != null) Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
+
+                if (onNotificationsClick != null) {
+                    IconButton(
+                        onClick = onNotificationsClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        BadgedBox(
+                            badge = {
+                                if (hasUnreadNotifications) {
+                                    Badge(
+                                        containerColor = CrimsonRed,
+                                        modifier = Modifier.offset(x = (-4).dp, y = 4.dp)
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = "Notificaciones",
+                                tint = Color.White,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
                 }
 
                 if (onLogout != null) {

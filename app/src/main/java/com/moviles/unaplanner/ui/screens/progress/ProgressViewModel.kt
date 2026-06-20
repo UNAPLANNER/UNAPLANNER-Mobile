@@ -163,7 +163,7 @@ class ProgressViewModel(private val repository: CurriculumRepository) : ViewMode
     private suspend fun resolveCareerName(careerId: Int): String {
         return repository.getCareers().getOrNull()
             ?.find { it.id == careerId }?.name
-            ?: "Ingeniería en Sistemas de Información"
+            ?: ""
     }
 
     private fun computeAreaProgress(courses: List<StudentCourseProgressDto>): List<AreaProgress> {

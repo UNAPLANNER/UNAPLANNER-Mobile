@@ -1,10 +1,19 @@
 package com.moviles.unaplanner.ui.screens
 
+import androidx.compose.ui.zIndex
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +31,8 @@ import com.moviles.unaplanner.ui.screens.malla.MallaScreen
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
 import com.moviles.unaplanner.ui.screens.notes.NotesScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
+import com.moviles.unaplanner.ui.screens.notifications.NotificationScreen
+import com.moviles.unaplanner.ui.screens.notifications.NotificationViewModel
 import com.moviles.unaplanner.ui.theme.CrimsonRed
 
 @Composable
@@ -30,38 +41,11 @@ fun MainScreen(
     onLogout: () -> Unit,
     onNavigateToContactDetail: (Int) -> Unit,
     onNavigateToNoteEdit: (Int?) -> Unit,
-    onNavigateToAddActivity: () -> Unit,
-    onNavigateToEditActivity: (Int) -> Unit,
-    onNavigateToProgreso: () -> Unit,
-    notesViewModel: NotesViewModel,
-    calendarViewModel: StudentCalendarViewModel,
-    mallaViewModel: MallaViewModel
+    notesViewModel: NotesViewModel
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
-    var userState by remember { mutableStateOf(com.moviles.unaplanner.data.AuthSession.currentUser) }
-    val careerName by mallaViewModel.careerName.collectAsState()
 
-    // Load notes and courses when navigating to the notes tab
-    LaunchedEffect(userState) {
-        userState?.let { u ->
-            // Si el nombre no está en la sesión o es nulo, lo recuperamos del perfil completo
-            if (u.fullName.isNullOrBlank()) {
-                try {
-                    val response = com.moviles.unaplanner.data.remote.RetrofitClient.apiService.getProfile(u.id)
-                    if (response.isSuccessful) {
-                        response.body()?.let { fullUser ->
-                            com.moviles.unaplanner.data.AuthSession.setUser(fullUser)
-                            userState = fullUser
-                        }
-                    }
-                } catch (e: Exception) {
-                    // Fallback silencioso
-                }
-            }
-            mallaViewModel.loadStudentCurriculum(u.id)
-        }
-    }
-
+    // Cargar notas y cursos cuando se navega a la pestaña de notas
     LaunchedEffect(selectedIndex) {
         if (selectedIndex == 3) {
             notesViewModel.loadNotes()
@@ -138,16 +122,9 @@ fun MainScreen(
                 .padding(innerPadding)
         ) {
             when (selectedIndex) {
-                0 -> HomeScreen(
-                    onNavigateToTab = { index -> selectedIndex = index },
-                    onNavigateToProgreso = onNavigateToProgreso
-                )
-                1 -> CalendarScreen(
-                    viewModel = calendarViewModel,
-                    onAddActivity = onNavigateToAddActivity,
-                    onEditActivity = onNavigateToEditActivity
-                )
-                2 -> MallaScreen(viewModel = mallaViewModel)
+                0 -> InicioPlaceholderScreen()
+                1 -> CalendarPlaceholderScreen()
+                2 -> MallaPlaceholderScreen()
                 3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
                 4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
             }
