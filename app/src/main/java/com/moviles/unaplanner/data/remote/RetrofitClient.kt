@@ -74,4 +74,13 @@ object RetrofitClient {
             .build()
             .create(NotificationApiService::class.java)
     }
+
+    val evaluationApiService: EvaluationApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(AppConstants.Api.BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(EvaluationApiService::class.java)
+    }
 }
