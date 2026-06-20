@@ -82,4 +82,8 @@ data class StudyPlanCourseRequirement(
     val code: String,
     val name: String,
     val requirementType: String
+    val code: String,
+    val description: String?,
+    val totalCredits: Int,
+    val isStatus: Boolean = true
 )
