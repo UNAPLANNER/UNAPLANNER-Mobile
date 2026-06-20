@@ -7,21 +7,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.moviles.unaplanner.core.UserMessages
 import com.moviles.unaplanner.core.UserMessages.Errors.GENERIC_ERROR
-import com.moviles.unaplanner.core.UserMessages.RegisterStudent.INVALID_ENTRY_YEAR
-import com.moviles.unaplanner.core.UserMessages.RegisterStudent.STUDY_PLAN_REQUIRED
 import com.moviles.unaplanner.data.remote.RetrofitClient
-import com.moviles.unaplanner.data.remote.model.CareerDto
+import com.moviles.unaplanner.data.remote.model.CampusCareerDto
+import com.moviles.unaplanner.data.remote.model.CampusDto
 import com.moviles.unaplanner.data.remote.model.RegisterRequest
+import com.moviles.unaplanner.data.remote.model.StudyPlan
 import com.moviles.unaplanner.data.repository.ApiResult
 import com.moviles.unaplanner.data.repository.RegisterUserStudentRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.moviles.unaplanner.data.remote.model.StudyPlan
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.moviles.unaplanner.ui.screens.register.RegisterFormUtils
 
 enum class SelectionType {
     CAMPUS,
@@ -30,6 +26,7 @@ enum class SelectionType {
     STUDY_PLAN,
     NONE
 }
+
 sealed class RegisterState {
     object Idle : RegisterState()
     object Loading : RegisterState()
@@ -45,8 +42,12 @@ class RegisterViewModel : ViewModel() {
     var confirmPassword by mutableStateOf("")
 
     var campus by mutableStateOf("Seleccione un Campus")
+    var selectedCampusId by mutableIntStateOf(0)
+
     var major by mutableStateOf("Seleccione Carrera Principal")
-    var secondMajor by mutableStateOf("Seleccione Carrera Opcional")
+    var selectedMajorId by mutableIntStateOf(0)
+    var selectedCampusCareer by mutableStateOf<CampusCareerDto?>(null)
+
     var entryYear by mutableStateOf("")
     var currentCycle by mutableStateOf("I Ciclo 2026")
 
@@ -56,77 +57,97 @@ class RegisterViewModel : ViewModel() {
     var selectedPlan by mutableStateOf<StudyPlan?>(null)
     var studyPlanSelectedName by mutableStateOf("Seleccione un Plan de Estudio")
 
-    var selectedMajorId by mutableStateOf(0)
-    var selectedSecondMajorId by mutableStateOf(0)
-
     private val _uiState = MutableStateFlow<RegisterState>(RegisterState.Idle)
     val uiState = _uiState.asStateFlow()
-    private val _careers = MutableStateFlow<List<CareerDto>>(emptyList())
-    val careers = _careers.asStateFlow()
 
-    val campusList = listOf(
-        "Campus Sarapiquí",
-        "Campus Liberia",
-        "Campus Nicoya",
-        "Sede Central"
-    )
+    private val _campuses = MutableStateFlow<List<CampusDto>>(emptyList())
+    val campuses = _campuses.asStateFlow()
 
-    // Temporary MOCK — replace with an actual API call when the backend
-    // exposes a public endpoint for study plans GET api/studyplans).
-    // The current endpoint (api/student/{id}/curriculum) requires a studentId
-    // that does not yet exist on the registration screen, so it cannot be used here.
-    val studyPlansList = listOf(
-        StudyPlan(studyPlanId = 1, careerId = 1, name = "Bachillerato en Ingeniería en Sistemas de Información"),
-        StudyPlan(studyPlanId = 2, careerId = 5, name = "Bachillerato en Educación Comercial"),
-        StudyPlan(studyPlanId = 3, careerId = 3, name = "Bachillerato en Administración"),
-        StudyPlan(studyPlanId = 4, careerId = 7, name = "Bachillerato en Inglés")
-    )
+    private val _campusCareers = MutableStateFlow<List<CampusCareerDto>>(emptyList())
+    val campusCareers = _campusCareers.asStateFlow()
 
     val availableStudyPlans: List<StudyPlan>
-        get() = studyPlansList.filter { it.careerId == selectedMajorId }
+        get() = selectedCampusCareer?.studyPlans ?: emptyList()
 
     init {
-        loadCareers()
+        loadCampuses()
     }
 
-    // Load careers from the API
-    private fun loadCareers() {
+    private fun loadCampuses() {
         viewModelScope.launch {
             try {
-                val result = RetrofitClient.curriculumApiService.getCareers()
-                _careers.value = result
+                val response = RetrofitClient.apiService.getCampuses()
+                if (response.isSuccessful) {
+                    _campuses.value = response.body() ?: emptyList()
+                } else {
+                    Log.e("RegisterVM", "Error al cargar campus: ${response.code()}")
+                }
             } catch (e: Exception) {
-                _careers.value = emptyList()
+                Log.e("RegisterVM", "Excepción al cargar campus", e)
+            }
+        }
+    }
+
+    private fun loadCampusCareers(campusId: Int) {
+        _campusCareers.value = emptyList()
+        viewModelScope.launch {
+            try {
+                val response = RetrofitClient.apiService.getCampusCareers(campusId)
+                when {
+                    response.isSuccessful -> {
+                        _campusCareers.value = response.body() ?: emptyList()
+                    }
+                    response.code() == 404 -> {
+                        _uiState.value = RegisterState.Error(
+                            "Este campus no tiene carreras disponibles."
+                        )
+                    }
+                    else -> {
+                        _uiState.value = RegisterState.Error(
+                            "Error al cargar carreras (${response.code()})"
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("RegisterVM", "Excepción al cargar carreras", e)
+                _uiState.value = RegisterState.Error(
+                    e.localizedMessage ?: "Error al cargar carreras"
+                )
             }
         }
     }
 
     fun onItemSelected(item: Any) {
         when (currentSelectionType) {
-            SelectionType.CAMPUS -> if (item is String) campus = item
+            SelectionType.CAMPUS -> if (item is CampusDto) {
+                campus = item.name
+                selectedCampusId = item.id
+                // Reset career and plan when campus changes
+                major = "Seleccione Carrera Principal"
+                selectedMajorId = 0
+                selectedCampusCareer = null
+                selectedPlan = null
+                studyPlanSelectedName = "Seleccione un Plan de Estudio"
+                loadCampusCareers(item.id)
+            }
 
-            SelectionType.MAJOR -> if (item is CareerDto) {
+            SelectionType.MAJOR -> if (item is CampusCareerDto) {
                 major = item.name
-                selectedMajorId = item.id
-
-                // associate career wtih plan
-                val matchingPlans = studyPlansList.filter { it.careerId == item.id }
-                when {
-                    matchingPlans.size == 1 -> {
-                        selectedPlan = matchingPlans.first()
-                        studyPlanSelectedName = matchingPlans.first().name
-                    }
-                    else -> {
-
-                        selectedPlan = null
-                        studyPlanSelectedName = "Seleccione un Plan"
-                    }
+                selectedMajorId = item.careerId
+                selectedCampusCareer = item
+                // Auto-select if exactly one plan
+                val plans = item.studyPlans
+                if (plans.size == 1) {
+                    selectedPlan = plans.first()
+                    studyPlanSelectedName = plans.first().name
+                } else {
+                    selectedPlan = null
+                    studyPlanSelectedName = "Seleccione un Plan"
                 }
             }
 
-            SelectionType.DOUBLE_MAJOR -> if (item is CareerDto) {
-                secondMajor = item.name
-                selectedSecondMajorId = item.id
+            SelectionType.DOUBLE_MAJOR -> if (item is CampusCareerDto) {
+                // reserved for future use
             }
 
             SelectionType.STUDY_PLAN -> if (item is StudyPlan) {
@@ -140,7 +161,6 @@ class RegisterViewModel : ViewModel() {
     }
 
     fun onRegisterClicked(onSuccess: () -> Unit) {
-        // validate the most likely errors
         val error = RegisterFormUtils.validate(
             name = name,
             email = email,
@@ -156,10 +176,10 @@ class RegisterViewModel : ViewModel() {
             _uiState.value = RegisterState.Error(error)
             return
         }
+
         viewModelScope.launch {
             _uiState.value = RegisterState.Loading
             try {
-
                 val request = RegisterRequest(
                     email = email,
                     password = password,
@@ -179,7 +199,8 @@ class RegisterViewModel : ViewModel() {
                     }
                     is ApiResult.Error -> {
                         _uiState.value = RegisterState.Error(
-                            RegisterFormUtils.mapError(result.message))
+                            RegisterFormUtils.mapError(result.message)
+                        )
                     }
                 }
             } catch (e: Exception) {

@@ -94,4 +94,12 @@ interface ApiService {
     suspend fun registerUser(
         @Body request: RegisterRequest
     ): Response<RegisterResponse>
+
+    @GET(AppConstants.Api.Paths.CAMPUS_LIST)
+    suspend fun getCampuses(): Response<List<CampusDto>>
+
+    @GET(AppConstants.Api.Paths.CAMPUS_CAREERS)
+    suspend fun getCampusCareers(
+        @Path("campusId") campusId: Int
+    ): Response<List<CampusCareerDto>>
 }

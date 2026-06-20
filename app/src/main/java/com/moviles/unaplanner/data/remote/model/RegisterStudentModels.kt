@@ -24,25 +24,44 @@ data class RegisterRequest(
 )
 
 data class RegisterResponse(
-    @SerializedName("Message")
+    @SerializedName("message", alternate = ["Message"])
     val message: String,
 
-    @SerializedName("IsSuccess")
+    @SerializedName("isSuccess", alternate = ["IsSuccess"])
     val isSuccess: Boolean,
 
-    @SerializedName("Data")
+    @SerializedName("data", alternate = ["Data"])
     val data: StudentData? = null
 )
 
 data class StudentData(
-    @SerializedName("Id")
+    @SerializedName("id", alternate = ["Id"])
     val id: Int,
-    @SerializedName("Email")
+    @SerializedName("email", alternate = ["Email"])
     val email: String
 )
 
-data class StudyPlan(
-    val studyPlanId: Int,
+data class CampusDto(
+    @SerializedName("id", alternate = ["Id", "campusId", "CampusId"])
+    val id: Int,
+    @SerializedName("name", alternate = ["Name"])
+    val name: String
+)
+
+data class CampusCareerDto(
+    @SerializedName("careerId", alternate = ["CareerId", "id", "Id"])
     val careerId: Int,
+    @SerializedName("name", alternate = ["Name"])
+    val name: String,
+    @SerializedName("studyPlans", alternate = ["StudyPlans"])
+    val studyPlans: List<StudyPlan> = emptyList()
+)
+
+data class StudyPlan(
+    @SerializedName("studyPlanId", alternate = ["StudyPlanId", "id", "Id"])
+    val studyPlanId: Int,
+    @SerializedName("careerId", alternate = ["CareerId"])
+    val careerId: Int = 0,
+    @SerializedName("name", alternate = ["Name"])
     val name: String
 )

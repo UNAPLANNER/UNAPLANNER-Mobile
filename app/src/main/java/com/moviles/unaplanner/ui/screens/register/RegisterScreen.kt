@@ -70,7 +70,8 @@ fun RegisterScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
-    val careers by viewModel.careers.collectAsState()
+    val campuses by viewModel.campuses.collectAsState()
+    val campusCareers by viewModel.campusCareers.collectAsState()
 
     val scrollState = rememberScrollState()
 
@@ -379,52 +380,64 @@ fun RegisterScreen(
 
                         // CAMPUS
                         SelectionType.CAMPUS -> {
-
-                            items(viewModel.campusList) { campus ->
-
-                                Text(
-                                    text = campus,
-
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-
-                                            viewModel.onItemSelected(campus)
-
-                                        }
-                                        .padding(16.dp),
-
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
+                            if (campuses.isEmpty()) {
+                                item {
+                                    Text(
+                                        text = "Cargando campus...",
+                                        modifier = Modifier.padding(16.dp),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            } else {
+                                items(campuses) { campusItem ->
+                                    Text(
+                                        text = campusItem.name,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { viewModel.onItemSelected(campusItem) }
+                                            .padding(16.dp),
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
                             }
                         }
 
-                        // CAREER SELECTION
+                        // CAREER SELECTION (loaded after campus is chosen)
                         SelectionType.MAJOR -> {
-                            items(careers) { career ->
-                                Text(
-                                    text = career.name,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            viewModel.onItemSelected(career)
-                                        }
-                                        .padding(16.dp),
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
+                            if (campusCareers.isEmpty()) {
+                                item {
+                                    Text(
+                                        text = if (viewModel.selectedCampusId == 0)
+                                            "Primero selecciona un campus"
+                                        else
+                                            "Cargando carreras...",
+                                        modifier = Modifier.padding(16.dp),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            } else {
+                                items(campusCareers) { career ->
+                                    Text(
+                                        text = career.name,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { viewModel.onItemSelected(career) }
+                                            .padding(16.dp),
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
                             }
                         }
 
-                        // DOUBLE CAREER SELECTION
                         SelectionType.DOUBLE_MAJOR -> {
-                            items(careers) { career ->
+                            items(campusCareers) { career ->
                                 Text(
                                     text = career.name,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable {
-                                            viewModel.onItemSelected(career)
-                                        }
+                                        .clickable { viewModel.onItemSelected(career) }
                                         .padding(16.dp),
                                     style = MaterialTheme.typography.bodyLarge
                                 )
