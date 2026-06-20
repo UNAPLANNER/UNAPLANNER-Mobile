@@ -240,21 +240,14 @@ class NotesViewModel(
             allNotes.filter { it.displayCourseName == selectedCourse }
         }
 
-        val coursesList = mutableListOf("Todas")
-        
-        // Agregar nombres de cursos del plan de estudio del estudiante
+        // Filtros: solo cursos EnCurso del plan del estudiante + fijos
+        val coursesList = mutableListOf("Todas", "General")
         coursesList.addAll(_studentCourses.value.map { it.name })
-        
-        // Agregar nombres de cursos que tienen notas
-        coursesList.addAll(allNotes.map { it.displayCourseName })
-        
-        // Asegurar que "General" esté siempre disponible
-        coursesList.add("General")
 
         _uiState.value = NotesUiState.Success(
             notes = allNotes,
             filteredNotes = filtered,
-            courses = coursesList.distinct().sortedBy { 
+            courses = coursesList.distinct().sortedBy {
                 when (it) {
                     "Todas" -> "0"
                     "General" -> "1"
