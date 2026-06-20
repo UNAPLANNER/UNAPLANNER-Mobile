@@ -659,6 +659,7 @@ private fun EvaluationFormDialog(
                             }
                         }
                     )
+                    // Invisible box to capture clicks over the field and show picker
                     Box(
                         modifier = Modifier
                             .matchParentSize()
