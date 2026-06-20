@@ -382,12 +382,22 @@ fun RegisterScreen(
                         SelectionType.CAMPUS -> {
                             if (campuses.isEmpty()) {
                                 item {
-                                    Text(
-                                        text = "Cargando campus...",
-                                        modifier = Modifier.padding(16.dp),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = "No se pudieron cargar los campus.",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Button(onClick = { viewModel.loadCampuses() }) {
+                                            Text("Reintentar")
+                                        }
+                                    }
                                 }
                             } else {
                                 items(campuses) { campusItem ->

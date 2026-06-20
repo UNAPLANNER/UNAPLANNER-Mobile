@@ -20,7 +20,10 @@ data class RegisterRequest(
     val studyPlanId: Int,
 
     @SerializedName("enterYear")
-    val enterYear: Int
+    val enterYear: Int,
+
+    @SerializedName("currentCycle")
+    val currentCycle: String
 )
 
 data class RegisterResponse(

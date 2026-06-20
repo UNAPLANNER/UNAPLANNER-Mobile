@@ -29,12 +29,18 @@ class RegisterUserStudentRepository(
 
                 Log.d("REGISTER_SUCCESS", body.toString())
 
-                if (body != null && body.isSuccess) {
-                    ApiResult.Success(body)
-                } else if (body != null) {
-                    ApiResult.Error(body.message.ifBlank { UserMessages.Errors.SERVER_ERROR })
+                // Consider successful if the HTTP code is 2xx, even if isSuccess is missing
+                if (body != null) {
+                    if (body.isSuccess || body.data != null) {
+                        ApiResult.Success(body)
+                    } else if (body.message.isNotBlank()) {
+                        ApiResult.Error(body.message)
+                    } else {
+                        ApiResult.Success(body)
+                    }
                 } else {
-                    ApiResult.Error(UserMessages.Errors.SERVER_ERROR)
+                    // Body is null but response was successful (e.g. 204 No Content or just empty 201)
+                    ApiResult.Success(RegisterResponse("Registro exitoso", true))
                 }
 
             } else {

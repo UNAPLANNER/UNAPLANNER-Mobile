@@ -61,7 +61,7 @@ object RegisterFormUtils {
 
     // ── Validación de email institucional UNA ────────────────────
     private val unaEmailRegex = Regex(
-        """^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]+\.[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]+\.[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]+@est\.una\.ac\.cr$"""
+        """^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]+(\.[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]+)*@est\.una\.ac\.cr$"""
     )
 
     fun isValidUnaEmail(email: String): Boolean = unaEmailRegex.matches(email)

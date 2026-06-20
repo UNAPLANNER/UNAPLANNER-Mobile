@@ -73,17 +73,23 @@ class RegisterViewModel : ViewModel() {
         loadCampuses()
     }
 
-    private fun loadCampuses() {
+    fun loadCampuses() {
         viewModelScope.launch {
+            _uiState.value = RegisterState.Loading
             try {
                 val response = RetrofitClient.apiService.getCampuses()
                 if (response.isSuccessful) {
                     _campuses.value = response.body() ?: emptyList()
+                    _uiState.value = RegisterState.Idle
                 } else {
-                    Log.e("RegisterVM", "Error al cargar campus: ${response.code()}")
+                    val errorMsg = "Error al cargar campus: ${response.code()}"
+                    Log.e("RegisterVM", errorMsg)
+                    _uiState.value = RegisterState.Error(errorMsg)
                 }
             } catch (e: Exception) {
+                val errorMsg = e.localizedMessage ?: "Error de conexión al cargar campus"
                 Log.e("RegisterVM", "Excepción al cargar campus", e)
+                _uiState.value = RegisterState.Error(errorMsg)
             }
         }
     }
@@ -161,15 +167,16 @@ class RegisterViewModel : ViewModel() {
     }
 
     fun onRegisterClicked(onSuccess: () -> Unit) {
+        val trimmedEmail = email.trim()
         val error = RegisterFormUtils.validate(
-            name = name,
-            email = email,
+            name = name.trim(),
+            email = trimmedEmail,
             password = password,
             confirmPassword = confirmPassword,
             campus = campus,
             selectedMajorId = selectedMajorId,
             selectedPlan = selectedPlan,
-            entryYear = entryYear
+            entryYear = entryYear.trim()
         )
 
         if (error != null) {
@@ -181,12 +188,13 @@ class RegisterViewModel : ViewModel() {
             _uiState.value = RegisterState.Loading
             try {
                 val request = RegisterRequest(
-                    email = email,
+                    email = trimmedEmail,
                     password = password,
-                    fullName = name,
-                    enterYear = entryYear.toInt(),
+                    fullName = name.trim(),
+                    enterYear = entryYear.trim().toInt(),
                     careerId = selectedMajorId,
-                    studyPlanId = selectedPlan!!.studyPlanId
+                    studyPlanId = selectedPlan!!.studyPlanId,
+                    currentCycle = currentCycle
                 )
 
                 val repository = RegisterUserStudentRepository()
