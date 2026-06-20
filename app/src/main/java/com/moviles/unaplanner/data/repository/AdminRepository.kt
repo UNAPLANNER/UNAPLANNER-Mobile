@@ -7,6 +7,7 @@ import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.data.remote.model.Career
 import com.moviles.unaplanner.data.remote.model.ChangePasswordRequest
 import com.moviles.unaplanner.data.remote.model.CreateCareerRequest
+import com.moviles.unaplanner.data.remote.model.StudyPlanDetail
 import com.moviles.unaplanner.data.remote.model.UpdateCareerRequest
 import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UserDto
@@ -76,6 +77,19 @@ class AdminRepository(
             } else {
                 val errorMsg = response.errorBody()?.string()
                 ApiResult.Error(errorMsg ?: updateCareerErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun getStudyPlanDetail(id: Int): ApiResult<StudyPlanDetail> {
+        return try {
+            val response = apiService.getStudyPlanDetail(id)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error(studyPlanErrorMessage(response.code()), response.code())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error de red")
@@ -215,6 +229,15 @@ class AdminRepository(
             409 -> "Ya existe una carrera con ese codigo."
             500 -> "Error del servidor al actualizar la carrera."
             else -> "Error al actualizar la carrera: $statusCode"
+        }
+    }
+
+    private fun studyPlanErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            401, 403 -> "No tienes permisos para consultar el plan."
+            404 -> "No se encontro el plan de estudios."
+            500 -> "Error del servidor al obtener el plan."
+            else -> "Error al obtener el plan: $statusCode"
         }
     }
 }

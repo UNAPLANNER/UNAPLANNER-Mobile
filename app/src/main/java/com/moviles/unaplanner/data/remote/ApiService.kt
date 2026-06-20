@@ -30,6 +30,9 @@ interface ApiService {
         @Body request: UpdateCareerRequest
     ): Response<Career>
 
+    @GET(AppConstants.Api.Paths.STUDY_PLAN_DETAIL)
+    suspend fun getStudyPlanDetail(@Path("id") id: Int): Response<StudyPlanDetail>
+
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>
 

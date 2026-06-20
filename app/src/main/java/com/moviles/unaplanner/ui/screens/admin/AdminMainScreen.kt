@@ -20,6 +20,7 @@ import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminCo
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CreateCareerScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminViewModel
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.EditCareerScreen
+import com.moviles.unaplanner.ui.screens.admin.profile.studyPlanAdmin.StudyPlanDetailScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.ContactAdminScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.homeAdmin.HomeAdminContent
 import com.moviles.unaplanner.ui.theme.BackgroundLight
@@ -34,6 +35,7 @@ fun AdminMainScreen(
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
     var editingCareer by remember { mutableStateOf<Career?>(null) }
+    var viewingStudyPlanCareer by remember { mutableStateOf<Career?>(null) }
     var showCreateCareerModal by rememberSaveable { mutableStateOf(false) }
     val careerViewModel: CareerAdminViewModel = viewModel(factory = CareerAdminViewModel.Factory)
     val careerCreated = navController
@@ -52,10 +54,15 @@ fun AdminMainScreen(
         "${careers.size} carreras registradas - $careersCampusLabel"
     }
 
-    val titles = listOf("UNAPlanner Admin", "Carreras", "Contactos", "Mi Perfil")
+    val titles = listOf(
+        "UNAPlanner Admin",
+        if (viewingStudyPlanCareer != null) "Plan de Estudio" else "Carreras",
+        "Contactos",
+        "Mi Perfil"
+    )
     val subtitles = listOf(
         null,
-        careersSubtitle,
+        viewingStudyPlanCareer?.name ?: careersSubtitle,
         "Directorio de la Sede",
         null
     )
@@ -79,13 +86,15 @@ fun AdminMainScreen(
                     onBackClick = {
                         if (editingCareer != null) {
                             editingCareer = null
+                        } else if (viewingStudyPlanCareer != null) {
+                            viewingStudyPlanCareer = null
                         } else if (showCreateCareerModal) {
                             showCreateCareerModal = false
                         } else {
                             selectedIndex = 0
                         }
                     },
-                    showAddButton = selectedIndex == 1 || selectedIndex == 2,
+                    showAddButton = (selectedIndex == 1 && editingCareer == null && viewingStudyPlanCareer == null && !showCreateCareerModal) || selectedIndex == 2,
                     onAddClick = {
                         when (selectedIndex) {
                             1 -> showCreateCareerModal = true
@@ -115,6 +124,7 @@ fun AdminMainScreen(
                 }
                 1 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
                     val careerToEdit = editingCareer
+                    val careerWithStudyPlan = viewingStudyPlanCareer
                     if (careerToEdit != null) {
                         EditCareerScreen(
                             career = careerToEdit,
@@ -123,6 +133,11 @@ fun AdminMainScreen(
                                 editingCareer = null
                                 careerViewModel.loadCareers()
                             }
+                        )
+                    } else if (careerWithStudyPlan != null) {
+                        StudyPlanDetailScreen(
+                            career = careerWithStudyPlan,
+                            onBackClick = { viewingStudyPlanCareer = null }
                         )
                     } else if (showCreateCareerModal) {
                         CreateCareerScreen(
@@ -136,9 +151,9 @@ fun AdminMainScreen(
                     } else {
                         CareerAdminContent(
                             viewModel = careerViewModel,
-                            onEditCareer = { career -> editingCareer = career }
+                            onEditCareer = { career -> editingCareer = career },
+                            onViewStudyPlan = { career -> viewingStudyPlanCareer = career }
                         )
-                        CareerAdminContent(viewModel = careerViewModel)
                     }
                 }
                 2 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {

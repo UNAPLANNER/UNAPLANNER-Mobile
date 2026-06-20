@@ -88,7 +88,8 @@ fun CareerAdminScreen(
 @Composable
 fun CareerAdminContent(
     viewModel: CareerAdminViewModel = viewModel(factory = CareerAdminViewModel.Factory),
-    onEditCareer: (Career) -> Unit = {}
+    onEditCareer: (Career) -> Unit = {},
+    onViewStudyPlan: (Career) -> Unit = {}
 ) {
     val uiState = viewModel.uiState
 
@@ -115,7 +116,11 @@ fun CareerAdminContent(
                 onRetry = viewModel::loadCareers
             )
             uiState.filteredCareers.isEmpty() -> NoCareerResultsState()
-            else -> CareerList(careers = uiState.filteredCareers, onEditCareer = onEditCareer)
+            else -> CareerList(
+                careers = uiState.filteredCareers,
+                onEditCareer = onEditCareer,
+                onViewStudyPlan = onViewStudyPlan
+            )
         }
 
         if (uiState.isLoading && uiState.careers.isNotEmpty()) {
@@ -176,7 +181,8 @@ private fun CareerSearchField(
 @Composable
 private fun CareerList(
     careers: List<Career>,
-    onEditCareer: (Career) -> Unit
+    onEditCareer: (Career) -> Unit,
+    onViewStudyPlan: (Career) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -184,7 +190,11 @@ private fun CareerList(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         items(careers, key = { it.id }) { career ->
-            CareerListItem(career = career, onEditCareer = onEditCareer)
+            CareerListItem(
+                career = career,
+                onEditCareer = onEditCareer,
+                onViewStudyPlan = onViewStudyPlan
+            )
         }
     }
 }
@@ -192,7 +202,8 @@ private fun CareerList(
 @Composable
 private fun CareerListItem(
     career: Career,
-    onEditCareer: (Career) -> Unit
+    onEditCareer: (Career) -> Unit,
+    onViewStudyPlan: (Career) -> Unit
 ) {
     val accent = careerAccent(career.id)
     val outline = if (accent.hasOutline) accent.line else Color.Transparent
@@ -291,15 +302,12 @@ private fun CareerListItem(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Button(
-                        onClick = {},
-                        enabled = career.currentStudyPlanId != null,
+                        onClick = { onViewStudyPlan(career) },
                         shape = RoundedCornerShape(50),
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (accent.hasPrimaryPlanButton) Color(0xFFE20E2D) else Color(0xFFF2F5F9),
-                            contentColor = if (accent.hasPrimaryPlanButton) Color.White else Color(0xFF344256),
-                            disabledContainerColor = Color(0xFFF2F5F9),
-                            disabledContentColor = Color(0xFF8FA0B8)
+                            containerColor = Color(0xFFE20E2D),
+                            contentColor = Color.White
                         )
                     ) {
                         Text(
@@ -426,8 +434,7 @@ private data class CareerAccent(
     val start: Color,
     val end: Color,
     val line: Color,
-    val hasOutline: Boolean = false,
-    val hasPrimaryPlanButton: Boolean = false
+    val hasOutline: Boolean = false
 )
 
 private fun careerAccent(id: Int): CareerAccent {
@@ -436,8 +443,7 @@ private fun careerAccent(id: Int): CareerAccent {
             start = Color(0xFF061450),
             end = Color(0xFF283A73),
             line = Color(0xFF061450),
-            hasOutline = true,
-            hasPrimaryPlanButton = true
+            hasOutline = true
         )
         1 -> CareerAccent(
             start = Color(0xFF2450B6),
