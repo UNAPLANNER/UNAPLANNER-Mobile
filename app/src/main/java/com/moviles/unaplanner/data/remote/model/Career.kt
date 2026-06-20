@@ -117,4 +117,8 @@ data class UpdateStudyPlanCourseRequest(
     val electiveType: String,
     val isStatus: Boolean = true,
     val prerequisiteCourseIds: List<Int> = emptyList()
+    val code: String,
+    val description: String?,
+    val totalCredits: Int,
+    val isStatus: Boolean = true
 )
