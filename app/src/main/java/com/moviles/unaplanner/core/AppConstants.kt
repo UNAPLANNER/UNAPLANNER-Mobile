@@ -11,7 +11,7 @@ object AppConstants {
         //KEYNA Usando IP local
         private const val PHYSICAL_DEVICE_URL = "http://192.168.100.128:5232/"
         //Adriana Usando IP local
-        //private const val PHYSICAL_DEVICE_URL = "http://192.168.1.6:5232/"
+        //private const val PHYSICAL_DEVICE_URL = "http://192.168.1.8:5232/"
         //REICHEL Usando IP local
         //private const val PHYSICAL_DEVICE_URL = "http://192.168.100.163:5232/"
         //private const val PHYSICAL_DEVICE_URL = "http://192.168.100.64:5232/"
@@ -54,8 +54,15 @@ object AppConstants {
             const val CONTACT_OPERATIONS = "api/campus-contacts/{id}"
             const val USER_PROFILE = "api/profile/{id}"
             const val CHANGE_PASSWORD = "api/profile/{id}/change-password"
+            const val REGISTER_STUDENT = "api/auth/register"
+
             const val CAREERS = "api/careers"
             const val ADMIN_CAREERS = "api/admin/careers"
+            const val ADMIN_DASHBOARD = "api/admin/dashboard"
+            const val ADMIN_CAREER_OPERATIONS = "api/admin/careers/{id}"
+            const val STUDY_PLAN_DETAIL = "api/study-plans/{id}"
+            const val STUDY_PLAN_COURSES = "api/study-plans/{id}/courses"
+            const val STUDY_PLAN_COURSE_OPERATIONS = "api/study-plans/{id}/courses/{courseId}"
             const val CAREER_CURRICULUM = "api/careers/{id}/curriculum"
             const val STUDENT_CURRICULUM_COURSES = "api/student/{id}/curriculum/courses"
             const val STUDENT_COURSE_PROGRESS = "api/student/{id}/courses/{courseId}"
