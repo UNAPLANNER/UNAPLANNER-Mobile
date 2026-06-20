@@ -10,8 +10,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.VpnKey
@@ -19,6 +21,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -202,7 +206,7 @@ private fun CourseDetailContent(
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             when (selectedTab) {
                 0 -> InfoTab(detail = detail, viewModel = viewModel, courseId = courseId)
-                1 -> ComingSoonTab()
+                1 -> EvaluationsTab(viewModel = viewModel, courseId = courseId)
                 2 -> NotesTab(
                     viewModel = viewModel,
                     courseId = courseId,
@@ -210,6 +214,435 @@ private fun CourseDetailContent(
                     onCreateNote = { onNavigateToNoteEdit(null) }
                 )
             }
+        }
+    }
+}
+
+// ─── Evaluations Tab ──────────────────────────────────────────────────────────
+
+@Composable
+private fun EvaluationsTab(
+    viewModel: CourseDetailViewModel,
+    courseId: Int
+) {
+    val evaluationsState by viewModel.evaluationsState.collectAsStateWithLifecycle()
+    var showAddDialog by remember { mutableStateOf(false) }
+    val userId = AuthSession.studentId
+
+    // Load evaluations
+    LaunchedEffect(courseId) {
+        userId?.let { viewModel.loadEvaluations(it, courseId) }
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(BackgroundLight)) {
+        when (val s = evaluationsState) {
+            is EvaluationsUiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = NavyBlue)
+                }
+            }
+            is EvaluationsUiState.Error -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(s.message, color = CrimsonRed, textAlign = TextAlign.Center, modifier = Modifier.padding(32.dp))
+                    OutlinedButton(onClick = { userId?.let { viewModel.loadEvaluations(it, courseId) } }) {
+                        Icon(Icons.Default.Refresh, null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Reintentar")
+                    }
+                }
+            }
+            is EvaluationsUiState.Success -> {
+                val evaluations = s.evaluations
+                val totalPercentage = evaluations.sumOf { it.percentage }
+                val totalEarned = evaluations.sumOf { it.earnedPoints }
+                val remainingFor70 = (70.0 - totalEarned).coerceAtLeast(0.0)
+
+                val currentEvaluations = (evaluationsState as? EvaluationsUiState.Success)?.evaluations ?: emptyList()
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Summary Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceLight),
+                        elevation = CardDefaults.cardElevation(2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                SummaryItem(label = "Puntos Obtenidos", value = "%.2f".format(totalEarned), color = if (totalEarned >= 70) EventGreen else CrimsonRed)
+                                SummaryItem(label = "Definido", value = "${totalPercentage.toInt()}%", color = NavyBlue)
+                            }
+                            
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            if (totalEarned < 70) {
+                                Text(
+                                    text = "Faltan ${"%.2f".format(remainingFor70)} puntos para alcanzar el 70%",
+                                    color = TextSecondary,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            } else {
+                                Text(
+                                    text = "¡Has alcanzado el 70% necesario para aprobar!",
+                                    color = EventGreen,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    if (evaluations.isEmpty()) {
+                        Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("No hay evaluaciones registradas", color = TextSecondary)
+                                TextButton(onClick = { showAddDialog = true }) {
+                                    Text("+ Agregar primera evaluación", color = NavyBlue)
+                                }
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 80.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Listado de Evaluaciones", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                                    TextButton(onClick = { showAddDialog = true }) {
+                                        Text("+ Nueva", color = NavyBlue, fontWeight = FontWeight.SemiBold)
+                                    }
+                                }
+                            }
+                            items(evaluations) { evaluation ->
+                                EvaluationCard(
+                                    evaluation = evaluation,
+                                    allEvaluations = evaluations,
+                                    onUpdate = { name, type, percentage, grade, date, hasReminder ->
+                                        userId?.let {
+                                            viewModel.updateEvaluation(it, courseId, evaluation.id, name, type, percentage, grade, date, hasReminder)
+                                        }
+                                    },
+                                    onDelete = { userId?.let { viewModel.deleteEvaluation(it, courseId, evaluation.id) } }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showAddDialog) {
+        val currentEvaluations = (evaluationsState as? EvaluationsUiState.Success)?.evaluations ?: emptyList()
+        EvaluationFormDialog(
+            title = "Nueva Evaluación",
+            allEvaluations = currentEvaluations,
+            onDismiss = { showAddDialog = false },
+            onConfirm = { name, type, percentage, grade, date, hasReminder ->
+                userId?.let { viewModel.addEvaluation(it, courseId, name, type, percentage, date, hasReminder) }
+                showAddDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun SummaryItem(label: String, value: String, color: Color) {
+    Column {
+        Text(label, fontSize = 11.sp, color = TextSecondary)
+        Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = color)
+    }
+}
+
+@Composable
+private fun EvaluationCard(
+    evaluation: com.moviles.unaplanner.data.remote.model.EvaluationDto,
+    allEvaluations: List<com.moviles.unaplanner.data.remote.model.EvaluationDto>,
+    onUpdate: (String, String, Double, Double?, String?, Boolean) -> Unit,
+    onDelete: () -> Unit
+) {
+    var showEditDialog by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceLight),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = evaluation.name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    EvaluationTypeBadge(type = evaluation.type)
+                }
+                Text(
+                    text = "Peso: ${evaluation.percentage}%",
+                    fontSize = 12.sp,
+                    color = TextSecondary
+                )
+                if (!evaluation.date.isNullOrBlank()) {
+                    Text(
+                        text = "Fecha: ${formatNoteDate(evaluation.date)}",
+                        fontSize = 11.sp,
+                        color = NavyBlue,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                val grade = evaluation.grade
+                val color = if (grade != null && grade >= 70) EventGreen else if (grade != null) CrimsonRed else TextSecondary
+                
+                Text(
+                    text = if (grade != null) "%.1f".format(grade) else "—",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = color
+                )
+                Text(
+                    text = "Obtenido: %.2f".format(evaluation.earnedPoints),
+                    fontSize = 11.sp,
+                    color = TextSecondary
+                )
+            }
+            
+            Row {
+                IconButton(onClick = { showEditDialog = true }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = NavyBlue.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = CrimsonRed.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+    }
+
+    if (showEditDialog) {
+        EvaluationFormDialog(
+            title = "Editar Evaluación",
+            initialName = evaluation.name,
+            initialType = evaluation.type,
+            initialPercentage = evaluation.percentage,
+            initialGrade = evaluation.grade,
+            initialDate = evaluation.date,
+            initialHasReminder = evaluation.hasReminder,
+            allEvaluations = allEvaluations,
+            editingEvaluationId = evaluation.id,
+            onDismiss = { showEditDialog = false },
+            onConfirm = { name, type, percentage, grade, date, hasReminder ->
+                onUpdate(name, type, percentage, grade, date, hasReminder)
+                showEditDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun EvaluationTypeBadge(type: String) {
+    Surface(
+        shape = RoundedCornerShape(4.dp),
+        color = NavyBlue.copy(alpha = 0.1f)
+    ) {
+        Text(
+            text = type,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = NavyBlue
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EvaluationFormDialog(
+    title: String,
+    initialName: String = "",
+    initialType: String = "Examen",
+    initialPercentage: Double? = null,
+    initialGrade: Double? = null,
+    initialDate: String? = null,
+    initialHasReminder: Boolean = false,
+    allEvaluations: List<com.moviles.unaplanner.data.remote.model.EvaluationDto> = emptyList(),
+    editingEvaluationId: Int? = null,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String, Double, Double?, String?, Boolean) -> Unit
+) {
+    var name by remember { mutableStateOf(initialName) }
+    var type by remember { mutableStateOf(initialType) }
+    var percentage by remember { mutableStateOf(initialPercentage?.toString() ?: "") }
+    var grade by remember { mutableStateOf(initialGrade?.toString() ?: "") }
+    var date by remember { mutableStateOf(initialDate ?: "") }
+    var hasReminder by remember { mutableStateOf(initialHasReminder) }
+    val types = listOf("Examen", "Tarea", "Proyecto", "Exposición", "Otro")
+
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialDate?.let {
+            try {
+                java.time.LocalDate.parse(it).atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli()
+            } catch (e: Exception) {
+                null
+            }
+        }
+    )
+
+    // Percentage validation logic
+    val totalOtherPercentages = allEvaluations
+        .filter { it.id != editingEvaluationId }
+        .sumOf { it.percentage }
+    val percentageDouble = percentage.toDoubleOrNull() ?: 0.0
+    val isPercentageValid = percentageDouble > 0 && (totalOtherPercentages + percentageDouble) <= 100.0
+    val availablePercentage = 100.0 - totalOtherPercentages
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nombre") },
+                    placeholder = { Text("Ej: Parcial 1") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Text("Tipo", style = MaterialTheme.typography.labelMedium)
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    types.forEach { t ->
+                        FilterChip(
+                            selected = type == t,
+                            onClick = { type = t },
+                            label = { Text(t) }
+                        )
+                    }
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = percentage,
+                        onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) percentage = it },
+                        label = { Text("Peso (%)") },
+                        isError = !isPercentageValid && percentage.isNotEmpty(),
+                        supportingText = {
+                            if (!isPercentageValid && percentage.isNotEmpty()) {
+                                Text(
+                                    if (percentageDouble <= 0) "Debe ser > 0" 
+                                    else "Máx: ${availablePercentage.toInt()}%",
+                                    color = CrimsonRed
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = grade,
+                        onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) grade = it },
+                        label = { Text("Nota (0-100)") },
+                        placeholder = { Text("—") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = date,
+                        onValueChange = { },
+                        label = { Text("Fecha") },
+                        placeholder = { Text("Seleccionar fecha") },
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true,
+                        trailingIcon = {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(Icons.Default.DateRange, contentDescription = null)
+                            }
+                        }
+                    )
+                    // Invisible box to capture clicks over the field and show picker
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { showDatePicker = true }
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Recordatorio en calendario", fontSize = 14.sp)
+                    Switch(
+                        checked = hasReminder,
+                        onCheckedChange = { hasReminder = it },
+                        colors = SwitchDefaults.colors(checkedThumbColor = NavyBlue)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val p = percentage.toDoubleOrNull() ?: 0.0
+                    val g = grade.toDoubleOrNull()
+                    val d = date.takeIf { it.isNotBlank() }
+                    if (name.isNotBlank() && isPercentageValid) {
+                        onConfirm(name, type, p, g, d, hasReminder)
+                    }
+                },
+                enabled = name.isNotBlank() && isPercentageValid,
+                colors = ButtonDefaults.buttonColors(containerColor = NavyBlue)
+            ) { Text("Guardar") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        }
+    )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        val instant = java.time.Instant.ofEpochMilli(it)
+                        val localDate = java.time.LocalDate.ofInstant(instant, java.time.ZoneOffset.UTC)
+                        date = localDate.toString()
+                    }
+                    showDatePicker = false
+                }) { Text("Aceptar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 }

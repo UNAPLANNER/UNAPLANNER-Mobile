@@ -3,10 +3,13 @@ package com.moviles.unaplanner.ui.screens.malla
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.moviles.unaplanner.data.remote.model.CourseDetailDto
+import com.moviles.unaplanner.data.remote.model.CreateEvaluationRequest
 import com.moviles.unaplanner.data.remote.model.EnrolledCourseDetailRequest
+import com.moviles.unaplanner.data.remote.model.EvaluationDto
 import com.moviles.unaplanner.data.remote.model.NoteDto
 import com.moviles.unaplanner.data.repository.ApiResult
 import com.moviles.unaplanner.data.repository.CurriculumRepository
+import com.moviles.unaplanner.data.repository.EvaluationRepository
 import com.moviles.unaplanner.data.repository.NotesRepository
 import retrofit2.HttpException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,8 +36,15 @@ sealed class SaveDetailUiState {
     data class Error(val message: String) : SaveDetailUiState()
 }
 
+sealed class EvaluationsUiState {
+    object Loading : EvaluationsUiState()
+    data class Success(val evaluations: List<EvaluationDto>) : EvaluationsUiState()
+    data class Error(val message: String) : EvaluationsUiState()
+}
+
 class CourseDetailViewModel(
     private val repository: CurriculumRepository,
+    private val evaluationRepository: EvaluationRepository,
     private val notesRepository: NotesRepository = NotesRepository()
 ) : ViewModel() {
 
@@ -114,5 +124,88 @@ class CourseDetailViewModel(
     fun reloadCourseNotes(studentId: Int, courseId: Int) {
         _notesState.value = CourseNotesUiState.Idle
         loadCourseNotes(studentId, courseId)
+    }
+
+    // --- Evaluations Logic ---
+    private val _evaluationsState = MutableStateFlow<EvaluationsUiState>(EvaluationsUiState.Loading)
+    val evaluationsState: StateFlow<EvaluationsUiState> = _evaluationsState
+
+    fun loadEvaluations(studentId: Int, courseId: Int) {
+        viewModelScope.launch {
+            _evaluationsState.value = EvaluationsUiState.Loading
+            when (val result = evaluationRepository.getEvaluations(studentId, courseId)) {
+                is ApiResult.Success -> _evaluationsState.value = EvaluationsUiState.Success(result.data)
+                is ApiResult.Error -> _evaluationsState.value = EvaluationsUiState.Error(result.message)
+            }
+        }
+    }
+
+    fun addEvaluation(studentId: Int, courseId: Int, name: String, type: String, percentage: Double, date: String?, hasReminder: Boolean) {
+        if (name.isBlank()) {
+            _saveState.value = SaveDetailUiState.Error("El nombre no puede estar vacío")
+            return
+        }
+        if (percentage <= 0 || percentage > 100) {
+            _saveState.value = SaveDetailUiState.Error("El porcentaje debe estar entre 1 y 100")
+            return
+        }
+
+        viewModelScope.launch {
+            _saveState.value = SaveDetailUiState.Saving
+            val request = CreateEvaluationRequest(name, type, percentage, date, hasReminder)
+            when (val result = evaluationRepository.createEvaluation(studentId, courseId, request)) {
+                is ApiResult.Success -> {
+                    _saveState.value = SaveDetailUiState.Success
+                    loadEvaluations(studentId, courseId)
+                }
+                is ApiResult.Error -> _saveState.value = SaveDetailUiState.Error(result.message)
+            }
+        }
+    }
+
+    fun updateEvaluation(
+        studentId: Int,
+        courseId: Int,
+        evaluationId: Int,
+        name: String,
+        type: String,
+        percentage: Double,
+        grade: Double?,
+        date: String?,
+        hasReminder: Boolean
+    ) {
+        if (name.isBlank()) {
+            _saveState.value = SaveDetailUiState.Error("El nombre no puede estar vacío")
+            return
+        }
+        if (percentage <= 0 || percentage > 100) {
+            _saveState.value = SaveDetailUiState.Error("El porcentaje debe estar entre 1 y 100")
+            return
+        }
+        if (grade != null && (grade < 0 || grade > 100)) {
+            _saveState.value = SaveDetailUiState.Error("La nota debe estar entre 0 y 100")
+            return
+        }
+
+        viewModelScope.launch {
+            _saveState.value = SaveDetailUiState.Saving
+            val request = com.moviles.unaplanner.data.remote.model.UpdateEvaluationRequest(name, type, percentage, grade, date, hasReminder)
+            when (val result = evaluationRepository.updateEvaluation(studentId, courseId, evaluationId, request)) {
+                is ApiResult.Success -> {
+                    _saveState.value = SaveDetailUiState.Success
+                    loadEvaluations(studentId, courseId)
+                }
+                is ApiResult.Error -> _saveState.value = SaveDetailUiState.Error(result.message)
+            }
+        }
+    }
+
+    fun deleteEvaluation(studentId: Int, courseId: Int, evaluationId: Int) {
+        viewModelScope.launch {
+            when (val result = evaluationRepository.deleteEvaluation(evaluationId)) {
+                is ApiResult.Success -> loadEvaluations(studentId, courseId)
+                is ApiResult.Error -> { /* Manejar error si es necesario */ }
+            }
+        }
     }
 }
