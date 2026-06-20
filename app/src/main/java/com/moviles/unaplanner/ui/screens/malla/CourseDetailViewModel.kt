@@ -202,7 +202,7 @@ class CourseDetailViewModel(
 
     fun deleteEvaluation(studentId: Int, courseId: Int, evaluationId: Int) {
         viewModelScope.launch {
-            when (val result = evaluationRepository.deleteEvaluation(evaluationId)) {
+            when (val result = evaluationRepository.deleteEvaluation(studentId, courseId, evaluationId)) {
                 is ApiResult.Success -> loadEvaluations(studentId, courseId)
                 is ApiResult.Error -> { /* Manejar error si es necesario */ }
             }

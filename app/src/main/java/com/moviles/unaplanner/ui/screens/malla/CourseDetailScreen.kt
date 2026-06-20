@@ -34,9 +34,9 @@ import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.data.remote.model.CourseDetailDto
 import com.moviles.unaplanner.data.remote.model.NoteDto
 import com.moviles.unaplanner.data.remote.model.PrerequisiteDto
+import com.moviles.unaplanner.ui.components.AppTopBar
 import com.moviles.unaplanner.ui.theme.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseDetailScreen(
     courseId: Int,
@@ -71,18 +71,19 @@ fun CourseDetailScreen(
         containerColor = BackgroundLight,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text("Malla", fontWeight = FontWeight.SemiBold) },
+            AppTopBar(
+                title = "Detalles del Curso",
+                subtitle = "Malla",
+                titleFontSize = 22.sp,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = androidx.compose.ui.graphics.Color.White
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SurfaceLight,
-                    titleContentColor = TextPrimary,
-                    navigationIconContentColor = NavyBlue
-                )
+                }
             )
         }
     ) { padding ->
@@ -206,7 +207,7 @@ private fun CourseDetailContent(
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             when (selectedTab) {
                 0 -> InfoTab(detail = detail, viewModel = viewModel, courseId = courseId)
-                1 -> EvaluationsTab(viewModel = viewModel, courseId = courseId)
+                1 -> EvaluationsTab(viewModel = viewModel, courseId = courseId, courseStatus = detail.status)
                 2 -> NotesTab(
                     viewModel = viewModel,
                     courseId = courseId,
@@ -223,15 +224,43 @@ private fun CourseDetailContent(
 @Composable
 private fun EvaluationsTab(
     viewModel: CourseDetailViewModel,
-    courseId: Int
+    courseId: Int,
+    courseStatus: String
 ) {
     val evaluationsState by viewModel.evaluationsState.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
     val userId = AuthSession.studentId
 
-    // Load evaluations
-    LaunchedEffect(courseId) {
-        userId?.let { viewModel.loadEvaluations(it, courseId) }
+    // EnCurso / Reprobado → editable; Aprobado → solo lectura; Pendiente → bloqueado
+    val canView = courseStatus == "EnCurso" || courseStatus == "Aprobado" || courseStatus == "Reprobado"
+    val canEdit = courseStatus == "EnCurso" || courseStatus == "Reprobado"
+
+    LaunchedEffect(courseId, canView) {
+        if (canView) userId?.let { viewModel.loadEvaluations(it, courseId) }
+    }
+
+    if (!canView) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = null,
+                    tint = TextSecondary,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Las evaluaciones estarán disponibles cuando el curso esté En Curso",
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    fontSize = 14.sp
+                )
+            }
+        }
+        return
     }
 
     Box(modifier = Modifier.fillMaxSize().background(BackgroundLight)) {
@@ -262,6 +291,7 @@ private fun EvaluationsTab(
                 val remainingFor70 = (70.0 - totalEarned).coerceAtLeast(0.0)
 
                 val currentEvaluations = (evaluationsState as? EvaluationsUiState.Success)?.evaluations ?: emptyList()
+                val porcentajeObtenido = if (totalPercentage > 0) (totalEarned / totalPercentage) * 100 else 0.0
                 Column(modifier = Modifier.fillMaxSize()) {
                     // Summary Card
                     Card(
@@ -275,6 +305,7 @@ private fun EvaluationsTab(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 SummaryItem(label = "Puntos Obtenidos", value = "%.2f".format(totalEarned), color = if (totalEarned >= 70) EventGreen else CrimsonRed)
+                                SummaryItem(label = "% Logrado", value = "%.1f%%".format(porcentajeObtenido), color = if (porcentajeObtenido >= 70) EventGreen else CrimsonRed)
                                 SummaryItem(label = "Definido", value = "${totalPercentage.toInt()}%", color = NavyBlue)
                             }
                             
@@ -302,8 +333,10 @@ private fun EvaluationsTab(
                         Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("No hay evaluaciones registradas", color = TextSecondary)
-                                TextButton(onClick = { showAddDialog = true }) {
-                                    Text("+ Agregar primera evaluación", color = NavyBlue)
+                                if (canEdit) {
+                                    TextButton(onClick = { showAddDialog = true }) {
+                                        Text("+ Agregar primera evaluación", color = NavyBlue)
+                                    }
                                 }
                             }
                         }
@@ -320,8 +353,10 @@ private fun EvaluationsTab(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text("Listado de Evaluaciones", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                                    TextButton(onClick = { showAddDialog = true }) {
-                                        Text("+ Nueva", color = NavyBlue, fontWeight = FontWeight.SemiBold)
+                                    if (canEdit) {
+                                        TextButton(onClick = { showAddDialog = true }) {
+                                            Text("+ Nueva", color = NavyBlue, fontWeight = FontWeight.SemiBold)
+                                        }
                                     }
                                 }
                             }
@@ -329,6 +364,7 @@ private fun EvaluationsTab(
                                 EvaluationCard(
                                     evaluation = evaluation,
                                     allEvaluations = evaluations,
+                                    readOnly = !canEdit,
                                     onUpdate = { name, type, percentage, grade, date, hasReminder ->
                                         userId?.let {
                                             viewModel.updateEvaluation(it, courseId, evaluation.id, name, type, percentage, grade, date, hasReminder)
@@ -344,7 +380,7 @@ private fun EvaluationsTab(
         }
     }
 
-    if (showAddDialog) {
+    if (showAddDialog && canEdit) {
         val currentEvaluations = (evaluationsState as? EvaluationsUiState.Success)?.evaluations ?: emptyList()
         EvaluationFormDialog(
             title = "Nueva Evaluación",
@@ -370,10 +406,12 @@ private fun SummaryItem(label: String, value: String, color: Color) {
 private fun EvaluationCard(
     evaluation: com.moviles.unaplanner.data.remote.model.EvaluationDto,
     allEvaluations: List<com.moviles.unaplanner.data.remote.model.EvaluationDto>,
+    readOnly: Boolean = false,
     onUpdate: (String, String, Double, Double?, String?, Boolean) -> Unit,
     onDelete: () -> Unit
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -428,18 +466,20 @@ private fun EvaluationCard(
                 )
             }
             
-            Row {
-                IconButton(onClick = { showEditDialog = true }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = NavyBlue.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = CrimsonRed.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+            if (!readOnly) {
+                Row {
+                    IconButton(onClick = { showEditDialog = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Editar", tint = NavyBlue.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                    }
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = CrimsonRed.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                    }
                 }
             }
         }
     }
 
-    if (showEditDialog) {
+    if (showEditDialog && !readOnly) {
         EvaluationFormDialog(
             title = "Editar Evaluación",
             initialName = evaluation.name,
@@ -454,6 +494,27 @@ private fun EvaluationCard(
             onConfirm = { name, type, percentage, grade, date, hasReminder ->
                 onUpdate(name, type, percentage, grade, date, hasReminder)
                 showEditDialog = false
+            }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Eliminar evaluación") },
+            text = { Text("¿Seguro que querés eliminar \"${evaluation.name}\"? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    onDelete()
+                }) {
+                    Text("Eliminar", color = CrimsonRed, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar")
+                }
             }
         )
     }
@@ -601,7 +662,14 @@ private fun EvaluationFormDialog(
                     Switch(
                         checked = hasReminder,
                         onCheckedChange = { hasReminder = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = NavyBlue)
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor    = androidx.compose.ui.graphics.Color.White,
+                            checkedTrackColor    = NavyBlue,
+                            checkedBorderColor   = NavyBlue,
+                            uncheckedThumbColor  = Disabled,
+                            uncheckedTrackColor  = Divider,
+                            uncheckedBorderColor = Disabled
+                        )
                     )
                 }
             }
