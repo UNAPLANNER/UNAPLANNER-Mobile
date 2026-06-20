@@ -65,4 +65,15 @@ class CurriculumRepository(private val apiService: CurriculumApiService) {
             Result.failure(e)
         }
     }
+
+    suspend fun getCourseDetail(
+        studentId: Int,
+        courseId: Int
+    ): Result<CourseDetailDto> = withContext(Dispatchers.IO) {
+        try {
+            Result.success(apiService.getCourseDetail(studentId, courseId))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

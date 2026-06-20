@@ -33,6 +33,7 @@ fun MainScreen(
     onNavigateToAddActivity: () -> Unit,
     onNavigateToEditActivity: (Int) -> Unit,
     onNavigateToProgreso: () -> Unit,
+    onNavigateToCourseDetail: (Int) -> Unit = {},
     notesViewModel: NotesViewModel,
     calendarViewModel: StudentCalendarViewModel,
     mallaViewModel: MallaViewModel
@@ -147,7 +148,7 @@ fun MainScreen(
                     onAddActivity = onNavigateToAddActivity,
                     onEditActivity = onNavigateToEditActivity
                 )
-                2 -> MallaScreen(viewModel = mallaViewModel)
+                2 -> MallaScreen(viewModel = mallaViewModel, onCourseClick = onNavigateToCourseDetail)
                 3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
                 4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
             }

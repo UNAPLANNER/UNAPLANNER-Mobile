@@ -2,6 +2,7 @@ package com.moviles.unaplanner.ui.screens.malla
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -116,7 +117,11 @@ private fun buildMallaItems(levels: List<CurriculumLevelDto>): List<MallaItem> {
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 
 @Composable
-fun MallaScreen(modifier: Modifier = Modifier, viewModel: MallaViewModel) {
+fun MallaScreen(
+    modifier: Modifier = Modifier,
+    viewModel: MallaViewModel,
+    onCourseClick: (courseId: Int) -> Unit = {}
+) {
     val userId = AuthSession.currentUser?.id
 
     val careerName by viewModel.careerName.collectAsStateWithLifecycle()
@@ -178,7 +183,8 @@ fun MallaScreen(modifier: Modifier = Modifier, viewModel: MallaViewModel) {
             when (selectedTab) {
                 0 -> MallaVisualTab(
                     state = curriculumState,
-                    onRetry = { userId?.let { viewModel.reloadCurriculum(it) } }
+                    onRetry = { userId?.let { viewModel.reloadCurriculum(it) } },
+                    onCourseClick = onCourseClick
                 )
                 1 -> MisCursosTab(
                     state = studentCoursesState,
@@ -221,7 +227,11 @@ private fun CareerIndicator(careerName: String?) {
 // ─── Malla Visual Tab ────────────────────────────────────────────────────────
 
 @Composable
-private fun MallaVisualTab(state: CurriculumUiState, onRetry: () -> Unit) {
+private fun MallaVisualTab(
+    state: CurriculumUiState,
+    onRetry: () -> Unit,
+    onCourseClick: (courseId: Int) -> Unit = {}
+) {
     when (state) {
         is CurriculumUiState.Idle -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -255,12 +265,15 @@ private fun MallaVisualTab(state: CurriculumUiState, onRetry: () -> Unit) {
                 }
             }
         }
-        is CurriculumUiState.Success -> CurriculumZigzagList(levels = state.levels)
+        is CurriculumUiState.Success -> CurriculumZigzagList(levels = state.levels, onCourseClick = onCourseClick)
     }
 }
 
 @Composable
-private fun CurriculumZigzagList(levels: List<CurriculumLevelDto>) {
+private fun CurriculumZigzagList(
+    levels: List<CurriculumLevelDto>,
+    onCourseClick: (courseId: Int) -> Unit = {}
+) {
     val items = remember(levels) { buildMallaItems(levels) }
 
     if (items.isEmpty()) {
@@ -295,7 +308,7 @@ private fun CurriculumZigzagList(levels: List<CurriculumLevelDto>) {
             when (item) {
                 is MallaItem.SemesterHeader -> SemesterHeaderItem(item)
                 is MallaItem.SectionHeader -> SectionHeaderItem(item.title)
-                is MallaItem.CourseEntry -> ZigzagCourseItem(item)
+                is MallaItem.CourseEntry -> ZigzagCourseItem(item, onCourseClick = onCourseClick)
             }
         }
     }
@@ -362,7 +375,10 @@ private fun SemesterHeaderItem(item: MallaItem.SemesterHeader) {
 }
 
 @Composable
-private fun ZigzagCourseItem(item: MallaItem.CourseEntry) {
+private fun ZigzagCourseItem(
+    item: MallaItem.CourseEntry,
+    onCourseClick: (courseId: Int) -> Unit = {}
+) {
     val course = item.course
 
     // Vertical connector dashes above card (except first in section)
@@ -380,6 +396,7 @@ private fun ZigzagCourseItem(item: MallaItem.CourseEntry) {
             modifier = Modifier
                 .fillMaxWidth(0.68f)
                 .align(if (item.isLeft) Alignment.CenterStart else Alignment.CenterEnd)
+                .clickable { onCourseClick(course.id) }
         )
     }
 }

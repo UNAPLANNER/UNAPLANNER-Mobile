@@ -56,7 +56,10 @@ interface ApiService {
     ): Response<StudyPlanDetail>
 
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
-    suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>
+    suspend fun getStudentNotes(
+        @Path("id") userId: Int,
+        @Query("courseId") courseId: Int? = null
+    ): Response<NotesResponse>
 
     @POST(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun createNote(
