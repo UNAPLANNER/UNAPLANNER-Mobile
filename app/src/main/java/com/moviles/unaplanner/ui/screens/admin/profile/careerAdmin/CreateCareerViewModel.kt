@@ -99,6 +99,9 @@ class CreateCareerViewModel(
                 diplomaCredits = if (requiresSpecificDegreeCredits(uiState.degree)) null else uiState.diplomaCredits.toInt(),
                 degreeCredits = if (requiresSpecificDegreeCredits(uiState.degree)) uiState.degreeCredits.toInt() else null,
                 officialResolution = uiState.officialResolution.trim(),
+                code = uiState.officialResolution.trim(),
+                description = buildDescription(),
+                totalCredits = getSelectedTotalCredits(),
                 isStatus = uiState.isActive
             )
 
@@ -177,6 +180,30 @@ class CreateCareerViewModel(
 
         uiState = uiState.copy(fieldErrors = errors)
         return errors.isEmpty()
+    }
+
+    private fun buildDescription(): String {
+        val creditsDescription = if (requiresSpecificDegreeCredits(uiState.degree)) {
+            "Creditos ${uiState.degree.lowercase()}: ${uiState.degreeCredits.trim()}"
+        } else {
+            "Creditos diplomado: ${uiState.diplomaCredits.trim()}"
+        }
+
+        return listOf(
+            "Grado: ${uiState.degree.trim()}",
+            "Anio del plan: ${uiState.planYear.trim()}",
+            "Escuela: ${uiState.school.trim()}",
+            creditsDescription,
+            "Resolucion oficial: ${uiState.officialResolution.trim()}"
+        ).joinToString(separator = " | ")
+    }
+
+    private fun getSelectedTotalCredits(): Int {
+        return if (requiresSpecificDegreeCredits(uiState.degree)) {
+            uiState.degreeCredits.toInt()
+        } else {
+            uiState.bachelorCredits.toInt()
+        }
     }
 
     private fun requiresSpecificDegreeCredits(degree: String): Boolean {
