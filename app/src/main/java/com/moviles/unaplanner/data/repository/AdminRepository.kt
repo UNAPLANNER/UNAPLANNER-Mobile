@@ -202,6 +202,19 @@ class AdminRepository(
         }
     }
 
+    suspend fun getCampusContact(id: Int): ApiResult<CampusContact> {
+        return try {
+            val response = contactApiService.getCampusContact(id)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error("Error al obtener el contacto")
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
     suspend fun createCampusContact(contact: CampusContact): ApiResult<CampusContact> {
         return try {
             val response = contactApiService.createCampusContact(contact)

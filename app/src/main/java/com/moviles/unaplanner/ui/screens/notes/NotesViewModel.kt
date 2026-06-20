@@ -7,6 +7,7 @@ import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.data.remote.model.CourseDto
 import com.moviles.unaplanner.data.remote.model.CreateNoteRequest
 import com.moviles.unaplanner.data.remote.model.NoteDto
+import com.moviles.unaplanner.data.remote.model.StudentCourseProgressDto
 import com.moviles.unaplanner.data.remote.model.UpdateNoteRequest
 import com.moviles.unaplanner.data.repository.ApiResult
 import com.moviles.unaplanner.data.repository.NotesRepository
@@ -17,7 +18,12 @@ import kotlinx.coroutines.launch
 
 sealed class NotesUiState {
     object Loading : NotesUiState()
-    data class Success(val notes: List<NoteDto>, val filteredNotes: List<NoteDto>, val courses: List<String>) : NotesUiState()
+    data class Success(
+        val notes: List<NoteDto>,
+        val filteredNotes: List<NoteDto>,
+        val courses: List<String>,
+        val selectedCourse: String
+    ) : NotesUiState()
     data class Error(val message: String) : NotesUiState()
     object Empty : NotesUiState()
 }
@@ -40,8 +46,8 @@ class NotesViewModel(
     private val _editorState = MutableStateFlow<NoteEditorUiState>(NoteEditorUiState.Idle)
     val editorState: StateFlow<NoteEditorUiState> = _editorState.asStateFlow()
 
-    private val _studentCourses = MutableStateFlow<List<CourseDto>>(emptyList())
-    val studentCourses: StateFlow<List<CourseDto>> = _studentCourses.asStateFlow()
+    private val _studentCourses = MutableStateFlow<List<StudentCourseProgressDto>>(emptyList())
+    val studentCourses: StateFlow<List<StudentCourseProgressDto>> = _studentCourses.asStateFlow()
 
     private var allNotes: List<NoteDto> = emptyList()
     private var selectedCourse: String = "Todas"
@@ -77,17 +83,12 @@ class NotesViewModel(
         _uiState.value = NotesUiState.Loading
         viewModelScope.launch {
             try {
-                when (val result = refreshNotesFromServer()) {
-                    is ApiResult.Success -> {
-                        if (allNotes.isEmpty()) {
-                            _uiState.value = NotesUiState.Empty
-                        }
-                    }
-                    is ApiResult.Error -> {
-                        Log.e("NotesViewModel", "Error al obtener notas: ${result.message}")
-                        _uiState.value = NotesUiState.Error(result.message)
-                    }
+                val result = refreshNotesFromServer()
+                if (result is ApiResult.Error) {
+                    Log.e("NotesViewModel", "Error al obtener notas: ${result.message}")
+                    _uiState.value = NotesUiState.Error(result.message)
                 }
+                // updateState() ya es llamado dentro de refreshNotesFromServer si es Success
             } catch (e: Exception) {
                 Log.e("NotesViewModel", "Excepción al cargar notas", e)
                 _uiState.value = NotesUiState.Error("Error inesperado: ${e.localizedMessage}")
@@ -100,15 +101,16 @@ class NotesViewModel(
         viewModelScope.launch {
             try {
                 val studentId = AuthSession.studentId ?: return@launch
-                val result = repository.getStudentCourses(studentId)
+                // Obtenemos los cursos con su estado actual de la malla
+                val result = repository.getStudentEnrolledCourses(studentId)
                 when (result) {
                     is ApiResult.Success -> {
-                        _studentCourses.value = result.data
-                        Log.d("NotesViewModel", "Cursos cargados: ${result.data.size} cursos")
-                        // Actualizar UI para incluir los nuevos nombres de cursos en los filtros si es necesario
-                        if (_uiState.value is NotesUiState.Success || _uiState.value is NotesUiState.Empty) {
-                            updateState()
-                        }
+                        // Filtramos solo los cursos que están "EnCurso"
+                        val enrolledCourses = result.data.filter { it.status == "EnCurso" }
+                        _studentCourses.value = enrolledCourses
+                        Log.d("NotesViewModel", "Cursos EnCurso cargados: ${enrolledCourses.size}")
+
+                        updateState()
                     }
                     is ApiResult.Error -> {
                         Log.e("NotesViewModel", "Error al cargar cursos: ${result.message}")
@@ -212,7 +214,7 @@ class NotesViewModel(
                 when (result) {
                     is ApiResult.Success -> {
                         Log.d("NotesViewModel", "Nota eliminada, refrescando lista...")
-                        refreshNotesFromServer() // Refrescar ANTES de marcar éxito
+                        refreshNotesFromServer() /// Refresh BEFORE marking success
                         _editorState.value = NoteEditorUiState.Success("Nota eliminada exitosamente")
                     }
                     is ApiResult.Error -> {
@@ -240,10 +242,11 @@ class NotesViewModel(
             allNotes.filter { it.displayCourseName == selectedCourse }
         }
 
-        // Filtros: solo cursos EnCurso del plan del estudiante + fijos
+        // Tabs: "Todas", "General", and the student's currently enrolled (EnCurso) courses from the API
         val coursesList = mutableListOf("Todas", "General")
         coursesList.addAll(_studentCourses.value.map { it.name })
 
+        // We use Success to ensure that filters and the "+New" button are shown even without notes
         _uiState.value = NotesUiState.Success(
             notes = allNotes,
             filteredNotes = filtered,
@@ -253,7 +256,8 @@ class NotesViewModel(
                     "General" -> "1"
                     else -> "2$it"
                 }
-            }
+            },
+            selectedCourse = selectedCourse
         )
     }
 }

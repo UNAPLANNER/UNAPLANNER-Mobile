@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.moviles.unaplanner.data.remote.model.CourseDto
+import com.moviles.unaplanner.data.remote.model.StudentCourseProgressDto
 import com.moviles.unaplanner.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,7 +67,10 @@ fun NoteEditorScreen(
     // Pre-seleccionar el curso cuando viene desde el detalle de un curso
     LaunchedEffect(studentCourses, preselectedCourseId) {
         if (preselectedCourseId != null && selectedCourse == null && studentCourses.isNotEmpty()) {
-            selectedCourse = studentCourses.find { it.id == preselectedCourseId }
+            val course = studentCourses.find { it.courseId == preselectedCourseId }
+            if (course != null) {
+                selectedCourse = CourseDto(id = course.courseId, code = course.code, name = course.name)
+            }
         }
     }
 
@@ -248,7 +252,7 @@ fun NoteEditorScreen(
                                     }
                                 },
                                 onClick = {
-                                    selectedCourse = course
+                                    selectedCourse = CourseDto(id = course.courseId, code = course.code, name = course.name)
                                     expanded = false
                                 },
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
