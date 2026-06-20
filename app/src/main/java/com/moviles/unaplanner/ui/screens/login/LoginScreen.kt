@@ -288,13 +288,25 @@ fun PasswordTextField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
 
-    CustomInputField(
+    AppTextField(
+        value = value,
         label = "CONTRASEÑA",
         value = value,
         onValueChange = onValueChange,
-        placeholder = "********",
-        isPassword = true
+        modifier = modifier,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                Icon(
+                    imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                    contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                    tint = Color.Gray
+                )
+            }
+        }
     )
 }
 

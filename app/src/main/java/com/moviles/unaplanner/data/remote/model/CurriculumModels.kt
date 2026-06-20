@@ -85,7 +85,8 @@ data class CourseDetailDto(
     val classroom: String?,
     val schedule: String?,
     val syllabusUrl: String?,
-    val prerequisites: List<PrerequisiteDto>?
+    val prerequisites: List<PrerequisiteDto>?,
+    val evaluations: List<EvaluationDto>? = emptyList()
 )
 
 data class EnrolledCourseDetailRequest(

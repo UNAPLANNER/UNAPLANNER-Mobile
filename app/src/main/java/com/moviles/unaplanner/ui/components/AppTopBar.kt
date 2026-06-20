@@ -13,6 +13,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moviles.unaplanner.ui.theme.*
@@ -23,7 +25,9 @@ fun AppTopBar(
     subtitle: String? = null,
     onLogout: (() -> Unit)? = null,
     onNotificationsClick: (() -> Unit)? = null,
-    hasUnreadNotifications: Boolean = false, // Nuevo parámetro
+    hasUnreadNotifications: Boolean = false,
+    titleFontSize: TextUnit = 28.sp,
+    navigationIcon: (@Composable () -> Unit)? = null,
     action: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -37,7 +41,7 @@ fun AppTopBar(
         modifier = modifier
             .fillMaxWidth()
             .background(gradientBrush)
-            .statusBarsPadding() // Respeta la barra de estado
+            .statusBarsPadding()
             .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
         Row(
@@ -45,13 +49,17 @@ fun AppTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (navigationIcon != null) {
+                navigationIcon()
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     color = Color.White,
-                    fontSize = 28.sp,
+                    fontSize = titleFontSize,
                     fontWeight = FontWeight.Bold,
-                    lineHeight = 34.sp
+                    lineHeight = titleFontSize * 1.2
                 )
                 if (subtitle != null) {
                     Text(

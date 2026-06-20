@@ -348,7 +348,10 @@ fun AppNavHost() {
                 factory = object : androidx.lifecycle.ViewModelProvider.Factory {
                     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                         @Suppress("UNCHECKED_CAST")
-                        return CourseDetailViewModel(AppContainer.curriculumRepository) as T
+                        return CourseDetailViewModel(
+                            AppContainer.curriculumRepository,
+                            AppContainer.evaluationRepository
+                        ) as T
                     }
                 }
             )
