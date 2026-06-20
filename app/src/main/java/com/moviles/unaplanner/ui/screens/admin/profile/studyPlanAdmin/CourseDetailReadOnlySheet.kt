@@ -15,8 +15,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -59,7 +61,10 @@ fun CourseDetailReadOnlySheet(
     val coroutineScope = rememberCoroutineScope()
     var isEditing by remember(course.id) { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
+    var isDeleting by remember { mutableStateOf(false) }
     var showSuccess by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showDeleteSuccess by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var updatedStudyPlan by remember { mutableStateOf<StudyPlanDetail?>(null) }
 
@@ -127,6 +132,26 @@ fun CourseDetailReadOnlySheet(
         }
     }
 
+    fun deleteCourse() {
+        coroutineScope.launch {
+            isDeleting = true
+            error = null
+            when (val result = repository.deleteStudyPlanCourse(studyPlan.id, course.id)) {
+                is ApiResult.Success -> {
+                    updatedStudyPlan = result.data
+                    isDeleting = false
+                    showDeleteConfirmation = false
+                    showDeleteSuccess = true
+                }
+                is ApiResult.Error -> {
+                    isDeleting = false
+                    showDeleteConfirmation = false
+                    error = result.message ?: "No se pudo eliminar el curso."
+                }
+            }
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = Color.White,
@@ -154,6 +179,24 @@ fun CourseDetailReadOnlySheet(
                         color = Color(0xFF8A98AF)
                     )
                 }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = { showDeleteConfirmation = true },
+                        enabled = !isLoading && !isDeleting,
+                        shape = RoundedCornerShape(50)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = CrimsonRed,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(text = "Eliminar", fontWeight = FontWeight.Bold, color = CrimsonRed)
+                    }
+                    Button(
+                        onClick = { isEditing = true },
+                        enabled = !isEditing && !isLoading && !isDeleting,
                 if (!isEditing) {
                     Button(
                         onClick = { isEditing = true },
@@ -244,7 +287,7 @@ fun CourseDetailReadOnlySheet(
                         modifier = Modifier
                             .weight(1f)
                             .height(54.dp),
-                        enabled = !isLoading,
+                        enabled = !isLoading && !isDeleting,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = CrimsonRed)
                     ) {
@@ -265,6 +308,22 @@ fun CourseDetailReadOnlySheet(
     if (showSuccess) {
         CourseUpdatedDialog {
             showSuccess = false
+            updatedStudyPlan?.let(onCourseUpdated)
+            onDismiss()
+        }
+    }
+
+    if (showDeleteConfirmation) {
+        CourseDeleteConfirmationDialog(
+            isDeleting = isDeleting,
+            onConfirm = { deleteCourse() },
+            onDismiss = { if (!isDeleting) showDeleteConfirmation = false }
+        )
+    }
+
+    if (showDeleteSuccess) {
+        CourseDeletedDialog {
+            showDeleteSuccess = false
             updatedStudyPlan?.let(onCourseUpdated)
             onDismiss()
         }
@@ -345,6 +404,61 @@ private fun CourseUpdatedDialog(onAccept: () -> Unit) {
         },
         title = { Text(text = "Curso actualizado", fontWeight = FontWeight.Bold) },
         text = { Text(text = "El curso se actualizo correctamente.") },
+        confirmButton = {
+            TextButton(onClick = onAccept) {
+                Text(text = "Aceptar", fontWeight = FontWeight.Bold, color = CrimsonRed)
+            }
+        }
+    )
+}
+
+@Composable
+private fun CourseDeleteConfirmationDialog(
+    isDeleting: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = null,
+                tint = CrimsonRed
+            )
+        },
+        title = { Text(text = "Eliminar curso", fontWeight = FontWeight.Bold) },
+        text = { Text(text = "Esta accion eliminara el curso del plan de estudios. Deseas continuar?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm, enabled = !isDeleting) {
+                if (isDeleting) {
+                    CircularProgressIndicator(color = CrimsonRed, modifier = Modifier.size(18.dp))
+                } else {
+                    Text(text = "Eliminar", fontWeight = FontWeight.Bold, color = CrimsonRed)
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isDeleting) {
+                Text(text = "Cancelar", fontWeight = FontWeight.Bold, color = Color(0xFF344256))
+            }
+        }
+    )
+}
+
+@Composable
+private fun CourseDeletedDialog(onAccept: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = {},
+        icon = {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = Color(0xFF079545)
+            )
+        },
+        title = { Text(text = "Curso eliminado", fontWeight = FontWeight.Bold) },
+        text = { Text(text = "El curso se elimino correctamente.") },
         confirmButton = {
             TextButton(onClick = onAccept) {
                 Text(text = "Aceptar", fontWeight = FontWeight.Bold, color = CrimsonRed)
