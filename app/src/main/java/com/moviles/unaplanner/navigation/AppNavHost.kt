@@ -24,63 +24,11 @@ import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.CreateCampus
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.EditCampusContactScreen
 import com.moviles.unaplanner.ui.screens.notes.NoteEditorScreen
 import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
-import com.moviles.unaplanner.ui.screens.register.RegisterScreen
-import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
-import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
-import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
-import com.moviles.unaplanner.ui.screens.malla.CourseDetailViewModel
-import com.moviles.unaplanner.ui.screens.malla.CourseDetailScreen
-import com.moviles.unaplanner.ui.screens.progress.AcademicProgressScreen
-import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
-import com.moviles.unaplanner.ui.screens.notifications.NotificationScreen
-import com.moviles.unaplanner.ui.screens.notifications.NotificationViewModel
-import com.moviles.unaplanner.data.AppContainer
-
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
     val notesViewModel: NotesViewModel = viewModel()
-
-    val notificationViewModel: NotificationViewModel = viewModel(
-        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return NotificationViewModel(AppContainer.notificationRepository) as T
-            }
-        }
-    )
-
-    val calendarViewModel: StudentCalendarViewModel = viewModel(
-        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return StudentCalendarViewModel(
-                    AppContainer.calendarRepository,
-                    AppContainer.networkMonitor,
-                    AppContainer.curriculumRepository
-                ) as T
-            }
-        }
-    )
-
-    val mallaViewModel: MallaViewModel = viewModel(
-        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return MallaViewModel(AppContainer.curriculumRepository) as T
-            }
-        }
-    )
-
-    val progressViewModel: ProgressViewModel = viewModel(
-        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return ProgressViewModel(AppContainer.curriculumRepository) as T
-            }
-        }
-    )
 
     NavHost(
         navController = navController,
@@ -158,25 +106,7 @@ fun AppNavHost() {
                 onNavigateToNoteEdit = { noteId ->
                     navController.navigate(AppDestinations.createNoteEditRoute(noteId))
                 },
-                onNavigateToAddActivity = {
-                    navController.navigate(AppDestinations.ADD_ACTIVITY)
-                },
-                onNavigateToEditActivity = { eventId ->
-                    navController.navigate(AppDestinations.createEditActivityRoute(eventId))
-                },
-                onNavigateToProgreso = {
-                    navController.navigate(AppDestinations.PROGRESO)
-                },
-                onNavigateToNotifications = {
-                    // Now handled internally in MainScreen as an overlay
-                },
-                onNavigateToCourseDetail = { courseId ->
-                    navController.navigate(AppDestinations.createCourseDetailRoute(courseId))
-                },
-                notesViewModel = notesViewModel,
-                calendarViewModel = calendarViewModel,
-                mallaViewModel = mallaViewModel,
-                notificationViewModel = notificationViewModel
+                notesViewModel = notesViewModel
             )
         }
 
@@ -270,102 +200,6 @@ fun AppNavHost() {
                     navController.previousBackStackEntry?.savedStateHandle?.set("contact_updated", true)
                     navController.popBackStack()
                 }
-            )
-        }
-
-
-        // --- Register Student Screen ---
-        composable(route = AppDestinations.REGISTER) {
-            RegisterScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToHome = {
-                    navController.navigate(AppDestinations.LOGIN) {
-                        popUpTo(AppDestinations.REGISTER) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        // --- ADD ACTIVITY SCREEN ---
-        composable(route = AppDestinations.ADD_ACTIVITY) {
-            AddActivityScreen(
-                onBack = { navController.popBackStack() },
-                viewModel = calendarViewModel
-            )
-        }
-
-        // --- EDIT ACTIVITY SCREEN ---
-        composable(
-            route = AppDestinations.EDIT_ACTIVITY,
-            arguments = listOf(navArgument("eventId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val eventId = backStackEntry.arguments?.getInt("eventId") ?: 0
-            AddActivityScreen(
-                eventId = eventId,
-                onBack = { navController.popBackStack() },
-                viewModel = calendarViewModel
-            )
-        }
-        // --- ACADEMIC PROGRESS SCREEN ---
-        composable(route = AppDestinations.PROGRESO) {
-            AcademicProgressScreen(
-                viewModel = progressViewModel,
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        // --- NOTIFICATIONS LIST SCREEN ---
-        composable(
-            route = AppDestinations.NOTIFICATIONS_LIST,
-            enterTransition = {
-                slideInVertically(
-                    initialOffsetY = { -it },
-                    animationSpec = tween(durationMillis = 400)
-                ) + fadeIn(animationSpec = tween(durationMillis = 400))
-            },
-            exitTransition = {
-                slideOutVertically(
-                    targetOffsetY = { -it },
-                    animationSpec = tween(durationMillis = 400)
-                ) + fadeOut(animationSpec = tween(durationMillis = 400))
-            }
-        ) {
-            NotificationScreen(
-                viewModel = notificationViewModel,
-                onBack = { navController.popBackStack() }
-            )
-        }
-        // --- COURSE DETAIL SCREEN ---
-        composable(
-            route = AppDestinations.COURSE_DETAIL,
-            arguments = listOf(navArgument("courseId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val courseId = backStackEntry.arguments?.getInt("courseId") ?: 0
-            val courseDetailViewModel: CourseDetailViewModel = viewModel(
-                key = "course_detail_$courseId",
-                factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                        @Suppress("UNCHECKED_CAST")
-                        return CourseDetailViewModel(
-                            AppContainer.curriculumRepository,
-                            AppContainer.evaluationRepository
-                        ) as T
-                    }
-                }
-            )
-            CourseDetailScreen(
-                courseId = courseId,
-                onBack = { navController.popBackStack() },
-                onNavigateToNoteEdit = { noteId ->
-                    if (noteId == null) {
-                        navController.navigate(AppDestinations.createNoteWithCourseRoute(courseId))
-                    } else {
-                        navController.navigate(AppDestinations.createNoteEditRoute(noteId))
-                    }
-                },
-                viewModel = courseDetailViewModel
             )
         }
     }

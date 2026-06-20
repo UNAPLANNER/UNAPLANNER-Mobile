@@ -41,60 +41,11 @@ fun MainScreen(
     onLogout: () -> Unit,
     onNavigateToContactDetail: (Int) -> Unit,
     onNavigateToNoteEdit: (Int?) -> Unit,
-    onNavigateToAddActivity: () -> Unit,
-    onNavigateToEditActivity: (Int) -> Unit,
-    onNavigateToProgreso: () -> Unit,
-    onNavigateToNotifications: () -> Unit,
-    onNavigateToCourseDetail: (Int) -> Unit = {},
-    notesViewModel: NotesViewModel,
-    calendarViewModel: StudentCalendarViewModel,
-    mallaViewModel: MallaViewModel,
-    notificationViewModel: NotificationViewModel
+    notesViewModel: NotesViewModel
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(initialIndex) }
-    var userState by remember { mutableStateOf(com.moviles.unaplanner.data.AuthSession.currentUser) }
-    val careerName by mallaViewModel.careerName.collectAsState()
-    val unreadCount by notificationViewModel.unreadCount.collectAsState()
 
-    var showNotifications by rememberSaveable { mutableStateOf(false) }
-
-    // Handle the back button to close notifications
-    if (showNotifications) {
-        BackHandler {
-            showNotifications = false
-        }
-    }
-
-    // Load notes and courses when navigating to the notes tab
-    LaunchedEffect(userState) {
-        userState?.let { u ->
-            // If the session is missing studentId or fullName, refresh from /me
-            if ((u.studentId == null && u.role == "Student") || u.fullName.isNullOrBlank()) {
-                try {
-                    val meResponse = com.moviles.unaplanner.data.remote.RetrofitClient.apiService.getMe()
-                    if (meResponse.isSuccessful) {
-                        meResponse.body()?.let { me ->
-                            val enriched = if (!me.token.isNullOrBlank()) me else me.copy(token = u.token)
-                            // JWT-backed studentId from the current session is authoritative
-                            val finalEnriched = enriched.copy(
-                                studentId = u.studentId ?: enriched.studentId
-                            )
-                            com.moviles.unaplanner.data.AuthSession.setUser(finalEnriched)
-                            userState = finalEnriched
-                        }
-                    }
-                } catch (e: Exception) {
-                }
-            }
-            val sid = com.moviles.unaplanner.data.AuthSession.studentId ?: return@LaunchedEffect
-            mallaViewModel.loadStudentCurriculum(sid)
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        notificationViewModel.loadNotifications()
-    }
-
+    // Cargar notas y cursos cuando se navega a la pestaña de notas
     LaunchedEffect(selectedIndex) {
         if (selectedIndex == 3) {
             notesViewModel.loadNotes()
@@ -132,103 +83,50 @@ fun MainScreen(
         }
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                AppTopBar(
-                    title = titles[selectedIndex],
-                    subtitle = subtitles[selectedIndex],
-                    onLogout = onLogout,
-                    onNotificationsClick = { showNotifications = true },
-                    hasUnreadNotifications = unreadCount > 0,
-                    action = if (selectedIndex == 3) {
-                        {
-                            Button(
-                                onClick = { onNavigateToNoteEdit(null) },
-                                colors = ButtonDefaults.buttonColors(containerColor = CrimsonRed),
-                                shape = RoundedCornerShape(14.dp),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                                modifier = Modifier.height(40.dp)
-                            ) {
-                                Text(
-                                    "+ Nueva",
-                                    color = Color.White,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                title = titles[selectedIndex],
+                subtitle = subtitles[selectedIndex],
+                onLogout = onLogout,
+                action = if (selectedIndex == 3) {
+                    {
+                        Button(
+                            onClick = { onNavigateToNoteEdit(null) },
+                            colors = ButtonDefaults.buttonColors(containerColor = CrimsonRed),
+                            shape = RoundedCornerShape(14.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.height(40.dp)
+                        ) {
+                            Text(
+                                "+ Nueva",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
-                    } else null
-                )
-            },
-            bottomBar = {
-                AppBottomNavBar(
-                    selectedIndex = selectedIndex,
-                    onItemSelected = { selectedIndex = it }
-                )
-            }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                when (selectedIndex) {
-                    0 -> HomeScreen(
-                        onNavigateToTab = { index -> selectedIndex = index },
-                        onNavigateToProgreso = onNavigateToProgreso
-                    )
-                    1 -> CalendarScreen(
-                        viewModel = calendarViewModel,
-                        onAddActivity = onNavigateToAddActivity,
-                        onEditActivity = onNavigateToEditActivity
-                    )
-                    2 -> MallaScreen(viewModel = mallaViewModel, onCourseClick = onNavigateToCourseDetail)
-                    3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
-                    4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
-                }
-            }
+                    }
+                } else null
+            )
+        },
+        bottomBar = {
+            AppBottomNavBar(
+                selectedIndex = selectedIndex,
+                onItemSelected = { selectedIndex = it }
+            )
         }
-
-        // Overlay de Notificaciones (Top Sheet)
-        if (showNotifications) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .zIndex(10f)
-            ) {
-                // Dark background clickable to close
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .clickable(
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                            indication = null
-                        ) { showNotifications = false }
-                )
-
-                // Animated Notification Panel
-                AnimatedVisibility(
-                    visible = showNotifications,
-                    enter = slideInVertically(
-                        initialOffsetY = { -it },
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMediumLow
-                        )
-                    ),
-                    exit = slideOutVertically(
-                        targetOffsetY = { -it },
-                        animationSpec = tween(durationMillis = 300)
-                    ) + fadeOut(animationSpec = tween(durationMillis = 300)),
-                    modifier = Modifier.align(Alignment.TopCenter)
-                ) {
-                    NotificationScreen(
-                        viewModel = notificationViewModel,
-                        onBack = { showNotifications = false }
-                    )
-                }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            when (selectedIndex) {
+                0 -> InicioPlaceholderScreen()
+                1 -> CalendarPlaceholderScreen()
+                2 -> MallaPlaceholderScreen()
+                3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
+                4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
             }
         }
     }

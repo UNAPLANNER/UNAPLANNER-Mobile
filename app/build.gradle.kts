@@ -12,8 +12,8 @@ android {
 
     defaultConfig {
         applicationId = "com.moviles.unaplanner"
-        minSdk = 26
-        targetSdk = 35
+        minSdk = 24
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
         multiDexEnabled = true
