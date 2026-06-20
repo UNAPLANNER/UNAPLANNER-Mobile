@@ -37,36 +37,54 @@ class MallaViewModel(private val repository: CurriculumRepository) : ViewModel()
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    private var lastLoadedStudentId: Int? = null
+
+    fun clearForNewSession() {
+        lastLoadedStudentId = null
+        _curriculumState.value = CurriculumUiState.Idle
+        _studentCoursesState.value = StudentCoursesUiState.Idle
+        _careerName.value = null
+    }
+
     fun loadStudentCurriculum(userId: Int) {
-        if (_curriculumState.value is CurriculumUiState.Success) return
+        // Only skip if data already loaded for this exact student
+        if (_curriculumState.value is CurriculumUiState.Success && lastLoadedStudentId == userId) return
+        lastLoadedStudentId = userId
         viewModelScope.launch {
             _curriculumState.value = CurriculumUiState.Loading
 
-            // Step 1: get careers list
-            val careers = repository.getCareers().getOrNull()
-            if (careers.isNullOrEmpty()) {
-                _curriculumState.value = CurriculumUiState.Error("No se pudo conectar al servidor")
-                return@launch
+            // Step 1: get student curriculum directly — returns careerId and careerName from the study plan
+            val studentCurriculumMeta = repository.getStudentCurriculum(userId).getOrNull()
+
+            // Step 2: resolve careerId — prefer the direct endpoint, fall back to other sources
+            val careerId: Int
+            val resolvedCareerName: String?
+
+            if (studentCurriculumMeta != null) {
+                careerId = studentCurriculumMeta.careerId
+                resolvedCareerName = studentCurriculumMeta.careerName
+            } else {
+                // Fallback: career catalog + profile-based resolution
+                val careers = repository.getCareers().getOrNull()
+                if (careers.isNullOrEmpty()) {
+                    _curriculumState.value = CurriculumUiState.Error("No se pudo conectar al servidor")
+                    return@launch
+                }
+                val resolvedId = resolveStudentCareerId(userId, careers)
+                if (resolvedId == null) {
+                    _curriculumState.value = CurriculumUiState.Error(
+                        "No se pudo determinar la carrera del estudiante. Contacte al administrador."
+                    )
+                    return@launch
+                }
+                careerId = resolvedId
+                resolvedCareerName = careers.find { it.id == careerId }?.name
             }
 
-            // Step 2: resolve which career belongs to this student
-            val careerId = resolveStudentCareerId(userId, careers)
-            if (careerId == null) {
-                _curriculumState.value = CurriculumUiState.Error(
-                    "No se pudo determinar la carrera del estudiante. Contacte al administrador."
-                )
-                return@launch
-            }
-
-            val career = careers.find { it.id == careerId } ?: run {
-                _curriculumState.value = CurriculumUiState.Error("La carrera asignada no existe en el catálogo")
-                return@launch
-            }
-
-            _careerName.value = career.name
+            _careerName.value = resolvedCareerName
 
             // Step 3a: get FULL curriculum without userId → guarantees ALL courses (all as Pendiente)
-            val fullLevels = repository.getCareerCurriculum(career.id, null).getOrNull()
+            val fullLevels = repository.getCareerCurriculum(careerId, null).getOrNull()
             if (fullLevels.isNullOrEmpty()) {
                 _curriculumState.value = CurriculumUiState.Error("La malla no tiene cursos registrados")
                 return@launch
@@ -102,21 +120,16 @@ class MallaViewModel(private val repository: CurriculumRepository) : ViewModel()
     }
 
     /**
-     * Tries 3 sources in order to find the student's careerId:
-     * 1. careerId from login session
-     * 2. careerId from student profile endpoint
-     * 3. Cross-reference: find which career's curriculum contains the student's enrolled courses
+     * Fallback career resolution when getStudentCurriculum fails.
+     * Tries in order: login session → student profile → course cross-reference.
      */
     private suspend fun resolveStudentCareerId(userId: Int, careers: List<CareerDto>): Int? {
-        // Source 1: from login response
         val fromSession = AuthSession.currentUser?.careerId
         if (fromSession != null) return fromSession
 
-        // Source 2: from student profile endpoint
         val fromProfile = repository.getStudentProfile(userId).getOrNull()?.careerId
         if (fromProfile != null) return fromProfile
 
-        // Source 3: cross-reference student courses with each career's curriculum
         val studentCourses = repository.getStudentCurriculumCourses(userId).getOrNull()
         if (!studentCourses.isNullOrEmpty()) {
             val enrolledCourseId = studentCourses.first().courseId

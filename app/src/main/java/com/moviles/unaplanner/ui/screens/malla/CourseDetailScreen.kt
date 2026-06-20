@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.*
@@ -18,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,14 +41,31 @@ fun CourseDetailScreen(
     viewModel: CourseDetailViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val userId = AuthSession.currentUser?.id
+    val saveState by viewModel.saveState.collectAsStateWithLifecycle()
+    val userId = AuthSession.studentId
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(courseId) {
         userId?.let { viewModel.loadDetail(it, courseId) }
     }
 
+    LaunchedEffect(saveState) {
+        when (val s = saveState) {
+            is SaveDetailUiState.Success -> {
+                snackbarHostState.showSnackbar("Datos guardados correctamente")
+                viewModel.clearSaveState()
+            }
+            is SaveDetailUiState.Error -> {
+                snackbarHostState.showSnackbar(s.message)
+                viewModel.clearSaveState()
+            }
+            else -> {}
+        }
+    }
+
     Scaffold(
         containerColor = BackgroundLight,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Malla", fontWeight = FontWeight.SemiBold) },
@@ -115,7 +135,7 @@ private fun CourseDetailContent(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Info", "Evaluaciones", "Notas")
-    val userId = AuthSession.currentUser?.id
+    val userId = AuthSession.studentId
 
     // Load notes when that tab becomes active
     LaunchedEffect(selectedTab) {
@@ -181,7 +201,7 @@ private fun CourseDetailContent(
         // Tab content — weight fills remaining space so LazyColumn has a bounded height
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             when (selectedTab) {
-                0 -> InfoTab(detail = detail)
+                0 -> InfoTab(detail = detail, viewModel = viewModel, courseId = courseId)
                 1 -> ComingSoonTab()
                 2 -> NotesTab(
                     viewModel = viewModel,
@@ -197,8 +217,12 @@ private fun CourseDetailContent(
 // ─── Info Tab ─────────────────────────────────────────────────────────────────
 
 @Composable
-private fun InfoTab(detail: CourseDetailDto) {
+private fun InfoTab(detail: CourseDetailDto, viewModel: CourseDetailViewModel, courseId: Int) {
     val showTeacherInfo = detail.status == "EnCurso" || detail.status == "Aprobado"
+    val isEnCurso = detail.status == "EnCurso"
+    val saveState by viewModel.saveState.collectAsStateWithLifecycle()
+    val userId = AuthSession.studentId
+    var showEditDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundLight),
@@ -220,6 +244,10 @@ private fun InfoTab(detail: CourseDetailDto) {
                         InfoRow(label = "Horario", value = detail.schedule ?: "—")
                         HorizontalDivider(color = Divider)
                         InfoRow(label = "Aula", value = detail.classroom ?: "—")
+                        if (!detail.syllabusUrl.isNullOrBlank()) {
+                            HorizontalDivider(color = Divider)
+                            InfoRow(label = "Programa", value = detail.syllabusUrl)
+                        }
                     }
                     HorizontalDivider(color = Divider)
                     InfoRow(label = "Créditos", value = "${detail.credits}")
@@ -234,6 +262,25 @@ private fun InfoTab(detail: CourseDetailDto) {
                         HorizontalDivider(color = Divider)
                         InfoRow(label = "Nota final", value = "%.1f".format(detail.finalGrade))
                     }
+                }
+            }
+        }
+
+        // Edit button — visible only when EnCurso
+        if (isEnCurso) {
+            item {
+                Button(
+                    onClick = { showEditDialog = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = NavyBlue),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        if (detail.enrolledDetailId != null) "Editar datos del curso" else "Registrar datos del curso",
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         }
@@ -262,6 +309,98 @@ private fun InfoTab(detail: CourseDetailDto) {
             }
         }
     }
+
+    if (showEditDialog) {
+        EnrolledDetailDialog(
+            detail = detail,
+            isSaving = saveState is SaveDetailUiState.Saving,
+            onDismiss = { showEditDialog = false },
+            onConfirm = { profesor, aula, horario, url ->
+                userId?.let {
+                    viewModel.saveEnrolledDetail(it, courseId, detail.enrolledDetailId, profesor, aula, horario, url)
+                }
+                showEditDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun EnrolledDetailDialog(
+    detail: CourseDetailDto,
+    isSaving: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (profesor: String?, aula: String?, horario: String?, url: String?) -> Unit
+) {
+    var profesorText by remember { mutableStateOf(detail.professorName ?: "") }
+    var aulaText by remember { mutableStateOf(detail.classroom ?: "") }
+    var horarioText by remember { mutableStateOf(detail.schedule ?: "") }
+    var urlText by remember { mutableStateOf(detail.syllabusUrl ?: "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Datos del curso en curso", fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    "${detail.code} – ${detail.name}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                OutlinedTextField(
+                    value = profesorText,
+                    onValueChange = { profesorText = it },
+                    label = { Text("Profesor") },
+                    placeholder = { Text("Nombre del profesor") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = horarioText,
+                    onValueChange = { horarioText = it },
+                    label = { Text("Horario") },
+                    placeholder = { Text("Ej: L-J 8:00-10:00") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = aulaText,
+                    onValueChange = { aulaText = it },
+                    label = { Text("Aula") },
+                    placeholder = { Text("Ej: B-205") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = urlText,
+                    onValueChange = { urlText = it },
+                    label = { Text("Enlace del programa (opcional)") },
+                    placeholder = { Text("https://...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(profesorText, aulaText, horarioText, urlText) },
+                enabled = !isSaving,
+                colors = ButtonDefaults.buttonColors(containerColor = NavyBlue)
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), color = SurfaceLight, strokeWidth = 2.dp)
+                } else {
+                    Text("Guardar")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        }
+    )
 }
 
 private fun buildHorasText(theory: Int?, practice: Int?, lab: Int?): String {
@@ -282,7 +421,7 @@ private fun NotesTab(
     onCreateNote: () -> Unit
 ) {
     val notesState by viewModel.notesState.collectAsStateWithLifecycle()
-    val userId = AuthSession.currentUser?.id
+    val userId = AuthSession.studentId
 
     Box(modifier = Modifier.fillMaxSize().background(BackgroundLight)) {
         when (val s = notesState) {

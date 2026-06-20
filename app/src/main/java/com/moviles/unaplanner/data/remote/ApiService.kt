@@ -9,6 +9,12 @@ interface ApiService {
     @POST(AppConstants.Api.Paths.AUTH_LOGIN)
     suspend fun login(@Body request: LoginRequest): Response<UserDto>
 
+    @GET("api/auth/me")
+    suspend fun getMe(): Response<UserDto>
+
+    @POST("api/auth/logout")
+    suspend fun logout(): Response<Unit>
+
     @GET(AppConstants.Api.Paths.USER_PROFILE)
     suspend fun getProfile(@Path("id") id: Int): Response<UserDto>
 
@@ -63,17 +69,16 @@ interface ApiService {
 
     @POST(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun createNote(
-        @Path("id") userId: Int,
+        @Path("id") studentId: Int,
         @Body request: CreateNoteRequest
     ): Response<NoteDto>
 
     @GET(AppConstants.Api.Paths.STUDENT_COURSES)
-    suspend fun getStudentCourses(@Path("id") userId: Int): Response<CoursesResponse>
+    suspend fun getStudentCourses(@Path("id") studentId: Int): Response<CoursesResponse>
 
     @DELETE(AppConstants.Api.Paths.NOTE_OPERATIONS)
     suspend fun deleteNote(
-        @Path("id") noteId: Int,
-        @Query("userId") userId: Int
+        @Path("id") noteId: Int
     ): Response<Unit>
 
     @PUT(AppConstants.Api.Paths.NOTE_OPERATIONS)

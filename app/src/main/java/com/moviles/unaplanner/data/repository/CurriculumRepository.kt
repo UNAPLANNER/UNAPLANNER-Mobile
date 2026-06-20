@@ -76,4 +76,28 @@ class CurriculumRepository(private val apiService: CurriculumApiService) {
             Result.failure(e)
         }
     }
+
+    suspend fun createEnrolledDetail(
+        studentId: Int,
+        courseId: Int,
+        request: EnrolledCourseDetailRequest
+    ): Result<CourseDetailDto> = withContext(Dispatchers.IO) {
+        try {
+            Result.success(apiService.createEnrolledDetail(studentId, courseId, request))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateEnrolledDetail(
+        studentId: Int,
+        courseId: Int,
+        request: EnrolledCourseDetailRequest
+    ): Result<CourseDetailDto> = withContext(Dispatchers.IO) {
+        try {
+            Result.success(apiService.updateEnrolledDetail(studentId, courseId, request))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

@@ -47,4 +47,18 @@ interface CurriculumApiService {
         @Path("id") studentId: Int,
         @Path("courseId") courseId: Int
     ): CourseDetailDto
+
+    @POST("api/student/{id}/courses/{courseId}/enrolled-detail")
+    suspend fun createEnrolledDetail(
+        @Path("id") studentId: Int,
+        @Path("courseId") courseId: Int,
+        @Body request: EnrolledCourseDetailRequest
+    ): CourseDetailDto
+
+    @PUT("api/student/{id}/courses/{courseId}/enrolled-detail")
+    suspend fun updateEnrolledDetail(
+        @Path("id") studentId: Int,
+        @Path("courseId") courseId: Int,
+        @Body request: EnrolledCourseDetailRequest
+    ): CourseDetailDto
 }

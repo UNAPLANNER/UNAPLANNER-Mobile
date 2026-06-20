@@ -63,7 +63,7 @@ fun AddActivityScreen(
     var showReminderPicker by remember { mutableStateOf(false) }
 
     val activityTypes = listOf("Examen", "Tarea", "Proyecto", "Exposición", "Evento", "Otro")
-    val studentId = AuthSession.currentUser?.id ?: 1
+    val studentId = AuthSession.studentId ?: return
     val studentCourses by viewModel.studentCourses.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     
