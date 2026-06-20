@@ -116,6 +116,7 @@ fun AppNavHost() {
                 initialIndex = initialIndex,
                 onLogout = {
                     mallaViewModel.clearForNewSession()
+                    progressViewModel.clearForNewSession()
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.MAIN) { inclusive = true }
                     }
