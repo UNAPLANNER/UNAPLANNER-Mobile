@@ -320,7 +320,7 @@ private fun CreateStudyPlanCourseForm(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CourseSelector(
+fun CourseSelector(
     value: String,
     onValueChange: (String) -> Unit,
     options: List<String>,
@@ -379,7 +379,7 @@ private fun CourseSelector(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PrerequisiteSelector(
+fun PrerequisiteSelector(
     courses: List<StudyPlanCourseDetail>,
     mode: String,
     modeOptions: List<String>,
@@ -506,12 +506,14 @@ private fun CoursePrerequisitePicker(
 }
 
 @Composable
-private fun CourseActiveToggle(
+fun CourseActiveToggle(
     isActive: Boolean,
-    onActiveChange: (Boolean) -> Unit
+    onActiveChange: (Boolean) -> Unit,
+    enabled: Boolean = true
 ) {
     FilterChip(
         selected = isActive,
+        enabled = enabled,
         onClick = { onActiveChange(!isActive) },
         label = {
             Text(text = if (isActive) "Esta activo" else "Inactivo", fontWeight = FontWeight.Bold)
@@ -538,7 +540,7 @@ private fun CourseActiveToggle(
 }
 
 @Composable
-private fun CourseFormField(
+fun CourseFormField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,

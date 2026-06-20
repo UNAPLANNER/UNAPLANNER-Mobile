@@ -197,9 +197,6 @@ fun CourseDetailReadOnlySheet(
                     Button(
                         onClick = { isEditing = true },
                         enabled = !isEditing && !isLoading && !isDeleting,
-                if (!isEditing) {
-                    Button(
-                        onClick = { isEditing = true },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF061450))
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
