@@ -120,7 +120,17 @@ fun AdminMainScreen(
         ) {
             when (selectedIndex) {
                 0 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
-                    HomeAdminContent()
+                    HomeAdminContent(
+                        onNavigateToSection = { selectedIndex = it },
+                        onCreateCareerClick = {
+                            selectedIndex = 1
+                            showCreateCareerModal = true
+                        },
+                        onViewStudyPlan = { career ->
+                            selectedIndex = 1
+                            viewingStudyPlanCareer = career
+                        }
+                    )
                 }
                 1 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
                     val careerToEdit = editingCareer

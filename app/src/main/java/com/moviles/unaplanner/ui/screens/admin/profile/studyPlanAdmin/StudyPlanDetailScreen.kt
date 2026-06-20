@@ -104,6 +104,7 @@ private fun StudyPlanDetailContent(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showCreateCourseSheet by remember { androidx.compose.runtime.mutableStateOf(false) }
+    var selectedCourse by remember { androidx.compose.runtime.mutableStateOf<StudyPlanCourseDetail?>(null) }
     val tabs = listOf("Plan", "Optativos", "Info")
 
     LazyColumn(
@@ -155,7 +156,7 @@ private fun StudyPlanDetailContent(
                     }
                 } else {
                     studyPlan.levels.forEach { level ->
-                        item { StudyPlanLevelSection(level = level) }
+                        item { StudyPlanLevelSection(level = level, onCourseClick = { selectedCourse = it }) }
                     }
                 }
             }
@@ -174,7 +175,12 @@ private fun StudyPlanDetailContent(
                     }
                 } else {
                     items(electives) { (level, course) ->
-                        StudyPlanCourseCard(course = course, levelLabel = "Nivel $level", forceElectiveStyle = true)
+                        StudyPlanCourseCard(
+                            course = course,
+                            levelLabel = "Nivel $level",
+                            forceElectiveStyle = true,
+                            onClick = { selectedCourse = course }
+                        )
                     }
                 }
             }
@@ -191,6 +197,18 @@ private fun StudyPlanDetailContent(
             onCourseCreated = { updatedStudyPlan ->
                 showCreateCourseSheet = false
                 selectedTab = 0
+                onStudyPlanUpdated(updatedStudyPlan)
+            }
+        )
+    }
+
+    selectedCourse?.let { course ->
+        CourseDetailReadOnlySheet(
+            studyPlan = studyPlan,
+            course = course,
+            onDismiss = { selectedCourse = null },
+            onCourseUpdated = { updatedStudyPlan ->
+                selectedCourse = null
                 onStudyPlanUpdated(updatedStudyPlan)
             }
         )
@@ -304,7 +322,10 @@ private fun StudyPlanMetric(value: String, label: String, modifier: Modifier = M
 }
 
 @Composable
-private fun StudyPlanLevelSection(level: StudyPlanLevel) {
+private fun StudyPlanLevelSection(
+    level: StudyPlanLevel,
+    onCourseClick: (StudyPlanCourseDetail) -> Unit
+) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Surface(
             color = Color(0xFFEAF7F0),
@@ -339,7 +360,7 @@ private fun StudyPlanLevelSection(level: StudyPlanLevel) {
                 fontWeight = FontWeight.Bold
             )
             semester.courses.forEach { course ->
-                StudyPlanCourseCard(course = course)
+                StudyPlanCourseCard(course = course, onClick = { onCourseClick(course) })
             }
         }
     }
@@ -349,7 +370,8 @@ private fun StudyPlanLevelSection(level: StudyPlanLevel) {
 private fun StudyPlanCourseCard(
     course: StudyPlanCourseDetail,
     levelLabel: String? = null,
-    forceElectiveStyle: Boolean = false
+    forceElectiveStyle: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
     val elective = course.isElective || forceElectiveStyle
     val accent = if (elective) Color(0xFFF28B20) else Color(0xFF2F80ED)
@@ -358,7 +380,8 @@ private fun StudyPlanCourseCard(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        border = BorderStroke(1.dp, Color(0xFFE8EDF6))
+        border = BorderStroke(1.dp, Color(0xFFE8EDF6)),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier

@@ -3,6 +3,7 @@ package com.moviles.unaplanner.data.repository
 import com.moviles.unaplanner.data.remote.ApiService
 import com.moviles.unaplanner.data.remote.ContactApiService
 import com.moviles.unaplanner.data.remote.RetrofitClient
+import com.moviles.unaplanner.data.remote.model.AdminDashboard
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.data.remote.model.Career
 import com.moviles.unaplanner.data.remote.model.ChangePasswordRequest
@@ -10,6 +11,7 @@ import com.moviles.unaplanner.data.remote.model.CreateCareerRequest
 import com.moviles.unaplanner.data.remote.model.CreateStudyPlanCourseRequest
 import com.moviles.unaplanner.data.remote.model.StudyPlanDetail
 import com.moviles.unaplanner.data.remote.model.UpdateCareerRequest
+import com.moviles.unaplanner.data.remote.model.UpdateStudyPlanCourseRequest
 import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UserDto
 
@@ -84,6 +86,19 @@ class AdminRepository(
         }
     }
 
+    suspend fun getDashboard(): ApiResult<AdminDashboard> {
+        return try {
+            val response = apiService.getAdminDashboard()
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error(dashboardErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
     suspend fun getStudyPlanDetail(id: Int): ApiResult<StudyPlanDetail> {
         return try {
             val response = apiService.getStudyPlanDetail(id)
@@ -108,6 +123,24 @@ class AdminRepository(
             } else {
                 val errorMsg = response.errorBody()?.string()
                 ApiResult.Error(errorMsg ?: createStudyPlanCourseErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun updateStudyPlanCourse(
+        studyPlanId: Int,
+        courseId: Int,
+        request: UpdateStudyPlanCourseRequest
+    ): ApiResult<StudyPlanDetail> {
+        return try {
+            val response = apiService.updateStudyPlanCourse(studyPlanId, courseId, request)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string()
+                ApiResult.Error(errorMsg ?: updateStudyPlanCourseErrorMessage(response.code()), response.code())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error de red")
@@ -250,6 +283,15 @@ class AdminRepository(
         }
     }
 
+    private fun dashboardErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            401, 403 -> "No tienes permisos para consultar el dashboard."
+            404 -> "No se encontro el perfil administrativo."
+            500 -> "Error del servidor al obtener el dashboard."
+            else -> "Error al obtener el dashboard: $statusCode"
+        }
+    }
+
     private fun studyPlanErrorMessage(statusCode: Int): String {
         return when (statusCode) {
             401, 403 -> "No tienes permisos para consultar el plan."
@@ -267,6 +309,17 @@ class AdminRepository(
             409 -> "Ya existe un curso con ese codigo."
             500 -> "Error del servidor al crear el curso."
             else -> "Error al crear el curso: $statusCode"
+        }
+    }
+
+    private fun updateStudyPlanCourseErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            400 -> "Revisa los datos del curso."
+            401, 403 -> "No tienes permisos para actualizar cursos."
+            404 -> "No se encontro el curso en el plan."
+            409 -> "Ya existe un curso con ese codigo."
+            500 -> "Error del servidor al actualizar el curso."
+            else -> "Error al actualizar el curso: $statusCode"
         }
     }
 }

@@ -21,6 +21,9 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.ADMIN_CAREERS)
     suspend fun getCareers(): Response<List<Career>>
 
+    @GET(AppConstants.Api.Paths.ADMIN_DASHBOARD)
+    suspend fun getAdminDashboard(): Response<AdminDashboard>
+
     @POST(AppConstants.Api.Paths.ADMIN_CAREERS)
     suspend fun createCareer(@Body request: CreateCareerRequest): Response<Career>
 
@@ -37,6 +40,13 @@ interface ApiService {
     suspend fun createStudyPlanCourse(
         @Path("id") id: Int,
         @Body request: CreateStudyPlanCourseRequest
+    ): Response<StudyPlanDetail>
+
+    @PUT(AppConstants.Api.Paths.STUDY_PLAN_COURSE_OPERATIONS)
+    suspend fun updateStudyPlanCourse(
+        @Path("id") id: Int,
+        @Path("courseId") courseId: Int,
+        @Body request: UpdateStudyPlanCourseRequest
     ): Response<StudyPlanDetail>
 
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
