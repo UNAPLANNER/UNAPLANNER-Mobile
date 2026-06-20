@@ -55,7 +55,7 @@ fun MainScreen(
     var userState by remember { mutableStateOf(com.moviles.unaplanner.data.AuthSession.currentUser) }
     val careerName by mallaViewModel.careerName.collectAsState()
     val unreadCount by notificationViewModel.unreadCount.collectAsState()
-    
+
     var showNotifications by rememberSaveable { mutableStateOf(false) }
 
     // Handle the back button to close notifications
@@ -69,7 +69,7 @@ fun MainScreen(
     LaunchedEffect(userState) {
         userState?.let { u ->
             // If the session is missing studentId or fullName, refresh from /me
-            if (u.studentId == null || u.fullName.isNullOrBlank()) {
+            if ((u.studentId == null && u.role == "Student") || u.fullName.isNullOrBlank()) {
                 try {
                     val meResponse = com.moviles.unaplanner.data.remote.RetrofitClient.apiService.getMe()
                     if (meResponse.isSuccessful) {
@@ -84,7 +84,6 @@ fun MainScreen(
                         }
                     }
                 } catch (e: Exception) {
-                    // Fallback silencioso — continúa con datos del login
                 }
             }
             val sid = com.moviles.unaplanner.data.AuthSession.studentId ?: return@LaunchedEffect
@@ -167,9 +166,69 @@ fun MainScreen(
                     selectedIndex = selectedIndex,
                     onItemSelected = { selectedIndex = it }
                 )
-                2 -> MallaScreen(viewModel = mallaViewModel, onCourseClick = onNavigateToCourseDetail)
-                3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
-                4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
+            }
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                when (selectedIndex) {
+                    0 -> HomeScreen(
+                        onNavigateToTab = { index -> selectedIndex = index },
+                        onNavigateToProgreso = onNavigateToProgreso
+                    )
+                    1 -> CalendarScreen(
+                        viewModel = calendarViewModel,
+                        onAddActivity = onNavigateToAddActivity,
+                        onEditActivity = onNavigateToEditActivity
+                    )
+                    2 -> MallaScreen(viewModel = mallaViewModel, onCourseClick = onNavigateToCourseDetail)
+                    3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
+                    4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
+                }
+            }
+        }
+
+        // Overlay de Notificaciones (Top Sheet)
+        if (showNotifications) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(10f)
+            ) {
+                // Dark background clickable to close
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = null
+                        ) { showNotifications = false }
+                )
+
+                // Animated Notification Panel
+                AnimatedVisibility(
+                    visible = showNotifications,
+                    enter = slideInVertically(
+                        initialOffsetY = { -it },
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMediumLow
+                        )
+                    ),
+                    exit = slideOutVertically(
+                        targetOffsetY = { -it },
+                        animationSpec = tween(durationMillis = 300)
+                    ) + fadeOut(animationSpec = tween(durationMillis = 300)),
+                    modifier = Modifier.align(Alignment.TopCenter)
+                ) {
+                    NotificationScreen(
+                        viewModel = notificationViewModel,
+                        onBack = { showNotifications = false }
+                    )
+                }
             }
         }
     }

@@ -93,6 +93,7 @@ fun NotesScreen(
                 NotesContent(
                     courses = state.courses,
                     notes = state.filteredNotes,
+                    selectedCourse = state.selectedCourse,
                     onCourseSelected = { viewModel.filterByCourse(it) },
                     onNoteClick = { note -> onNavigateToEdit(note.id) },
                     onDeleteClick = { note -> noteToDelete = note },
@@ -164,21 +165,17 @@ fun FilterSection(
 fun NotesContent(
     courses: List<String>,
     notes: List<NoteDto>,
+    selectedCourse: String,
     onCourseSelected: (String) -> Unit,
     onNoteClick: (NoteDto) -> Unit,
     onDeleteClick: (NoteDto) -> Unit,
     onNewNoteClick: () -> Unit
 ) {
-    var currentSelected by remember { mutableStateOf("Todas") }
-
     Column {
         FilterSection(
             courses = courses,
-            selectedCourse = currentSelected,
-            onCourseSelected = {
-                currentSelected = it
-                onCourseSelected(it)
-            }
+            selectedCourse = selectedCourse,
+            onCourseSelected = onCourseSelected
         )
 
         LazyColumn(

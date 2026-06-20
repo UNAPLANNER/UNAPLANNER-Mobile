@@ -76,6 +76,9 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.STUDENT_COURSES)
     suspend fun getStudentCourses(@Path("id") studentId: Int): Response<CoursesResponse>
 
+    @GET("api/student/{id}/curriculum/courses")
+    suspend fun getStudentCurriculumCourses(@Path("id") studentId: Int): Response<List<StudentCourseProgressDto>>
+
     @DELETE(AppConstants.Api.Paths.NOTE_OPERATIONS)
     suspend fun deleteNote(
         @Path("id") noteId: Int

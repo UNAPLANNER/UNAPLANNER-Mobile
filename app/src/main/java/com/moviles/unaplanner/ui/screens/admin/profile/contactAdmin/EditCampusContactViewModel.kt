@@ -47,28 +47,18 @@ class EditCampusContactViewModel(
     private fun loadContactDetails() {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
-            // Note: We use the existing getCampusContact logic
-            // Since AdminRepository doesn't have a single GET, we might need to add it or use common repository
-            // For now, assuming we can get it or it's passed.
-            // Actually, let's add getCampusContact to AdminRepository or use ContactApiService directly.
-            
-            // For this implementation, we'll fetch it from the repository
-            when (val result = repository.getCampusContacts()) { // Mocking fetch for now or adding to repo
+            when (val result = repository.getCampusContact(contactId)) {
                 is ApiResult.Success -> {
-                    val contact = result.data.find { it.id == contactId }
-                    if (contact != null) {
-                        uiState = uiState.copy(
-                            id = contact.id,
-                            departmentName = contact.departmentName ?: "",
-                            phone = contact.phone ?: "",
-                            email = contact.email ?: "",
-                            description = contact.description ?: "",
-                            campusId = contact.campusId,
-                            isLoading = false
-                        )
-                    } else {
-                        uiState = uiState.copy(isLoading = false, error = "Contacto no encontrado")
-                    }
+                    val contact = result.data
+                    uiState = uiState.copy(
+                        id = contact.id,
+                        departmentName = contact.departmentName ?: "",
+                        phone = contact.phone ?: "",
+                        email = contact.email ?: "",
+                        description = contact.description ?: "",
+                        campusId = contact.campusId,
+                        isLoading = false
+                    )
                 }
                 is ApiResult.Error -> {
                     uiState = uiState.copy(isLoading = false, error = result.message)

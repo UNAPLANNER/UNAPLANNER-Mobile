@@ -3,6 +3,7 @@ package com.moviles.unaplanner.navigation
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -120,6 +121,16 @@ fun AppNavHost() {
             )
         }
 
+        // --- REGISTER SCREEN (PLACEHOLDER) ---
+        composable(route = AppDestinations.REGISTER) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Pantalla de Registro (Próximamente)")
+            }
+        }
+
         // --- MAIN SCREEN (WITH BOTTOM NAV) ---
         composable(
             route = AppDestinations.MAIN,
@@ -132,6 +143,7 @@ fun AppNavHost() {
             MainScreen(
                 initialIndex = initialIndex,
                 onLogout = {
+                    AppContainer.authRepository.clearLocalSession()
                     mallaViewModel.clearForNewSession()
                     progressViewModel.clearForNewSession()
                     navController.navigate(AppDestinations.WELCOME) {
@@ -171,6 +183,7 @@ fun AppNavHost() {
             AdminMainScreen(
                 navController = navController,
                 onLogout = {
+                    AppContainer.authRepository.clearLocalSession()
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.ADMIN_MAIN) { inclusive = true }
                     }
