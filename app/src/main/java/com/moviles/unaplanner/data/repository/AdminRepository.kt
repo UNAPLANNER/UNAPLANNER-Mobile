@@ -7,6 +7,7 @@ import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.data.remote.model.Career
 import com.moviles.unaplanner.data.remote.model.ChangePasswordRequest
 import com.moviles.unaplanner.data.remote.model.CreateCareerRequest
+import com.moviles.unaplanner.data.remote.model.UpdateCareerRequest
 import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UserDto
 
@@ -61,6 +62,20 @@ class AdminRepository(
             } else {
                 val errorMsg = response.errorBody()?.string()
                 ApiResult.Error(errorMsg ?: createCareerErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun updateCareer(id: Int, request: UpdateCareerRequest): ApiResult<Career> {
+        return try {
+            val response = apiService.updateCareer(id, request)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string()
+                ApiResult.Error(errorMsg ?: updateCareerErrorMessage(response.code()), response.code())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error de red")
@@ -189,6 +204,17 @@ class AdminRepository(
             409 -> "Ya existe una carrera con esos datos."
             500 -> "Error del servidor al crear la carrera."
             else -> "Error al crear la carrera: $statusCode"
+        }
+    }
+
+    private fun updateCareerErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            400 -> "Revisa los datos de la carrera."
+            401, 403 -> "No tienes permisos para actualizar carreras."
+            404 -> "No se encontro la carrera."
+            409 -> "Ya existe una carrera con ese codigo."
+            500 -> "Error del servidor al actualizar la carrera."
+            else -> "Error al actualizar la carrera: $statusCode"
         }
     }
 }

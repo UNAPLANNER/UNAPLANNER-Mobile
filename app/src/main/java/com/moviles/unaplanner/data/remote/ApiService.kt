@@ -24,6 +24,12 @@ interface ApiService {
     @POST(AppConstants.Api.Paths.ADMIN_CAREERS)
     suspend fun createCareer(@Body request: CreateCareerRequest): Response<Career>
 
+    @PUT(AppConstants.Api.Paths.ADMIN_CAREER_OPERATIONS)
+    suspend fun updateCareer(
+        @Path("id") id: Int,
+        @Body request: UpdateCareerRequest
+    ): Response<Career>
+
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun getStudentNotes(@Path("id") userId: Int): Response<NotesResponse>
 

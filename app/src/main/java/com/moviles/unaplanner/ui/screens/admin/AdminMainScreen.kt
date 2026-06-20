@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.moviles.unaplanner.data.remote.model.CampusContact
+import com.moviles.unaplanner.data.remote.model.Career
 import com.moviles.unaplanner.ui.components.AdminTopBar
 import com.moviles.unaplanner.ui.components.AdminAppBottomNavBar
 import com.moviles.unaplanner.ui.components.AppBottomNavBar
@@ -18,6 +19,7 @@ import com.moviles.unaplanner.ui.screens.admin.profile.AdminProfileScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminContent
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CreateCareerScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.CareerAdminViewModel
+import com.moviles.unaplanner.ui.screens.admin.profile.careerAdmin.EditCareerScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.contactAdmin.ContactAdminScreen
 import com.moviles.unaplanner.ui.screens.admin.profile.homeAdmin.HomeAdminContent
 import com.moviles.unaplanner.ui.theme.BackgroundLight
@@ -31,6 +33,7 @@ fun AdminMainScreen(
     navController: NavController? = null
 ) {
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+    var editingCareer by remember { mutableStateOf<Career?>(null) }
     var showCreateCareerModal by rememberSaveable { mutableStateOf(false) }
     val careerViewModel: CareerAdminViewModel = viewModel(factory = CareerAdminViewModel.Factory)
     val careerCreated = navController
@@ -74,7 +77,9 @@ fun AdminMainScreen(
                     isHome = selectedIndex == 0,
                     showBackButton = selectedIndex != 0,
                     onBackClick = {
-                        if (showCreateCareerModal) {
+                        if (editingCareer != null) {
+                            editingCareer = null
+                        } else if (showCreateCareerModal) {
                             showCreateCareerModal = false
                         } else {
                             selectedIndex = 0
@@ -109,7 +114,17 @@ fun AdminMainScreen(
                     HomeAdminContent()
                 }
                 1 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
-                    if (showCreateCareerModal) {
+                    val careerToEdit = editingCareer
+                    if (careerToEdit != null) {
+                        EditCareerScreen(
+                            career = careerToEdit,
+                            onBackClick = { editingCareer = null },
+                            onSuccess = {
+                                editingCareer = null
+                                careerViewModel.loadCareers()
+                            }
+                        )
+                    } else if (showCreateCareerModal) {
                         CreateCareerScreen(
                             onBackClick = { showCreateCareerModal = false },
                             onSuccess = {
@@ -119,6 +134,10 @@ fun AdminMainScreen(
                             }
                         )
                     } else {
+                        CareerAdminContent(
+                            viewModel = careerViewModel,
+                            onEditCareer = { career -> editingCareer = career }
+                        )
                         CareerAdminContent(viewModel = careerViewModel)
                     }
                 }

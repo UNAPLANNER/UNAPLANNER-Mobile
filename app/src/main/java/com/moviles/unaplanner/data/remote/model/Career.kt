@@ -19,6 +19,27 @@ data class Career(
 
 data class CreateCareerRequest(
     val name: String,
+    val degreeLevel: String,
+    val planYear: Int,
+    val school: String,
+    val bachelorCredits: Int?,
+    val diplomaCredits: Int?,
+    val degreeCredits: Int?,
+    val officialResolution: String,
+    val isStatus: Boolean = true
+)
+
+data class UpdateCareerRequest(
+    val name: String,
+    val degreeLevel: String,
+    val planYear: Int,
+    val school: String,
+    val bachelorCredits: Int?,
+    val diplomaCredits: Int?,
+    val degreeCredits: Int?,
+    val officialResolution: String,
+    val isStatus: Boolean
+)
     val code: String,
     val description: String?,
     val totalCredits: Int,

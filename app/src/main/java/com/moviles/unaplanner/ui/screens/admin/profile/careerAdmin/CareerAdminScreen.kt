@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Search
@@ -86,7 +87,8 @@ fun CareerAdminScreen(
 
 @Composable
 fun CareerAdminContent(
-    viewModel: CareerAdminViewModel = viewModel(factory = CareerAdminViewModel.Factory)
+    viewModel: CareerAdminViewModel = viewModel(factory = CareerAdminViewModel.Factory),
+    onEditCareer: (Career) -> Unit = {}
 ) {
     val uiState = viewModel.uiState
 
@@ -113,7 +115,7 @@ fun CareerAdminContent(
                 onRetry = viewModel::loadCareers
             )
             uiState.filteredCareers.isEmpty() -> NoCareerResultsState()
-            else -> CareerList(careers = uiState.filteredCareers)
+            else -> CareerList(careers = uiState.filteredCareers, onEditCareer = onEditCareer)
         }
 
         if (uiState.isLoading && uiState.careers.isNotEmpty()) {
@@ -172,20 +174,26 @@ private fun CareerSearchField(
 }
 
 @Composable
-private fun CareerList(careers: List<Career>) {
+private fun CareerList(
+    careers: List<Career>,
+    onEditCareer: (Career) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 18.dp, top = 14.dp, end = 18.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         items(careers, key = { it.id }) { career ->
-            CareerListItem(career)
+            CareerListItem(career = career, onEditCareer = onEditCareer)
         }
     }
 }
 
 @Composable
-private fun CareerListItem(career: Career) {
+private fun CareerListItem(
+    career: Career,
+    onEditCareer: (Career) -> Unit
+) {
     val accent = careerAccent(career.id)
     val outline = if (accent.hasOutline) accent.line else Color.Transparent
 
@@ -229,6 +237,8 @@ private fun CareerListItem(career: Career) {
                 )
 
                 CareerStatusBadge(isActive = career.isStatus != false)
+                Spacer(modifier = Modifier.width(8.dp))
+                CareerEditButton(onClick = { onEditCareer(career) })
             }
 
             Column(
@@ -305,6 +315,33 @@ private fun CareerListItem(career: Career) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun CareerEditButton(onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        color = Color.White.copy(alpha = 0.18f),
+        contentColor = Color.White,
+        shape = RoundedCornerShape(50)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = "Editar",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
