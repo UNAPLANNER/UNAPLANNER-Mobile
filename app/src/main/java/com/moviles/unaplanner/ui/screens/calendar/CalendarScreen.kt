@@ -50,7 +50,7 @@ fun CalendarScreen(
 ) {
     val uiState by viewModel.calendarState.collectAsStateWithLifecycle()
     val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
-    val studentId = AuthSession.currentUser?.id ?: 1
+    val studentId = AuthSession.studentId ?: return
 
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var selectedDay by remember { mutableStateOf<LocalDate?>(null) }

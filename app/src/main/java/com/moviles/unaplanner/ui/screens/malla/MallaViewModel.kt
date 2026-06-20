@@ -37,8 +37,19 @@ class MallaViewModel(private val repository: CurriculumRepository) : ViewModel()
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    private var lastLoadedStudentId: Int? = null
+
+    fun clearForNewSession() {
+        lastLoadedStudentId = null
+        _curriculumState.value = CurriculumUiState.Idle
+        _studentCoursesState.value = StudentCoursesUiState.Idle
+        _careerName.value = null
+    }
+
     fun loadStudentCurriculum(userId: Int) {
-        if (_curriculumState.value is CurriculumUiState.Success) return
+        // Only skip if data already loaded for this exact student
+        if (_curriculumState.value is CurriculumUiState.Success && lastLoadedStudentId == userId) return
+        lastLoadedStudentId = userId
         viewModelScope.launch {
             _curriculumState.value = CurriculumUiState.Loading
 

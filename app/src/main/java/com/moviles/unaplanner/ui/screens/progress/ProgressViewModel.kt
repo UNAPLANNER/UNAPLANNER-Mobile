@@ -41,7 +41,7 @@ class ProgressViewModel(private val repository: CurriculumRepository) : ViewMode
 
     fun load() {
         if (_uiState.value is ProgressUiState.Success) return
-        val userId = AuthSession.currentUser?.id ?: return
+        val userId = AuthSession.studentId ?: return
         viewModelScope.launch {
             _uiState.value = ProgressUiState.Loading
 

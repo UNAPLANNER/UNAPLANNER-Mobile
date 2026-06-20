@@ -45,21 +45,27 @@ fun MainScreen(
     // Load notes and courses when navigating to the notes tab
     LaunchedEffect(userState) {
         userState?.let { u ->
-            // Si el nombre no está en la sesión o es nulo, lo recuperamos del perfil completo
-            if (u.fullName.isNullOrBlank()) {
+            // If the session is missing studentId or fullName, refresh from /me
+            if (u.studentId == null || u.fullName.isNullOrBlank()) {
                 try {
-                    val response = com.moviles.unaplanner.data.remote.RetrofitClient.apiService.getProfile(u.id)
-                    if (response.isSuccessful) {
-                        response.body()?.let { fullUser ->
-                            com.moviles.unaplanner.data.AuthSession.setUser(fullUser)
-                            userState = fullUser
+                    val meResponse = com.moviles.unaplanner.data.remote.RetrofitClient.apiService.getMe()
+                    if (meResponse.isSuccessful) {
+                        meResponse.body()?.let { me ->
+                            val enriched = if (!me.token.isNullOrBlank()) me else me.copy(token = u.token)
+                            // JWT-backed studentId from the current session is authoritative
+                            val finalEnriched = enriched.copy(
+                                studentId = u.studentId ?: enriched.studentId
+                            )
+                            com.moviles.unaplanner.data.AuthSession.setUser(finalEnriched)
+                            userState = finalEnriched
                         }
                     }
                 } catch (e: Exception) {
-                    // Fallback silencioso
+                    // Fallback silencioso — continúa con datos del login
                 }
             }
-            mallaViewModel.loadStudentCurriculum(u.id)
+            val sid = com.moviles.unaplanner.data.AuthSession.studentId ?: return@LaunchedEffect
+            mallaViewModel.loadStudentCurriculum(sid)
         }
     }
 

@@ -122,7 +122,7 @@ fun MallaScreen(
     viewModel: MallaViewModel,
     onCourseClick: (courseId: Int) -> Unit = {}
 ) {
-    val userId = AuthSession.currentUser?.id
+    val userId = AuthSession.studentId
 
     val careerName by viewModel.careerName.collectAsStateWithLifecycle()
     val curriculumState by viewModel.curriculumState.collectAsStateWithLifecycle()

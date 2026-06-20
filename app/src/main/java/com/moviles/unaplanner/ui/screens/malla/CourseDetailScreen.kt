@@ -42,7 +42,7 @@ fun CourseDetailScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val saveState by viewModel.saveState.collectAsStateWithLifecycle()
-    val userId = AuthSession.currentUser?.id
+    val userId = AuthSession.studentId
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(courseId) {
@@ -135,7 +135,7 @@ private fun CourseDetailContent(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Info", "Evaluaciones", "Notas")
-    val userId = AuthSession.currentUser?.id
+    val userId = AuthSession.studentId
 
     // Load notes when that tab becomes active
     LaunchedEffect(selectedTab) {
@@ -221,7 +221,7 @@ private fun InfoTab(detail: CourseDetailDto, viewModel: CourseDetailViewModel, c
     val showTeacherInfo = detail.status == "EnCurso" || detail.status == "Aprobado"
     val isEnCurso = detail.status == "EnCurso"
     val saveState by viewModel.saveState.collectAsStateWithLifecycle()
-    val userId = AuthSession.currentUser?.id
+    val userId = AuthSession.studentId
     var showEditDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
@@ -421,7 +421,7 @@ private fun NotesTab(
     onCreateNote: () -> Unit
 ) {
     val notesState by viewModel.notesState.collectAsStateWithLifecycle()
-    val userId = AuthSession.currentUser?.id
+    val userId = AuthSession.studentId
 
     Box(modifier = Modifier.fillMaxSize().background(BackgroundLight)) {
         when (val s = notesState) {
