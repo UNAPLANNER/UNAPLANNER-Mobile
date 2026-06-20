@@ -56,6 +56,7 @@ object AppConstants {
             const val CHANGE_PASSWORD = "api/profile/{id}/change-password"
             const val CAREERS = "api/careers"
             const val ADMIN_CAREERS = "api/admin/careers"
+            const val ADMIN_DASHBOARD = "api/admin/dashboard"
             const val ADMIN_CAREER_OPERATIONS = "api/admin/careers/{id}"
             const val STUDY_PLAN_DETAIL = "api/study-plans/{id}"
             const val STUDY_PLAN_COURSES = "api/study-plans/{id}/courses"

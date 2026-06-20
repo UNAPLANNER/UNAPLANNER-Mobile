@@ -21,6 +21,9 @@ interface ApiService {
     @GET(AppConstants.Api.Paths.ADMIN_CAREERS)
     suspend fun getCareers(): Response<List<Career>>
 
+    @GET(AppConstants.Api.Paths.ADMIN_DASHBOARD)
+    suspend fun getAdminDashboard(): Response<AdminDashboard>
+
     @POST(AppConstants.Api.Paths.ADMIN_CAREERS)
     suspend fun createCareer(@Body request: CreateCareerRequest): Response<Career>
 

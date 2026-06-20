@@ -3,6 +3,7 @@ package com.moviles.unaplanner.data.repository
 import com.moviles.unaplanner.data.remote.ApiService
 import com.moviles.unaplanner.data.remote.ContactApiService
 import com.moviles.unaplanner.data.remote.RetrofitClient
+import com.moviles.unaplanner.data.remote.model.AdminDashboard
 import com.moviles.unaplanner.data.remote.model.CampusContact
 import com.moviles.unaplanner.data.remote.model.Career
 import com.moviles.unaplanner.data.remote.model.ChangePasswordRequest
@@ -78,6 +79,19 @@ class AdminRepository(
             } else {
                 val errorMsg = response.errorBody()?.string()
                 ApiResult.Error(errorMsg ?: updateCareerErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun getDashboard(): ApiResult<AdminDashboard> {
+        return try {
+            val response = apiService.getAdminDashboard()
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error(dashboardErrorMessage(response.code()), response.code())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error de red")
@@ -247,6 +261,15 @@ class AdminRepository(
             409 -> "Ya existe una carrera con ese codigo."
             500 -> "Error del servidor al actualizar la carrera."
             else -> "Error al actualizar la carrera: $statusCode"
+        }
+    }
+
+    private fun dashboardErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            401, 403 -> "No tienes permisos para consultar el dashboard."
+            404 -> "No se encontro el perfil administrativo."
+            500 -> "Error del servidor al obtener el dashboard."
+            else -> "Error al obtener el dashboard: $statusCode"
         }
     }
 
