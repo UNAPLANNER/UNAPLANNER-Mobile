@@ -13,11 +13,11 @@ object RetrofitClient {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    // Interceptor para añadir el Token Bearer automáticamente
+    // Interceptor to automatically add the Bearer Token
     private val authInterceptor = Interceptor { chain ->
         val requestBuilder = chain.request().newBuilder()
-        
-        // Si tenemos un usuario en sesión con token, lo añadimos
+
+        // If we have a logged-in user with a token, we add it
         AuthSession.currentUser?.token?.let { token ->
             requestBuilder.addHeader("Authorization", "Bearer $token")
         }
@@ -64,5 +64,14 @@ object RetrofitClient {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(CurriculumApiService::class.java)
+    }
+
+    val notificationApiService: NotificationApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(AppConstants.Api.BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(NotificationApiService::class.java)
     }
 }

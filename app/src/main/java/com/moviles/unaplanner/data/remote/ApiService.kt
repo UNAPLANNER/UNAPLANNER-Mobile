@@ -63,7 +63,7 @@ interface ApiService {
 
     @GET(AppConstants.Api.Paths.STUDENT_NOTES)
     suspend fun getStudentNotes(
-        @Path("id") userId: Int,
+        @Path("id") studentId: Int,
         @Query("courseId") courseId: Int? = null
     ): Response<NotesResponse>
 

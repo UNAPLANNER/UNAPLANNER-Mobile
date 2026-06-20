@@ -59,7 +59,7 @@ fun AddActivityScreen(
     
     // Reminder
     var hasReminder by remember { mutableStateOf(false) }
-    var reminderDate by remember { mutableStateOf(LocalDate.now().minusDays(1)) }
+    var reminderDate by remember { mutableStateOf(LocalDate.now()) }
     var showReminderPicker by remember { mutableStateOf(false) }
 
     val activityTypes = listOf("Examen", "Tarea", "Proyecto", "Exposición", "Evento", "Otro")
@@ -73,7 +73,7 @@ fun AddActivityScreen(
 
     // Load courses on startup
     LaunchedEffect(Unit) {
-        viewModel.loadStudentCourses(studentId)
+        viewModel.loadInProgressCourses(studentId)
         if (isEditing && eventId != null) {
             viewModel.loadEventDetail(studentId, eventId)
         }
@@ -203,7 +203,7 @@ fun AddActivityScreen(
                             readOnly = true,
                             placeholder = { Text("Selecciona un curso", color = Color.Gray.copy(alpha = 0.5f)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                            modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
                             shape = RoundedCornerShape(12.dp),
                             colors = textFieldColors,
                             textStyle = TextStyle(fontSize = 16.sp, color = TextPrimary),
@@ -258,6 +258,7 @@ fun AddActivityScreen(
                 }
 
                 Text("Tipo de Actividad", fontWeight = FontWeight.Bold, color = NavyBlue, fontSize = 14.sp)
+                @OptIn(ExperimentalLayoutApi::class)
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -433,13 +434,13 @@ fun AddActivityScreen(
         }
     }
     if (showDatePicker) {
+        val todayUtcMillis = LocalDate.now().atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = System.currentTimeMillis(),
+            initialSelectedDateMillis = selectedDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli(),
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    // Permite seleccionar solo desde hoy en adelante
-                    // Restamos un pequeño margen para asegurar que "hoy" sea seleccionable en todas las zonas horarias
-                    return utcTimeMillis >= System.currentTimeMillis() - 86400000
+                    // Allows selection only from today onwards (UTC)
+                    return utcTimeMillis >= todayUtcMillis
                 }
             }
         )
@@ -465,16 +466,16 @@ fun AddActivityScreen(
 
     //Dialogue for Reminder Date
     if (showReminderPicker) {
+        val todayUtcMillis = LocalDate.now().atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = System.currentTimeMillis(),
+            initialSelectedDateMillis = reminderDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli(),
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    // El recordatorio no puede ser antes de hoy
-                    val today = System.currentTimeMillis() - 86400000
-                    // Además, el recordatorio no puede ser después de la fecha de la actividad
+                    // The reminder cannot be earlier than today.
+                    // Also, the reminder cannot be after the date of the activity.
                     val activityDateMillis = selectedDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
                     
-                    return utcTimeMillis >= today && utcTimeMillis <= activityDateMillis
+                    return utcTimeMillis >= todayUtcMillis && utcTimeMillis <= activityDateMillis
                 }
             }
         )
