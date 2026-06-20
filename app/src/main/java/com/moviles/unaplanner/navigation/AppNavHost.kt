@@ -133,6 +133,7 @@ fun AppNavHost() {
                 initialIndex = initialIndex,
                 onLogout = {
                     mallaViewModel.clearForNewSession()
+                    progressViewModel.clearForNewSession()
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.MAIN) { inclusive = true }
                     }
@@ -153,7 +154,7 @@ fun AppNavHost() {
                     navController.navigate(AppDestinations.PROGRESO)
                 },
                 onNavigateToNotifications = {
-                    // Ahora se maneja internamente en MainScreen como un overlay
+                    // Now handled internally in MainScreen as an overlay
                 },
                 onNavigateToCourseDetail = { courseId ->
                     navController.navigate(AppDestinations.createCourseDetailRoute(courseId))
@@ -208,10 +209,21 @@ fun AppNavHost() {
         }
 
         // --- NOTE EDITING/CREATION SCREEN ---
-        composable(route = AppDestinations.NOTE_EDIT) { backStackEntry ->
+        composable(
+            route = AppDestinations.NOTE_EDIT,
+            arguments = listOf(
+                androidx.navigation.navArgument("noteId") { type = androidx.navigation.NavType.StringType },
+                androidx.navigation.navArgument("courseId") {
+                    type = androidx.navigation.NavType.IntType
+                    defaultValue = -1
+                }
+            )
+        ) { backStackEntry ->
             val noteId = backStackEntry.arguments?.getString("noteId")
+            val preselectedCourseId = backStackEntry.arguments?.getInt("courseId")?.takeIf { it > 0 }
             NoteEditorScreen(
                 noteId = noteId,
+                preselectedCourseId = preselectedCourseId,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -314,7 +326,11 @@ fun AppNavHost() {
                 courseId = courseId,
                 onBack = { navController.popBackStack() },
                 onNavigateToNoteEdit = { noteId ->
-                    navController.navigate(AppDestinations.createNoteEditRoute(noteId))
+                    if (noteId == null) {
+                        navController.navigate(AppDestinations.createNoteWithCourseRoute(courseId))
+                    } else {
+                        navController.navigate(AppDestinations.createNoteEditRoute(noteId))
+                    }
                 },
                 viewModel = courseDetailViewModel
             )

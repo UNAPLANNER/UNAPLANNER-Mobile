@@ -84,6 +84,7 @@ fun MainScreen(
                         }
                     }
                 } catch (e: Exception) {
+                    // Fallback silencioso — continúa con datos del login
                 }
             }
             val sid = com.moviles.unaplanner.data.AuthSession.studentId ?: return@LaunchedEffect
@@ -166,69 +167,9 @@ fun MainScreen(
                     selectedIndex = selectedIndex,
                     onItemSelected = { selectedIndex = it }
                 )
-            }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                when (selectedIndex) {
-                    0 -> HomeScreen(
-                        onNavigateToTab = { index -> selectedIndex = index },
-                        onNavigateToProgreso = onNavigateToProgreso
-                    )
-                    1 -> CalendarScreen(
-                        viewModel = calendarViewModel,
-                        onAddActivity = onNavigateToAddActivity,
-                        onEditActivity = onNavigateToEditActivity
-                    )
-                    2 -> MallaScreen(viewModel = mallaViewModel, onCourseClick = onNavigateToCourseDetail)
-                    3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
-                    4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
-                }
-            }
-        }
-
-        // Overlay de Notificaciones (Top Sheet)
-        if (showNotifications) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .zIndex(10f)
-            ) {
-                // Dark background clickable to close
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .clickable(
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                            indication = null
-                        ) { showNotifications = false }
-                )
-
-                // Animated Notification Panel
-                AnimatedVisibility(
-                    visible = showNotifications,
-                    enter = slideInVertically(
-                        initialOffsetY = { -it },
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMediumLow
-                        )
-                    ),
-                    exit = slideOutVertically(
-                        targetOffsetY = { -it },
-                        animationSpec = tween(durationMillis = 300)
-                    ) + fadeOut(animationSpec = tween(durationMillis = 300)),
-                    modifier = Modifier.align(Alignment.TopCenter)
-                ) {
-                    NotificationScreen(
-                        viewModel = notificationViewModel,
-                        onBack = { showNotifications = false }
-                    )
-                }
+                2 -> MallaScreen(viewModel = mallaViewModel, onCourseClick = onNavigateToCourseDetail)
+                3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
+                4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
             }
         }
     }

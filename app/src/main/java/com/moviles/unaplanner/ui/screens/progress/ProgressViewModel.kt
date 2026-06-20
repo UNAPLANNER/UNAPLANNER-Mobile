@@ -39,9 +39,17 @@ class ProgressViewModel(private val repository: CurriculumRepository) : ViewMode
     private val _uiState = MutableStateFlow<ProgressUiState>(ProgressUiState.Idle)
     val uiState: StateFlow<ProgressUiState> = _uiState
 
+    private var lastLoadedStudentId: Int? = null
+
+    fun clearForNewSession() {
+        lastLoadedStudentId = null
+        _uiState.value = ProgressUiState.Idle
+    }
+
     fun load() {
-        if (_uiState.value is ProgressUiState.Success) return
         val userId = AuthSession.studentId ?: return
+        if (_uiState.value is ProgressUiState.Success && lastLoadedStudentId == userId) return
+        lastLoadedStudentId = userId
         viewModelScope.launch {
             _uiState.value = ProgressUiState.Loading
 
@@ -82,10 +90,10 @@ class ProgressViewModel(private val repository: CurriculumRepository) : ViewMode
     private suspend fun resolveCareerName(userId: Int): String {
         val careerId = AuthSession.currentUser?.careerId
             ?: repository.getStudentProfile(userId).getOrNull()?.careerId
-            ?: return "Ingeniería en Sistemas de Información"
+            ?: return ""
         return repository.getCareers().getOrNull()
             ?.find { it.id == careerId }?.name
-            ?: "Ingeniería en Sistemas de Información"
+            ?: ""
     }
 
     private fun computeAreaProgress(courses: List<StudentCourseProgressDto>): List<AreaProgress> {

@@ -31,6 +31,7 @@ import com.moviles.unaplanner.ui.theme.*
 @Composable
 fun NoteEditorScreen(
     noteId: String?,
+    preselectedCourseId: Int? = null,
     onNavigateBack: () -> Unit,
     viewModel: NotesViewModel
 ) {
@@ -59,6 +60,13 @@ fun NoteEditorScreen(
                 selectedCourse = it.course
                 noteCourseName = it.displayCourseName
             }
+        }
+    }
+
+    // Pre-seleccionar el curso cuando viene desde el detalle de un curso
+    LaunchedEffect(studentCourses, preselectedCourseId) {
+        if (preselectedCourseId != null && selectedCourse == null && studentCourses.isNotEmpty()) {
+            selectedCourse = studentCourses.find { it.id == preselectedCourseId }
         }
     }
 
