@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -50,6 +51,7 @@ fun CalendarScreen(
 ) {
     val uiState by viewModel.calendarState.collectAsStateWithLifecycle()
     val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
+    val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
     val studentId = AuthSession.currentUser?.id ?: 1
 
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
@@ -84,8 +86,37 @@ fun CalendarScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF5F7FA))
-                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
+            // Offline banner
+            if (isOffline) {
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.WifiOff,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Text(
+                            text = "Sin conexión — mostrando datos en caché",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
             when (val state = uiState) {
                 is CalendarUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -112,7 +143,8 @@ fun CalendarScreen(
                     }
                 }
             }
-        }
+            } // closes internal column
+        } // closes external Column
 
         // Success Toast
         AnimatedVisibility(
