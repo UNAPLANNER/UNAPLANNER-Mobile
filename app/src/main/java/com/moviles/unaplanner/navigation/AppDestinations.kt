@@ -30,4 +30,7 @@ object AppDestinations {
 
     fun createNoteEditRoute(noteId: Int?) = if (noteId != null) "note_edit/$noteId" else "note_edit/new"
     fun createEditActivityRoute(eventId: Int) = "edit_activity/$eventId"
+
+    const val COURSE_DETAIL = "course_detail/{courseId}"
+    fun createCourseDetailRoute(courseId: Int) = "course_detail/$courseId"
 }

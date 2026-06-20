@@ -11,9 +11,9 @@ import java.io.IOException
 class NotesRepository(
     private val apiService: ApiService = RetrofitClient.apiService
 ) {
-    suspend fun getStudentNotes(userId: Int): ApiResult<List<NoteDto>> {
+    suspend fun getStudentNotes(studentId: Int): ApiResult<List<NoteDto>> {
         return try {
-            val response = apiService.getStudentNotes(userId)
+            val response = apiService.getStudentNotes(studentId)
             if (response.isSuccessful) {
                 val notesResponse = response.body()
                 if (notesResponse != null) {
@@ -31,9 +31,9 @@ class NotesRepository(
         }
     }
 
-    suspend fun createNote(userId: Int, request: CreateNoteRequest): ApiResult<NoteDto> {
+    suspend fun createNote(studentId: Int, request: CreateNoteRequest): ApiResult<NoteDto> {
         return try {
-            val response = apiService.createNote(userId, request)
+            val response = apiService.createNote(studentId, request)
             if (response.isSuccessful) {
                 val note = response.body()
                 if (note != null) {
@@ -51,9 +51,9 @@ class NotesRepository(
         }
     }
 
-    suspend fun getStudentCourses(userId: Int): ApiResult<List<CourseDto>> {
+    suspend fun getStudentCourses(studentId: Int): ApiResult<List<CourseDto>> {
         return try {
-            val response = apiService.getStudentCourses(userId)
+            val response = apiService.getStudentCourses(studentId)
             if (response.isSuccessful) {
                 val coursesResponse = response.body()
                 if (coursesResponse != null) {
@@ -66,6 +66,23 @@ class NotesRepository(
             }
         } catch (e: Exception) {
             ApiResult.Error("Error: ${e.message}")
+        }
+    }
+
+    suspend fun getNotesByCourse(studentId: Int, courseId: Int): ApiResult<List<NoteDto>> {
+        return try {
+            val response = apiService.getStudentNotes(studentId, courseId)
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null) ApiResult.Success(body.data)
+                else ApiResult.Error("Respuesta vacía del servidor")
+            } else {
+                ApiResult.Error("Error al obtener notas: ${response.code()}")
+            }
+        } catch (e: IOException) {
+            ApiResult.Error("Error de red: ${e.message}")
+        } catch (e: Exception) {
+            ApiResult.Error("Error inesperado: ${e.message}")
         }
     }
 
@@ -82,9 +99,9 @@ class NotesRepository(
         }
     }
 
-    suspend fun deleteNote(noteId: Int, userId: Int): ApiResult<Unit> {
+    suspend fun deleteNote(noteId: Int): ApiResult<Unit> {
         return try {
-            val response = apiService.deleteNote(noteId, userId)
+            val response = apiService.deleteNote(noteId)
             if (response.isSuccessful) {
                 ApiResult.Success(Unit)
             } else {

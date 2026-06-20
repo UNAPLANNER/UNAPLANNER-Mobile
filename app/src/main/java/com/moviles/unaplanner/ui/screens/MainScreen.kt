@@ -45,6 +45,7 @@ fun MainScreen(
     onNavigateToEditActivity: (Int) -> Unit,
     onNavigateToProgreso: () -> Unit,
     onNavigateToNotifications: () -> Unit,
+    onNavigateToCourseDetail: (Int) -> Unit = {},
     notesViewModel: NotesViewModel,
     calendarViewModel: StudentCalendarViewModel,
     mallaViewModel: MallaViewModel,
@@ -67,21 +68,26 @@ fun MainScreen(
     // Load notes and courses when navigating to the notes tab
     LaunchedEffect(userState) {
         userState?.let { u ->
-            // If the name is not in the session or is null, we retrieve it from the full profile
-            if (u.fullName.isNullOrBlank()) {
+            // If the session is missing studentId or fullName, refresh from /me
+            if (u.studentId == null || u.fullName.isNullOrBlank()) {
                 try {
-                    val response = com.moviles.unaplanner.data.remote.RetrofitClient.apiService.getProfile(u.id)
-                    if (response.isSuccessful) {
-                        response.body()?.let { fullUser ->
-                            com.moviles.unaplanner.data.AuthSession.setUser(fullUser)
-                            userState = fullUser
+                    val meResponse = com.moviles.unaplanner.data.remote.RetrofitClient.apiService.getMe()
+                    if (meResponse.isSuccessful) {
+                        meResponse.body()?.let { me ->
+                            val enriched = if (!me.token.isNullOrBlank()) me else me.copy(token = u.token)
+                            // JWT-backed studentId from the current session is authoritative
+                            val finalEnriched = enriched.copy(
+                                studentId = u.studentId ?: enriched.studentId
+                            )
+                            com.moviles.unaplanner.data.AuthSession.setUser(finalEnriched)
+                            userState = finalEnriched
                         }
                     }
                 } catch (e: Exception) {
-
                 }
             }
-            mallaViewModel.loadStudentCurriculum(u.id)
+            val sid = com.moviles.unaplanner.data.AuthSession.studentId ?: return@LaunchedEffect
+            mallaViewModel.loadStudentCurriculum(sid)
         }
     }
 
@@ -223,6 +229,14 @@ fun MainScreen(
                         onBack = { showNotifications = false }
                     )
                 }
+                1 -> CalendarScreen(
+                    viewModel = calendarViewModel,
+                    onAddActivity = onNavigateToAddActivity,
+                    onEditActivity = onNavigateToEditActivity
+                )
+                2 -> MallaScreen(viewModel = mallaViewModel, onCourseClick = onNavigateToCourseDetail)
+                3 -> NotesScreen(onNavigateToEdit = onNavigateToNoteEdit, viewModel = notesViewModel)
+                4 -> CampusContactsListScreen(onContactClick = onNavigateToContactDetail)
             }
         }
     }

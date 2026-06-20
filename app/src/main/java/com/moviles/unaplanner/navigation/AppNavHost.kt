@@ -28,6 +28,8 @@ import com.moviles.unaplanner.ui.screens.notes.NotesViewModel
 import com.moviles.unaplanner.ui.screens.calendar.AddActivityScreen
 import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
+import com.moviles.unaplanner.ui.screens.malla.CourseDetailViewModel
+import com.moviles.unaplanner.ui.screens.malla.CourseDetailScreen
 import com.moviles.unaplanner.ui.screens.progress.AcademicProgressScreen
 import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
 import com.moviles.unaplanner.ui.screens.notifications.NotificationScreen
@@ -132,6 +134,7 @@ fun AppNavHost() {
             MainScreen(
                 initialIndex = initialIndex,
                 onLogout = {
+                    mallaViewModel.clearForNewSession()
                     navController.navigate(AppDestinations.WELCOME) {
                         popUpTo(AppDestinations.MAIN) { inclusive = true }
                     }
@@ -153,6 +156,8 @@ fun AppNavHost() {
                 },
                 onNavigateToNotifications = {
                     // Ahora se maneja internamente en MainScreen como un overlay
+                onNavigateToCourseDetail = { courseId ->
+                    navController.navigate(AppDestinations.createCourseDetailRoute(courseId))
                 },
                 notesViewModel = notesViewModel,
                 calendarViewModel = calendarViewModel,
@@ -289,6 +294,28 @@ fun AppNavHost() {
             NotificationScreen(
                 viewModel = notificationViewModel,
                 onBack = { navController.popBackStack() }
+        // --- COURSE DETAIL SCREEN ---
+        composable(
+            route = AppDestinations.COURSE_DETAIL,
+            arguments = listOf(navArgument("courseId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val courseId = backStackEntry.arguments?.getInt("courseId") ?: 0
+            val courseDetailViewModel: CourseDetailViewModel = viewModel(
+                key = "course_detail_$courseId",
+                factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                        @Suppress("UNCHECKED_CAST")
+                        return CourseDetailViewModel(AppContainer.curriculumRepository) as T
+                    }
+                }
+            )
+            CourseDetailScreen(
+                courseId = courseId,
+                onBack = { navController.popBackStack() },
+                onNavigateToNoteEdit = { noteId ->
+                    navController.navigate(AppDestinations.createNoteEditRoute(noteId))
+                },
+                viewModel = courseDetailViewModel
             )
         }
     }
