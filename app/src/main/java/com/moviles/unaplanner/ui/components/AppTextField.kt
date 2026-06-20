@@ -34,6 +34,7 @@ fun AppTextField(
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailingIcon: @Composable (() -> Unit)? = null,
     readOnly: Boolean = false,
     singleLine: Boolean = true,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
@@ -78,6 +79,7 @@ fun AppTextField(
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = keyboardOptions,
                 visualTransformation = visualTransformation,
+                trailingIcon = trailingIcon,
 
 
                 colors = OutlinedTextFieldDefaults.colors(

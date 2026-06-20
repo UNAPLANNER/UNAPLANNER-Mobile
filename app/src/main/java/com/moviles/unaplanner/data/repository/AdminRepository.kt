@@ -11,6 +11,7 @@ import com.moviles.unaplanner.data.remote.model.CreateCareerRequest
 import com.moviles.unaplanner.data.remote.model.CreateStudyPlanCourseRequest
 import com.moviles.unaplanner.data.remote.model.StudyPlanDetail
 import com.moviles.unaplanner.data.remote.model.UpdateCareerRequest
+import com.moviles.unaplanner.data.remote.model.UpdateStudyPlanCourseRequest
 import com.moviles.unaplanner.data.remote.model.UpdateProfileRequest
 import com.moviles.unaplanner.data.remote.model.UserDto
 
@@ -128,6 +129,40 @@ class AdminRepository(
         }
     }
 
+    suspend fun updateStudyPlanCourse(
+        studyPlanId: Int,
+        courseId: Int,
+        request: UpdateStudyPlanCourseRequest
+    ): ApiResult<StudyPlanDetail> {
+        return try {
+            val response = apiService.updateStudyPlanCourse(studyPlanId, courseId, request)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string()
+                ApiResult.Error(errorMsg ?: updateStudyPlanCourseErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
+    suspend fun deleteStudyPlanCourse(
+        studyPlanId: Int,
+        courseId: Int
+    ): ApiResult<StudyPlanDetail> {
+        return try {
+            val response = apiService.deleteStudyPlanCourse(studyPlanId, courseId)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error(deleteStudyPlanCourseErrorMessage(response.code()), response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
+        }
+    }
+
     suspend fun getProfile(id: Int): ApiResult<UserDto> {
         return try {
             val response = apiService.getProfile(id)
@@ -164,6 +199,19 @@ class AdminRepository(
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Error desconocido")
+        }
+    }
+
+    suspend fun getCampusContact(id: Int): ApiResult<CampusContact> {
+        return try {
+            val response = contactApiService.getCampusContact(id)
+            if (response.isSuccessful) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error("Error al obtener el contacto")
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de red")
         }
     }
 
@@ -290,6 +338,26 @@ class AdminRepository(
             409 -> "Ya existe un curso con ese codigo."
             500 -> "Error del servidor al crear el curso."
             else -> "Error al crear el curso: $statusCode"
+        }
+    }
+
+    private fun updateStudyPlanCourseErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            400 -> "Revisa los datos del curso."
+            401, 403 -> "No tienes permisos para actualizar cursos."
+            404 -> "No se encontro el curso en el plan."
+            409 -> "Ya existe un curso con ese codigo."
+            500 -> "Error del servidor al actualizar el curso."
+            else -> "Error al actualizar el curso: $statusCode"
+        }
+    }
+
+    private fun deleteStudyPlanCourseErrorMessage(statusCode: Int): String {
+        return when (statusCode) {
+            401, 403 -> "No tienes permisos para eliminar cursos."
+            404 -> "No se encontro el curso en el plan."
+            500 -> "Error del servidor al eliminar el curso."
+            else -> "Error al eliminar el curso: $statusCode"
         }
     }
 }

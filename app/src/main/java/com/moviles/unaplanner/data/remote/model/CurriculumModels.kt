@@ -59,3 +59,39 @@ data class UpdateCourseStatusRequest(
     val semester: Int? = null,
     val year: Int? = null
 )
+
+data class PrerequisiteDto(
+    val courseId: Int,
+    val code: String?,
+    val name: String?,
+    val type: String?,
+    val isPassed: Boolean
+)
+
+data class CourseDetailDto(
+    val courseId: Int,
+    val code: String,
+    val name: String,
+    val credits: Int,
+    val theoryHours: Int?,
+    val practiceHours: Int?,
+    val labHours: Int?,
+    val level: Int,
+    val term: Int,
+    val status: String,
+    val finalGrade: Double?,
+    val enrolledDetailId: Int?,
+    val professorName: String?,
+    val classroom: String?,
+    val schedule: String?,
+    val syllabusUrl: String?,
+    val prerequisites: List<PrerequisiteDto>?,
+    val evaluations: List<EvaluationDto>? = emptyList()
+)
+
+data class EnrolledCourseDetailRequest(
+    val professorName: String?,
+    val classroom: String?,
+    val schedule: String?,
+    val syllabusUrl: String?
+)

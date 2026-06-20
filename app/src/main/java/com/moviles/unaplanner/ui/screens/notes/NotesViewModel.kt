@@ -7,6 +7,7 @@ import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.data.remote.model.CourseDto
 import com.moviles.unaplanner.data.remote.model.CreateNoteRequest
 import com.moviles.unaplanner.data.remote.model.NoteDto
+import com.moviles.unaplanner.data.remote.model.StudentCourseProgressDto
 import com.moviles.unaplanner.data.remote.model.UpdateNoteRequest
 import com.moviles.unaplanner.data.repository.ApiResult
 import com.moviles.unaplanner.data.repository.NotesRepository
@@ -17,7 +18,12 @@ import kotlinx.coroutines.launch
 
 sealed class NotesUiState {
     object Loading : NotesUiState()
-    data class Success(val notes: List<NoteDto>, val filteredNotes: List<NoteDto>, val courses: List<String>) : NotesUiState()
+    data class Success(
+        val notes: List<NoteDto>,
+        val filteredNotes: List<NoteDto>,
+        val courses: List<String>,
+        val selectedCourse: String
+    ) : NotesUiState()
     data class Error(val message: String) : NotesUiState()
     object Empty : NotesUiState()
 }
@@ -40,8 +46,8 @@ class NotesViewModel(
     private val _editorState = MutableStateFlow<NoteEditorUiState>(NoteEditorUiState.Idle)
     val editorState: StateFlow<NoteEditorUiState> = _editorState.asStateFlow()
 
-    private val _studentCourses = MutableStateFlow<List<CourseDto>>(emptyList())
-    val studentCourses: StateFlow<List<CourseDto>> = _studentCourses.asStateFlow()
+    private val _studentCourses = MutableStateFlow<List<StudentCourseProgressDto>>(emptyList())
+    val studentCourses: StateFlow<List<StudentCourseProgressDto>> = _studentCourses.asStateFlow()
 
     private var allNotes: List<NoteDto> = emptyList()
     private var selectedCourse: String = "Todas"
@@ -60,9 +66,9 @@ class NotesViewModel(
      */
     private suspend fun refreshNotesFromServer(): ApiResult<List<NoteDto>> {
         val user = AuthSession.currentUser ?: return ApiResult.Error("Sesión no iniciada")
-        
-        Log.d("NotesViewModel", "Refrescando notas para el usuario ID: ${user.id}")
-        val result = repository.getStudentNotes(user.id)
+        val sid = AuthSession.studentId ?: return ApiResult.Error("Sesión de estudiante no disponible")
+        Log.d("NotesViewModel", "Refrescando notas para el estudiante ID: $sid")
+        val result = repository.getStudentNotes(sid)
         
         if (result is ApiResult.Success) {
             allNotes = result.data
@@ -77,17 +83,12 @@ class NotesViewModel(
         _uiState.value = NotesUiState.Loading
         viewModelScope.launch {
             try {
-                when (val result = refreshNotesFromServer()) {
-                    is ApiResult.Success -> {
-                        if (allNotes.isEmpty()) {
-                            _uiState.value = NotesUiState.Empty
-                        }
-                    }
-                    is ApiResult.Error -> {
-                        Log.e("NotesViewModel", "Error al obtener notas: ${result.message}")
-                        _uiState.value = NotesUiState.Error(result.message)
-                    }
+                val result = refreshNotesFromServer()
+                if (result is ApiResult.Error) {
+                    Log.e("NotesViewModel", "Error al obtener notas: ${result.message}")
+                    _uiState.value = NotesUiState.Error(result.message)
                 }
+                // updateState() ya es llamado dentro de refreshNotesFromServer si es Success
             } catch (e: Exception) {
                 Log.e("NotesViewModel", "Excepción al cargar notas", e)
                 _uiState.value = NotesUiState.Error("Error inesperado: ${e.localizedMessage}")
@@ -99,15 +100,17 @@ class NotesViewModel(
         val user = AuthSession.currentUser ?: return
         viewModelScope.launch {
             try {
-                val result = repository.getStudentCourses(user.id)
+                val studentId = AuthSession.studentId ?: return@launch
+                // Obtenemos los cursos con su estado actual de la malla
+                val result = repository.getStudentEnrolledCourses(studentId)
                 when (result) {
                     is ApiResult.Success -> {
-                        _studentCourses.value = result.data
-                        Log.d("NotesViewModel", "Cursos cargados: ${result.data.size} cursos")
-                        // Actualizar UI para incluir los nuevos nombres de cursos en los filtros si es necesario
-                        if (_uiState.value is NotesUiState.Success || _uiState.value is NotesUiState.Empty) {
-                            updateState()
-                        }
+                        // Filtramos solo los cursos que están "EnCurso"
+                        val enrolledCourses = result.data.filter { it.status == "EnCurso" }
+                        _studentCourses.value = enrolledCourses
+                        Log.d("NotesViewModel", "Cursos EnCurso cargados: ${enrolledCourses.size}")
+
+                        updateState()
                     }
                     is ApiResult.Error -> {
                         Log.e("NotesViewModel", "Error al cargar cursos: ${result.message}")
@@ -146,7 +149,11 @@ class NotesViewModel(
                     content = content.trim(),
                     courseId = courseId
                 )
-                val result = repository.createNote(user.id, request)
+                val studentId = AuthSession.studentId ?: run {
+                    _editorState.value = NoteEditorUiState.Error("Sesión de estudiante no disponible")
+                    return@launch
+                }
+                val result = repository.createNote(studentId, request)
                 when (result) {
                     is ApiResult.Success -> {
                         Log.d("NotesViewModel", "Nota creada, refrescando lista...")
@@ -195,8 +202,7 @@ class NotesViewModel(
     }
 
     fun deleteNote(noteId: Int) {
-        val user = AuthSession.currentUser
-        if (user == null) {
+        if (AuthSession.currentUser == null) {
             _editorState.value = NoteEditorUiState.Error("Sesión no iniciada")
             return
         }
@@ -204,11 +210,11 @@ class NotesViewModel(
         viewModelScope.launch {
             _editorState.value = NoteEditorUiState.Saving
             try {
-                val result = repository.deleteNote(noteId, user.id)
+                val result = repository.deleteNote(noteId)
                 when (result) {
                     is ApiResult.Success -> {
                         Log.d("NotesViewModel", "Nota eliminada, refrescando lista...")
-                        refreshNotesFromServer() // Refrescar ANTES de marcar éxito
+                        refreshNotesFromServer() /// Refresh BEFORE marking success
                         _editorState.value = NoteEditorUiState.Success("Nota eliminada exitosamente")
                     }
                     is ApiResult.Error -> {
@@ -236,27 +242,22 @@ class NotesViewModel(
             allNotes.filter { it.displayCourseName == selectedCourse }
         }
 
-        val coursesList = mutableListOf("Todas")
-        
-        // Agregar nombres de cursos del plan de estudio del estudiante
+        // Tabs: "Todas", "General", and the student's currently enrolled (EnCurso) courses from the API
+        val coursesList = mutableListOf("Todas", "General")
         coursesList.addAll(_studentCourses.value.map { it.name })
-        
-        // Agregar nombres de cursos que tienen notas
-        coursesList.addAll(allNotes.map { it.displayCourseName })
-        
-        // Asegurar que "General" esté siempre disponible
-        coursesList.add("General")
 
+        // We use Success to ensure that filters and the "+New" button are shown even without notes
         _uiState.value = NotesUiState.Success(
             notes = allNotes,
             filteredNotes = filtered,
-            courses = coursesList.distinct().sortedBy { 
+            courses = coursesList.distinct().sortedBy {
                 when (it) {
                     "Todas" -> "0"
                     "General" -> "1"
                     else -> "2$it"
                 }
-            }
+            },
+            selectedCourse = selectedCourse
         )
     }
 }
