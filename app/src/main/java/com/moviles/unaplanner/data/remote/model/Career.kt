@@ -40,3 +40,8 @@ data class UpdateCareerRequest(
     val officialResolution: String,
     val isStatus: Boolean
 )
+    val code: String,
+    val description: String?,
+    val totalCredits: Int,
+    val isStatus: Boolean = true
+)

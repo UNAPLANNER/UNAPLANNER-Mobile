@@ -138,6 +138,7 @@ fun AdminMainScreen(
                             viewModel = careerViewModel,
                             onEditCareer = { career -> editingCareer = career }
                         )
+                        CareerAdminContent(viewModel = careerViewModel)
                     }
                 }
                 2 -> Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
