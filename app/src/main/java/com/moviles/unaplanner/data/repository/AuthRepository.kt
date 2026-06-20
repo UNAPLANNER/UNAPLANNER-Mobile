@@ -6,6 +6,7 @@ import com.google.gson.JsonParser
 import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.data.remote.ApiService
 import com.moviles.unaplanner.data.remote.RetrofitClient
+import com.moviles.unaplanner.data.remote.model.GpaResponseDto
 import com.moviles.unaplanner.data.remote.model.LoginRequest
 import com.moviles.unaplanner.data.remote.model.UserDto
 
