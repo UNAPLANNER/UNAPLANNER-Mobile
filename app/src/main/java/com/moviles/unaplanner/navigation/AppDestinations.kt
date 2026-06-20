@@ -26,6 +26,7 @@ object AppDestinations {
     const val ADD_ACTIVITY = "add_activity"
     const val EDIT_ACTIVITY = "edit_activity/{eventId}"
     const val PROGRESO = "progreso"
+    const val NOTIFICATIONS_LIST = "notifications_list"
 
     fun createNoteEditRoute(noteId: Int?) = if (noteId != null) "note_edit/$noteId" else "note_edit/new"
     fun createEditActivityRoute(eventId: Int) = "edit_activity/$eventId"

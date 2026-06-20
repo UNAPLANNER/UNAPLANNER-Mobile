@@ -1,8 +1,11 @@
 package com.moviles.unaplanner.navigation
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -27,6 +30,8 @@ import com.moviles.unaplanner.ui.screens.calendar.StudentCalendarViewModel
 import com.moviles.unaplanner.ui.screens.malla.MallaViewModel
 import com.moviles.unaplanner.ui.screens.progress.AcademicProgressScreen
 import com.moviles.unaplanner.ui.screens.progress.ProgressViewModel
+import com.moviles.unaplanner.ui.screens.notifications.NotificationScreen
+import com.moviles.unaplanner.ui.screens.notifications.NotificationViewModel
 import com.moviles.unaplanner.data.AppContainer
 
 @Composable
@@ -34,11 +39,24 @@ fun AppNavHost() {
     val navController = rememberNavController()
     val notesViewModel: NotesViewModel = viewModel()
 
+    val notificationViewModel: NotificationViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return NotificationViewModel(AppContainer.notificationRepository) as T
+            }
+        }
+    )
+
     val calendarViewModel: StudentCalendarViewModel = viewModel(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
-                return StudentCalendarViewModel(AppContainer.calendarRepository) as T
+                return StudentCalendarViewModel(
+                    AppContainer.calendarRepository,
+                    AppContainer.networkMonitor,
+                    AppContainer.curriculumRepository
+                ) as T
             }
         }
     )
@@ -63,7 +81,7 @@ fun AppNavHost() {
 
     NavHost(
         navController = navController,
-        startDestination = AppDestinations.LOGIN,
+        startDestination = AppDestinations.WELCOME,
         modifier = Modifier.fillMaxSize()
     ) {
         // --- HOME SCREEN (WELCOME) ---
@@ -133,9 +151,13 @@ fun AppNavHost() {
                 onNavigateToProgreso = {
                     navController.navigate(AppDestinations.PROGRESO)
                 },
+                onNavigateToNotifications = {
+                    // Ahora se maneja internamente en MainScreen como un overlay
+                },
                 notesViewModel = notesViewModel,
                 calendarViewModel = calendarViewModel,
-                mallaViewModel = mallaViewModel
+                mallaViewModel = mallaViewModel,
+                notificationViewModel = notificationViewModel
             )
         }
 
@@ -244,6 +266,28 @@ fun AppNavHost() {
         composable(route = AppDestinations.PROGRESO) {
             AcademicProgressScreen(
                 viewModel = progressViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // --- NOTIFICATIONS LIST SCREEN ---
+        composable(
+            route = AppDestinations.NOTIFICATIONS_LIST,
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { -it },
+                    animationSpec = tween(durationMillis = 400)
+                ) + fadeIn(animationSpec = tween(durationMillis = 400))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { -it },
+                    animationSpec = tween(durationMillis = 400)
+                ) + fadeOut(animationSpec = tween(durationMillis = 400))
+            }
+        ) {
+            NotificationScreen(
+                viewModel = notificationViewModel,
                 onBack = { navController.popBackStack() }
             )
         }

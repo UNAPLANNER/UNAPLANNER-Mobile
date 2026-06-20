@@ -59,6 +59,13 @@ object AppConstants {
             const val CAREER_CURRICULUM = "api/careers/{id}/curriculum"
             const val STUDENT_CURRICULUM_COURSES = "api/student/{id}/curriculum/courses"
             const val STUDENT_COURSE_PROGRESS = "api/student/{id}/courses/{courseId}"
+            // Notifications
+            const val DEVICE_TOKEN = "api/users/{userId}/notifications/device-token"
+            const val NOTIFICATIONS = "api/users/{userId}/notifications"
+            const val NOTIFICATION_READ = "api/users/{userId}/notifications/{notificationId}/read"
+            const val NOTIFICATIONS_READ_ALL = "api/users/{userId}/notifications/read-all"
+            const val NOTIFICATION_DELETE = "api/users/{userId}/notifications/{notificationId}"
+            const val NOTIFICATIONS_DELETE_ALL = "api/users/{userId}/notifications"
         }
     }
 }
