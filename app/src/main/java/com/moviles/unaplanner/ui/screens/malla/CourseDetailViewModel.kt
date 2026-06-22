@@ -140,7 +140,16 @@ class CourseDetailViewModel(
         }
     }
 
-    fun addEvaluation(studentId: Int, courseId: Int, name: String, type: String, percentage: Double, date: String?, hasReminder: Boolean) {
+    fun addEvaluation(
+        studentId: Int,
+        courseId: Int,
+        name: String,
+        type: String,
+        percentage: Double,
+        date: String?,
+        hasReminder: Boolean,
+        onScheduleReminder: (EvaluationDto) -> Unit = {}
+    ) {
         if (name.isBlank()) {
             _saveState.value = SaveDetailUiState.Error("El nombre no puede estar vacío")
             return
@@ -156,6 +165,7 @@ class CourseDetailViewModel(
             when (val result = evaluationRepository.createEvaluation(studentId, courseId, request)) {
                 is ApiResult.Success -> {
                     _saveState.value = SaveDetailUiState.Success
+                    onScheduleReminder(result.data)
                     loadEvaluations(studentId, courseId)
                 }
                 is ApiResult.Error -> _saveState.value = SaveDetailUiState.Error(result.message)
@@ -172,7 +182,8 @@ class CourseDetailViewModel(
         percentage: Double,
         grade: Double?,
         date: String?,
-        hasReminder: Boolean
+        hasReminder: Boolean,
+        onScheduleReminder: (EvaluationDto) -> Unit = {}
     ) {
         if (name.isBlank()) {
             _saveState.value = SaveDetailUiState.Error("El nombre no puede estar vacío")
@@ -193,6 +204,7 @@ class CourseDetailViewModel(
             when (val result = evaluationRepository.updateEvaluation(studentId, courseId, evaluationId, request)) {
                 is ApiResult.Success -> {
                     _saveState.value = SaveDetailUiState.Success
+                    onScheduleReminder(result.data)
                     loadEvaluations(studentId, courseId)
                 }
                 is ApiResult.Error -> _saveState.value = SaveDetailUiState.Error(result.message)
@@ -200,10 +212,13 @@ class CourseDetailViewModel(
         }
     }
 
-    fun deleteEvaluation(studentId: Int, courseId: Int, evaluationId: Int) {
+    fun deleteEvaluation(studentId: Int, courseId: Int, evaluationId: Int, onCancelReminder: (Int) -> Unit = {}) {
         viewModelScope.launch {
             when (val result = evaluationRepository.deleteEvaluation(studentId, courseId, evaluationId)) {
-                is ApiResult.Success -> loadEvaluations(studentId, courseId)
+                is ApiResult.Success -> {
+                    onCancelReminder(evaluationId)
+                    loadEvaluations(studentId, courseId)
+                }
                 is ApiResult.Error -> { /* Manejar error si es necesario */ }
             }
         }

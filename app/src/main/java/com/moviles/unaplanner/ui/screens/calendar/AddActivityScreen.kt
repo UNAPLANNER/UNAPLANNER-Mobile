@@ -442,7 +442,8 @@ fun AddActivityScreen(
                                 courseId = selectedCourse?.id,
                                 hasReminder = hasReminder,
                                 reminderDate = reminderDateTime
-                            ) {
+                            ) { event ->
+                                com.moviles.unaplanner.notifications.ReminderScheduler.scheduleCalendar(context, event)
                                 viewModel.clearSelectedEvent()
                                 onBack()
                             }
@@ -456,8 +457,8 @@ fun AddActivityScreen(
                                 courseId = selectedCourse?.id,
                                 hasReminder = hasReminder,
                                 reminderDate = reminderDateTime
-                            ) {
-                                // Upon successful completion, we return to the calendar
+                            ) { event ->
+                                com.moviles.unaplanner.notifications.ReminderScheduler.scheduleCalendar(context, event)
                                 onBack()
                             }
                         }

@@ -151,7 +151,7 @@ class StudentCalendarViewModel(
         courseId: Int?,
         hasReminder: Boolean,
         reminderDate: String?,
-        onSuccess: () -> Unit
+        onSuccess: (CalendarEvent) -> Unit
     ) {
         viewModelScope.launch {
             val request = CreateCalendarEventRequest(
@@ -167,7 +167,7 @@ class StudentCalendarViewModel(
             result.onSuccess {
                 _successMessage.value = "Actividad guardada exitosamente"
                 loadStudentCalendar(studentId)
-                onSuccess()
+                onSuccess(it)
             }.onFailure { error ->
                 _errorMessage.value = error.message ?: "Error al crear el evento"
             }
@@ -184,7 +184,7 @@ class StudentCalendarViewModel(
         courseId: Int?,
         hasReminder: Boolean,
         reminderDate: String?,
-        onSuccess: () -> Unit
+        onSuccess: (CalendarEvent) -> Unit
     ) {
         viewModelScope.launch {
             val request = CreateCalendarEventRequest(
@@ -200,7 +200,7 @@ class StudentCalendarViewModel(
             result.onSuccess {
                 _successMessage.value = "Actividad guardada exitosamente"
                 loadStudentCalendar(studentId)
-                onSuccess()
+                onSuccess(it)
             }.onFailure { error ->
                 _errorMessage.value = error.message ?: "Error al actualizar la actividad"
             }

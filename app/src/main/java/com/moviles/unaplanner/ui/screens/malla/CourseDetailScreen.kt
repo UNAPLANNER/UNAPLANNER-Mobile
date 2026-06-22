@@ -230,6 +230,7 @@ private fun EvaluationsTab(
     val evaluationsState by viewModel.evaluationsState.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
     val userId = AuthSession.studentId
+    val context = LocalContext.current
 
     // EnCurso / Reprobado → editable; Aprobado → solo lectura; Pendiente → bloqueado
     val canView = courseStatus == "EnCurso" || courseStatus == "Aprobado" || courseStatus == "Reprobado"
@@ -367,10 +368,23 @@ private fun EvaluationsTab(
                                     readOnly = !canEdit,
                                     onUpdate = { name, type, percentage, grade, date, hasReminder ->
                                         userId?.let {
-                                            viewModel.updateEvaluation(it, courseId, evaluation.id, name, type, percentage, grade, date, hasReminder)
+                                            viewModel.updateEvaluation(
+                                                it, courseId, evaluation.id, name, type, percentage, grade, date, hasReminder,
+                                                onScheduleReminder = { eval ->
+                                                    com.moviles.unaplanner.notifications.ReminderScheduler.scheduleEvaluation(context, eval)
+                                                }
+                                            )
                                         }
                                     },
-                                    onDelete = { userId?.let { viewModel.deleteEvaluation(it, courseId, evaluation.id) } }
+                                    onDelete = {
+                                        userId?.let {
+                                            viewModel.deleteEvaluation(it, courseId, evaluation.id,
+                                                onCancelReminder = { id ->
+                                                    com.moviles.unaplanner.notifications.ReminderScheduler.cancelEvaluation(context, id)
+                                                }
+                                            )
+                                        }
+                                    }
                                 )
                             }
                         }
@@ -387,7 +401,13 @@ private fun EvaluationsTab(
             allEvaluations = currentEvaluations,
             onDismiss = { showAddDialog = false },
             onConfirm = { name, type, percentage, grade, date, hasReminder ->
-                userId?.let { viewModel.addEvaluation(it, courseId, name, type, percentage, date, hasReminder) }
+                userId?.let {
+                    viewModel.addEvaluation(it, courseId, name, type, percentage, date, hasReminder,
+                        onScheduleReminder = { eval ->
+                            com.moviles.unaplanner.notifications.ReminderScheduler.scheduleEvaluation(context, eval)
+                        }
+                    )
+                }
                 showAddDialog = false
             }
         )

@@ -23,9 +23,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.moviles.unaplanner.data.AuthSession
 import com.moviles.unaplanner.data.remote.model.CalendarEvent
+import com.moviles.unaplanner.notifications.ReminderScheduler
 import com.moviles.unaplanner.data.remote.model.CalendarSummaryStats
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.intl.Locale as ComposeLocale
@@ -53,6 +55,7 @@ fun CalendarScreen(
     val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
     val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
     val studentId = AuthSession.studentId ?: return
+    val context = LocalContext.current
 
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var selectedDay by remember { mutableStateOf<LocalDate?>(null) }
@@ -188,6 +191,7 @@ fun CalendarScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
+                            selectedEvent?.let { ev -> ReminderScheduler.cancelCalendar(context, ev.id) }
                             viewModel.deleteEvent(studentId, selectedEvent!!.id)
                             showDeleteConfirmation = false
                             showBottomSheet = false
